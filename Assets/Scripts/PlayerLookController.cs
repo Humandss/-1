@@ -21,8 +21,8 @@ public class PlayerLookController : MonoBehaviour
     private float pitch;
     private float bodyYaw;
     private float headYaw;
-    private float smoothTime;
-    private float headYawTime;
+    private float smoothTime; 
+    private float headYawTime; //헤드 yaw 시간
     private bool bodyYawControllable = true;
 
     private void Awake()

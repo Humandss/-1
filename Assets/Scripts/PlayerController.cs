@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// 플레이어 상태 구조체
 public struct MovementMode
 {
     public bool prone;
