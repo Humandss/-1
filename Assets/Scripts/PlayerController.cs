@@ -15,10 +15,12 @@ public struct MovementMode
 }
 public class PlayerController : MonoBehaviour
 {
-
+    [Header("Refs")]
     [SerializeField] private PlayerInputController inputController;
     [SerializeField] private PlayerMovementController movementController;
     [SerializeField] private PlayerLookController lookController;
+    [SerializeField] private WeaponRigBinder rigBinder;
+    [SerializeField] private PlayerWeaponController weaponController;
 
     [Header("PlayerControllerClassComponent")]
     [SerializeField] private PlayerMovementManager movementManager;
@@ -29,6 +31,9 @@ public class PlayerController : MonoBehaviour
         inputController=GetComponent<PlayerInputController>();
         movementController=GetComponent<PlayerMovementController>();
         lookController=GetComponent<PlayerLookController>();
+
+        rigBinder=GetComponent<WeaponRigBinder>();
+        weaponController =GetComponent<PlayerWeaponController>();
 
     }
    
@@ -45,25 +50,30 @@ public class PlayerController : MonoBehaviour
         //움직임
         bool isForward = movementManager.IsForward(inputController.Move);
         float speed = movementManager.GetSpeed(inputController.Move, movementInfo, isForward);
-        bool canJumped = movementManager.CanJump(movementInfo, inputController.Jump);
+        bool canJumpe = movementManager.CanJump(movementInfo, inputController.Jump);
         //카메라 
         float rotationSpeed = lookManager.GetRotationSpeed(movementInfo);
         float cameraPosition = lookManager.GetCameraPosition(movementInfo);
         float cameraChangeSpeed = lookManager.GetCameraChangeTime(movementInfo);
         bool isFreeLook = inputController.FreeLook;
-
         //get함수
         float mSensitivity = lookManager.GetMouseSensitivity();
         float h = movementManager.GetJumpHeight();
-      
+        //사격
+       // bool isFire- 
         //명령
-        movementController.UpdateMovement(inputController.Move, speed, canJumped, h);
+        movementController.UpdateMovement(inputController.Move, speed, canJumpe, h);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
                                   cameraChangeSpeed, mSensitivity, isFreeLook);
 
     }
     
  
+}
+[System.Serializable]
+public class PlayerActionManager
+{
+
 }
 [System.Serializable]
 public class PlayerMovementManager

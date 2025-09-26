@@ -14,8 +14,7 @@ public class PlayerInputController : MonoBehaviour
     public bool Crouch { get; private set; }
     public bool Prone { get; private set; }
     public bool FreeLook { get; private set; }
-
-    public bool LeftButton { get; private set; }
+    public bool Fire { get; private set; }
     public bool Aim { get; private set; }
     public bool Reload { get; private set; }
     
@@ -56,6 +55,9 @@ public class PlayerInputController : MonoBehaviour
         }
         
     }
+
+    public void OnFire(InputValue value) => Fire = value.isPressed;
+   
     public void OnAim(InputValue value)=>Aim = value.isPressed;
     public void OnReload(InputValue value)
     {
