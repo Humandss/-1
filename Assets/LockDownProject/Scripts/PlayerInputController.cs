@@ -4,8 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerInputController : MonoBehaviour
-{
-  
+{ 
     public Vector2 Move { get; private set; }
     public Vector2 Look { get; private set; }
     public bool Jump { get; private set; }
@@ -56,7 +55,14 @@ public class PlayerInputController : MonoBehaviour
         
     }
 
-    public void OnFire(InputValue value) => Fire = value.isPressed;
+    public void OnFire(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            Fire = true;
+        }
+
+    }
    
     public void OnAim(InputValue value)=>Aim = value.isPressed;
     public void OnReload(InputValue value)
@@ -71,5 +77,6 @@ public class PlayerInputController : MonoBehaviour
     private void LateUpdate()
     {
         Jump = false;
+        Fire = false;
     }
 }

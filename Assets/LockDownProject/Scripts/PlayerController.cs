@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using KINEMATION.FPSAnimationPack.Scripts.Player;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,32 +14,41 @@ public struct MovementMode
     public bool tacticalSprint;
 
 }
-public class PlayerController : MonoBehaviour
+public interface IMoveInfoProvider
+{
+    Vector2 GetMoveInfo();
+}
+public class PlayerController : MonoBehaviour, IMoveInfoProvider
 {
     [Header("Refs")]
     [SerializeField] private PlayerInputController inputController;
     [SerializeField] private PlayerMovementController movementController;
     [SerializeField] private PlayerLookController lookController;
-    [SerializeField] private WeaponRigBinder rigBinder;
-    [SerializeField] private PlayerWeaponController weaponController;
+
+    private PlayerWeaponController weaponController;
+    [SerializeField] private FPSPlayer player;
 
     [Header("PlayerControllerClassComponent")]
     [SerializeField] private PlayerMovementManager movementManager;
-    [SerializeField] private PlayerLookManager lookManager; 
+    [SerializeField] private PlayerLookManager lookManager;
+    [SerializeField] private PlayerActionManager actionManager;
 
     private void Awake()
     {
         inputController=GetComponent<PlayerInputController>();
         movementController=GetComponent<PlayerMovementController>();
         lookController=GetComponent<PlayerLookController>();
-
-        rigBinder=GetComponent<WeaponRigBinder>();
-        weaponController =GetComponent<PlayerWeaponController>();
+        
+        //movementManager=GetComponent<PlayerMovementManager>();
+        //lookManager=GetComponent<PlayerLookManager>();
+        weaponController = GetComponentInChildren<PlayerWeaponController>();
+        player=GetComponentInChildren<FPSPlayer>();
 
     }
    
     private void Update()
     {
+        
         //움직임 모드에 따른 상태 변화 지정
         var movementInfo = new MovementMode
         {
@@ -50,30 +60,75 @@ public class PlayerController : MonoBehaviour
         //움직임
         bool isForward = movementManager.IsForward(inputController.Move);
         float speed = movementManager.GetSpeed(inputController.Move, movementInfo, isForward);
-        bool canJumpe = movementManager.CanJump(movementInfo, inputController.Jump);
+        bool canJump = movementManager.CanJump(movementInfo, inputController.Jump);
         //카메라 
         float rotationSpeed = lookManager.GetRotationSpeed(movementInfo);
         float cameraPosition = lookManager.GetCameraPosition(movementInfo);
         float cameraChangeSpeed = lookManager.GetCameraChangeTime(movementInfo);
         bool isFreeLook = inputController.FreeLook;
+
         //get함수
         float mSensitivity = lookManager.GetMouseSensitivity();
         float h = movementManager.GetJumpHeight();
-        //사격
-       // bool isFire- 
+        //사격 및 조준
+        bool canFire = actionManager.CanFire(movementInfo, inputController.Fire);
+        //bool canAim = actionManager.CanAim(movementInfo, inputController.Aim);
+        bool canReload = actionManager.CanReload(movementInfo, inputController.Reload);
+
         //명령
-        movementController.UpdateMovement(inputController.Move, speed, canJumpe, h);
+        movementController.UpdateMovement(inputController.Move, speed, canJump, h);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
-                                  cameraChangeSpeed, mSensitivity, isFreeLook);
+                                  cameraChangeSpeed, mSensitivity, isFreeLook);  
+
+       
 
     }
-    
- 
+    public Vector2 GetMoveInfo()
+    {
+        return inputController.Move;
+    }
 }
 [System.Serializable]
 public class PlayerActionManager
 {
+    public bool CanFire(in MovementMode mode, bool isFire)
+    {
+        if(isFire)
+        {
+            if (mode.tacticalSprint) return false;
 
+            return true;
+        }
+
+        return false;
+    }
+    public bool CanAim(in MovementMode mode, bool isAim)
+    {
+        if(isAim)
+        {
+            if (mode.sprint) return false;
+
+            if (mode.tacticalSprint) return false;
+
+            return true;
+        }
+
+        return false;
+   
+        
+    }
+    public bool CanReload(in MovementMode mode, bool isReload)
+    {
+        if(isReload)
+        {
+            if (mode.tacticalSprint) return false;
+
+            return true;
+        }
+       
+
+        return false ;
+    }
 }
 [System.Serializable]
 public class PlayerMovementManager
@@ -95,7 +150,7 @@ public class PlayerMovementManager
     public float GetSpeed(Vector2 moveInfo, in MovementMode mode, bool isForward)
     {
         if(mode.prone) return proneSpeed;
-
+       
         if(mode.crouch) return crouchSpeed;
 
         if(mode.sprint && isForward) return sprintSpeed;

@@ -1,4 +1,4 @@
-
+/*
 using UnityEngine;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using System;
@@ -14,6 +14,7 @@ public struct IKTransforms
     public Transform mid;
     public Transform root;
 }
+
 public class WeaponRigBinder : MonoBehaviour
 {
     [Header("Refs")]
@@ -29,9 +30,7 @@ public class WeaponRigBinder : MonoBehaviour
     [SerializeField] private IKTransforms leftHand;
 
     [Header("Providers")]
-    private IActiveWeaponProvider activeWeaponProvider;
-    private IAnimationWeightProvider animationWeightProvider;
-    private FPSWeapon currentWeapon;
+    private WeaponSettings currentWeapon;
 
     [Header("IKData")]
     private KTwoBoneIkData rightHandIk;
@@ -44,7 +43,7 @@ public class WeaponRigBinder : MonoBehaviour
     private IKMotion activeMotion;
 
     [Header("Tuning")]
-    [SerializeField] private float handPoseWeight = 1.0f;  // 무기본 보간
+    [SerializeField] private float handPoseWeight = 1.0f;  
     [SerializeField] private float ikPosWeight = 1.0f;
     [SerializeField] private float ikRotWeight = 1.0f;
     private static Quaternion ANIMATED_OFFSET = Quaternion.Euler(90f, 0f, 0f);
@@ -55,29 +54,14 @@ public class WeaponRigBinder : MonoBehaviour
     {
 
         activeWeaponProvider = weaponControllerRef as IActiveWeaponProvider;
-        animationWeightProvider = animationControllerRef as IAnimationWeightProvider;
 
-        if (activeWeaponProvider == null )
-        {
-            Debug.LogWarning("[WeaponRigBinder] provider is NULL");
-        }
         KTransform root = new KTransform(transform);
         localCameraPoint = root.GetRelativeTransform(new KTransform(cameraPoint), false);
 
-        //현재 실행 중인 무기가 있다면 rig 업데이트
-        if(activeWeaponProvider.ActiveWeapon!=null)
-        {
-            UpdateWeaponRig(activeWeaponProvider.ActiveWeapon);
-        }
-        //OnActiveWeaponChanged 실행될 때마다 업데이트
-        if (activeWeaponProvider !=null)
-        {
-            activeWeaponProvider.OnActiveWeaponChanged += UpdateWeaponRig;
-        }
 
     }
     
-    private void UpdateWeaponRig(FPSWeapon weapon)
+    public void UpdateWeaponRig(WeaponSettings weapon)
     {
         currentWeapon = weapon;
 
@@ -158,16 +142,24 @@ public class WeaponRigBinder : MonoBehaviour
             Debug.LogError("[WeaponRigBinder] rightHand.tip is NULL (GetWeaponPose)", this);
             return new KTransform(weaponBone);
         }
-
-        KTransform defaultWorldPose =
-        new KTransform(rightHand.tip).GetWorldTransform(activeWeaponProvider.ActiveWeapon.rightHandPose, false);
-        float weight = animationWeightProvider.RightHandWeight;
+        if (activeWeaponProvider == null)
+        {
+            Debug.LogWarning("[WeaponRigBinder] activeWeaponProvider is NULL (GetWeaponPose)", this);
+            return new KTransform(weaponBone);
+        }
+        var activeWeapon = activeWeaponProvider.GetActiveWeapon();
+        if (activeWeapon == null)
+        {
+            Debug.LogWarning("[WeaponRigBinder] GetActiveWeapon() returned NULL (GetWeaponPose)", this);
+            return new KTransform(weaponBone);
+        }
+        KTransform defaultWorldPose = new KTransform(rightHand.tip).
+            GetWorldTransform(activeWeaponProvider.GetActiveWeapon().rightHandPose, false);
+        float weight = animationWeightProvider.RightHandWeight();
        
         return KTransform.Lerp(new KTransform(weaponBone), defaultWorldPose, weight);
     }
-    private void OnDestroy()
-    {
-        if (activeWeaponProvider != null) activeWeaponProvider.OnActiveWeaponChanged -= UpdateWeaponRig;
-    }
+   
 
 }
+*/

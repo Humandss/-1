@@ -1,5 +1,4 @@
 {
-    "version": 1,
     "name": "PlayerInputs",
     "maps": [
         {
@@ -10,7 +9,7 @@
                     "name": "Reload",
                     "type": "Button",
                     "id": "a4f54a81-6f62-4886-a392-5e8cccc79887",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -19,7 +18,7 @@
                     "name": "Fire",
                     "type": "Value",
                     "id": "433b17fb-3cc1-482f-bf13-a39c61bae77a",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -28,7 +27,7 @@
                     "name": "Aim",
                     "type": "Value",
                     "id": "b70ae42d-4c4d-4d0f-9a96-6e841b0abdfe",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -37,7 +36,7 @@
                     "name": "ChangeWeapon",
                     "type": "Button",
                     "id": "45916b94-6f34-4bb2-b3e8-0d89daa9fe69",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -46,7 +45,7 @@
                     "name": "ThrowGrenade",
                     "type": "Button",
                     "id": "166554c4-50d1-49f5-a954-ed16a44b5305",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -62,27 +61,27 @@
                 },
                 {
                     "name": "Sprint",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "10ddf3be-1522-4804-91f8-e456c8082f7a",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)",
+                    "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "TacticalSprint",
+                    "name": "TacSprint",
                     "type": "Value",
                     "id": "46fc7d27-c381-4166-9611-0501298d4b89",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)",
+                    "interactions": "",
                     "initialStateCheck": true
                 },
                 {
                     "name": "ChangeFireMode",
                     "type": "Button",
                     "id": "e84c3707-933b-41fc-9ccf-54be3129f87b",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -100,7 +99,7 @@
                     "name": "Jump",
                     "type": "Button",
                     "id": "4e072d88-7f09-4e19-a5d7-618ac11babbb",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -109,7 +108,7 @@
                     "name": "Inspect",
                     "type": "Button",
                     "id": "890701b7-b993-4a6c-a47b-ab3c79adea61",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -122,33 +121,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
-                },
-                {
-                    "name": "Crouch",
-                    "type": "Button",
-                    "id": "aee25fe9-7683-43ab-bcab-c27fa9218818",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Prone",
-                    "type": "Button",
-                    "id": "dcaf2f86-a16f-45cd-8f04-381ca2cb1aad",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "FreeLook",
-                    "type": "Button",
-                    "id": "5b81340a-87fc-4dfb-aabf-bbfb1ddd1c77",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -280,7 +252,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "TacticalSprint",
+                    "action": "TacSprint",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -358,39 +330,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Look",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "92648dcc-e829-4c0b-b94a-f19d730af2cf",
-                    "path": "<Keyboard>/leftCtrl",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Crouch",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "41057a76-d203-40a5-9705-e3cc182880a1",
-                    "path": "<Keyboard>/z",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Prone",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "97a8d2ac-510d-4cc9-a862-86243b733b8d",
-                    "path": "<Mouse>/middleButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "FreeLook",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
