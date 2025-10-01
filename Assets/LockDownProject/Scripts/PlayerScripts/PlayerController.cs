@@ -17,17 +17,16 @@ public struct MovementMode
 public interface IMoveInfoProvider
 {
     Vector2 GetMoveInfo();
+    float GetDesiredGait(Vector2 moveInfo);
 }
-public class PlayerController : MonoBehaviour, IMoveInfoProvider
+public class PlayerController : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private PlayerInputController inputController;
     [SerializeField] private PlayerMovementController movementController;
     [SerializeField] private PlayerLookController lookController;
 
-    private PlayerWeaponController weaponController;
-    [SerializeField] private FPSPlayer player;
-
+   
     [Header("PlayerControllerClassComponent")]
     [SerializeField] private PlayerMovementManager movementManager;
     [SerializeField] private PlayerLookManager lookManager;
@@ -41,8 +40,7 @@ public class PlayerController : MonoBehaviour, IMoveInfoProvider
         
         //movementManager=GetComponent<PlayerMovementManager>();
         //lookManager=GetComponent<PlayerLookManager>();
-        weaponController = GetComponentInChildren<PlayerWeaponController>();
-        player=GetComponentInChildren<FPSPlayer>();
+       
 
     }
    
@@ -75,6 +73,7 @@ public class PlayerController : MonoBehaviour, IMoveInfoProvider
         //bool canAim = actionManager.CanAim(movementInfo, inputController.Aim);
         bool canReload = actionManager.CanReload(movementInfo, inputController.Reload);
 
+        movementManager.CheckDesiredGait(inputController.Move, movementInfo);
         //¸í·É
         movementController.UpdateMovement(inputController.Move, speed, canJump, h);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
@@ -130,8 +129,12 @@ public class PlayerActionManager
         return false ;
     }
 }
+public interface IPlayerMoveInfoProvider
+{
+    float GetDesiredGait();
+}
 [System.Serializable]
-public class PlayerMovementManager
+public class PlayerMovementManager: ScriptableObject, IPlayerMoveInfoProvider
 {
     [Header("PlayerRoot")]
     [SerializeField] private Transform playerRoot;
@@ -146,6 +149,9 @@ public class PlayerMovementManager
     [Header("Jump")]
     [SerializeField] private float jumpHeight = 1.0f;
 
+    private bool sprinting;
+    private bool tacticalSprinting;
+    private float gait;
 
     public float GetSpeed(Vector2 moveInfo, in MovementMode mode, bool isForward)
     {
@@ -191,6 +197,17 @@ public class PlayerMovementManager
     public float GetJumpHeight()
     {
         return jumpHeight;
+    }
+    public void CheckDesiredGait(Vector2 moveInfo, in MovementMode mode)
+    {
+        if (mode.tacticalSprint) gait = 3.0f;
+        if (mode.sprint) gait = 2.0f;
+        else gait = moveInfo.magnitude;
+        
+    }
+    public float GetDesiredGait()
+    {
+        return gait;
     }
 }
 

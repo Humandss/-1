@@ -1,21 +1,25 @@
 
-using KINEMATION.FPSAnimationPack.Scripts.Camera;
-using KINEMATION.FPSAnimationPack.Scripts.Sounds;
 using KINEMATION.FPSAnimationPack.Scripts.Weapon;
+using KINEMATION.KAnimationCore.Runtime.Core;
 using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
 using UnityEngine;
 
+public interface IAnimatorControllerProvider
+{
+    RuntimeAnimatorController SetCharacterController();
+}
 
-public class WeaponBase : MonoBehaviour
+public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider
 {
     [Header("Ref")]
-    [SerializeField]private FPSWeaponSettings weaponSettings;
+    [SerializeField]public FPSWeaponSettings weaponSettings;
     [SerializeField]private WeaponAnimationController weaponAnimation;
     [SerializeField]private PlayerAnimationController playerAnimation;
     [SerializeField]private WeaponSound weaponSound;
     [SerializeField]private RecoilAnimation recoilAnimation;
+    [SerializeField]private WeaponAnimationClip weaponAnimationClip;
 
-    [SerializeField]private Transform aimPoint;
+    public Transform aimPoint;
 
     [Header("Providers")]
     private IWeaponAnimator weaponAnimator;
@@ -24,6 +28,10 @@ public class WeaponBase : MonoBehaviour
     protected GameObject ownerPlayer;
 
     [SerializeField] protected FireMode fireMode = FireMode.Semi;
+    public FireMode ActiveFireMode => fireMode;
+
+    [HideInInspector] public KTransform rightHandPose;
+    [HideInInspector] public KTransform adsPose;
 
     [Header("CheckState")]
     private bool isReloading;
@@ -36,13 +44,7 @@ public class WeaponBase : MonoBehaviour
     private int activeAmmo;
 
     private void Awake()
-    {
-
-        
-    
-       
-
-       
+    {      
         playerAnimator = playerAnimation as PlayerAnimationController;
     }
     public virtual void Initialize(GameObject owner)
@@ -114,15 +116,21 @@ public class WeaponBase : MonoBehaviour
         if (idlePose != null && ownerPlayer != null)
             idlePose.SampleAnimation(ownerPlayer, 0f);
     }
-    public void OnEquipped()
+
+    public RuntimeAnimatorController SetCharacterController()
     {
+        return weaponSettings.characterController;
+    }
+    public void OnEquipped(bool fastEquip = false)
+    {
+        playerAnimation.SetCharacterController();
         recoilAnimation.Init(weaponSettings.recoilAnimData, weaponSettings.fireRate, fireMode);
 
         playerAnimator.PlayIdle();
 
         if(weaponSettings.hasEquipOverride)
         {
-            playerAnimator.PlayeEquippedOverride();
+            playerAnimator.PlayEquippedOverride();
             return;
         }
 
@@ -158,7 +166,8 @@ public class WeaponBase : MonoBehaviour
         recoilAnimation.Play();
         weaponAnimator.Fire(lastBullet);
 
-        activeAmmo--;
+        if (weaponSettings.useFireClip)
+         activeAmmo--;
 
         if (fireMode == FireMode.Auto && weaponSettings)
         {
@@ -170,7 +179,7 @@ public class WeaponBase : MonoBehaviour
         fireMode = fireMode == FireMode.Auto ? FireMode.Semi : weaponSettings.fullAuto ? FireMode.Auto : FireMode.Semi;
         recoilAnimation.fireMode = fireMode;
     }
-    public void Reload()
+    public void OnReload()
     {
         if(activeAmmo == weaponSettings.ammo) return;
 
