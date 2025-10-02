@@ -1,7 +1,7 @@
 using KINEMATION.FPSAnimationPack.Scripts.Player;
-using KINEMATION.FPSAnimationPack.Scripts.Weapon;
+
 using KINEMATION.KAnimationCore.Runtime.Core;
-using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,16 +11,20 @@ public interface IPlayerWeaponInfoProvider
     float GetAimSpeed();
     float GetGaitSmoothing();
 
+    float GetIKWeight();
+
     WeaponBase GetActiveWeapon();
+
+    KTransform GetLocalCameraPoint();
 }
 public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
 {
     [Header("Ref")]
-    private FPSPlayerSettings playerSettings;
+    [SerializeField] private FPSPlayerSettings playerSettings;
     [SerializeField] private KTransform armsRoot;
     private WeaponRigBinder rigBinder;
 
-    private KTransform _localCameraPoint;
+    private KTransform localCameraPoint;
     [Header("Providers")]
     private IWeaponRigInfoProvider weaponRigInfoProvider;
 
@@ -48,7 +52,7 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
     }
     private void Start()
     {
-        _localCameraPoint = armsRoot.GetRelativeTransform(new KTransform(weaponRigInfoProvider.GetCameraPoint()), false);
+        localCameraPoint = armsRoot.GetRelativeTransform(new KTransform(weaponRigInfoProvider.GetCameraPoint()), false);
 
         foreach (var prefab in playerSettings.weaponPrefabs)
         {
@@ -60,6 +64,8 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
             var instance = Instantiate(prefab, weaponRigInfoProvider.GetWeaponBone(), false);
             instance.SetActive(false);
 
+            prefabComponents.Add(wPrefab);
+
             var component = instance.GetComponent<WeaponBase>();
             component.Initialize(gameObject);
 
@@ -68,9 +74,9 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
 
             var localWeapon = armsRoot.GetRelativeTransform(weaponT, false);
 
-            localWeapon.rotation *= ANIMATED_OFFSET;
+            localWeapon.rotation *= rigBinder.GetAnimatedOffset();
 
-            component.adsPose.position = _localCameraPoint.position - localWeapon.position;
+            component.adsPose.position = localCameraPoint.position - localWeapon.position;
             component.adsPose.rotation = Quaternion.Inverse(localWeapon.rotation);
 
             weapons.Add(component);
@@ -126,6 +132,14 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
     public float GetGaitSmoothing()
     {
         return playerSettings.gaitSmoothing;
+    }
+    public float GetIKWeight()
+    {
+        return playerSettings.ikWeight;
+    }
+    public KTransform GetLocalCameraPoint()
+    {
+        return localCameraPoint;
     }
     private void Update()
     {

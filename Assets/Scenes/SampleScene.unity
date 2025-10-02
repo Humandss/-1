@@ -123,6 +123,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &76603595 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4698950735507088050, guid: 405129f43f2032e4bbed300529635549,
+    type: 3}
+  m_PrefabInstance: {fileID: 1567054940}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &96261525
 GameObject:
   m_ObjectHideFlags: 0
@@ -371,31 +377,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6ad66bbd6a0d3749a0b8c3d81e6befc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputController: {fileID: 0}
-  movementController: {fileID: 0}
-  lookController: {fileID: 0}
-  player: {fileID: 0}
-  movementManager:
-    playerRoot: {fileID: 96261533}
-    proneSpeed: 0.75
-    crouchSpeed: 1.5
-    walkSpeed: 2.5
-    sprintSpeed: 5
-    tacticalSprintSpeed: 6.5
-    jumpHeight: 1
-  lookManager:
-    proneCameraPos: 0.5
-    crouchCameraPos: 1
-    idleCameraPos: 1.65
-    proneRotationSpeed: 0.15
-    crouchRotationSpeed: 0.2
-    walkRotationSpeed: 0.2
-    sprintRotationSpeed: 0.15
-    tacticalRotationSprintSpeed: 0.1
-    mouseSensitivity: 0.1
-    changeToProneTime: 0.5
-    changeToCrouchTime: 0.1
-    changeToIdleTime: 0.2
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,7 +675,23 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1567054940}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &690401099
+--- !u!114 &690401094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690401091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2317fc5d23fe4574fa1d3d508ca61be2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerAnimator: {fileID: 0}
+  playerWeaponController: {fileID: 0}
+  playerMovementManager: {fileID: 0}
+  weaponBase: {fileID: 0}
+--- !u!114 &690401097
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -706,6 +703,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 114aa778000a4ce4cb94f74cf28dcceb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerSettings: {fileID: 11400000, guid: 84cb8fd1baea41541be05deb6cb46d63, type: 2}
+  armsRoot:
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
+    scale: {x: 0, y: 0, z: 0}
+--- !u!114 &690401098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690401091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 769ef3799c0487642a85eae1c0cbf5c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  skeletonRoot: {fileID: 2077264773}
+  weaponBone: {fileID: 76603595}
+  weaponBoneAdditive: {fileID: 1445520574}
+  cameraPoint: {fileID: 492740692}
+  rightHand:
+    tip: {fileID: 1965905898}
+    mid: {fileID: 1326221659}
+    root: {fileID: 2052853923}
+  leftHand:
+    tip: {fileID: 1169313801}
+    mid: {fileID: 1097679238}
+    root: {fileID: 2037958515}
+--- !u!114 &690401100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690401091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2076ea9fc56d456dab4549a97f178a67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isAiming: 0
+  fireMode: 0
 --- !u!1001 &809735350
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -908,31 +948,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6ad66bbd6a0d3749a0b8c3d81e6befc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputController: {fileID: 0}
-  movementController: {fileID: 0}
-  lookController: {fileID: 0}
-  player: {fileID: 0}
-  movementManager:
-    playerRoot: {fileID: 0}
-    proneSpeed: 0.75
-    crouchSpeed: 1.5
-    walkSpeed: 2.5
-    sprintSpeed: 5
-    tacticalSprintSpeed: 6.5
-    jumpHeight: 1
-  lookManager:
-    proneCameraPos: 0.5
-    crouchCameraPos: 1
-    idleCameraPos: 1.65
-    proneRotationSpeed: 0.15
-    crouchRotationSpeed: 0.2
-    walkRotationSpeed: 0.2
-    sprintRotationSpeed: 0.15
-    tacticalRotationSprintSpeed: 0.1
-    mouseSensitivity: 0.1
-    changeToProneTime: 0.5
-    changeToCrouchTime: 0.1
-    changeToIdleTime: 0.2
 --- !u!114 &981175812
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1078,6 +1093,12 @@ MonoBehaviour:
   minPitch: -65
   freeLookYawLimit: 75
   freeLookRecoverTime: 0.25
+--- !u!4 &1097679238 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -7208441673433506407, guid: 405129f43f2032e4bbed300529635549,
+    type: 3}
+  m_PrefabInstance: {fileID: 1567054940}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1151410147
 GameObject:
   m_ObjectHideFlags: 0
@@ -1183,6 +1204,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!4 &1169313801 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5846270692196909274, guid: 405129f43f2032e4bbed300529635549,
+    type: 3}
+  m_PrefabInstance: {fileID: 1567054940}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1326221659 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6061983877138398293, guid: 405129f43f2032e4bbed300529635549,
+    type: 3}
+  m_PrefabInstance: {fileID: 1567054940}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1445520573
 GameObject:
   m_ObjectHideFlags: 0
@@ -1457,7 +1490,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: e29a9d37582aff742952ca90ae218b2d, type: 2}
+      objectReference: {fileID: 9100000, guid: eb385e40c39adb44ab8586c12e73d4a9, type: 2}
     - target: {fileID: 5866666021909216657, guid: 405129f43f2032e4bbed300529635549,
         type: 3}
       propertyPath: m_CullingMode
@@ -1483,8 +1516,38 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 405129f43f2032e4bbed300529635549,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 690401099}
+      addedObject: {fileID: 690401097}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 405129f43f2032e4bbed300529635549,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 690401098}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 405129f43f2032e4bbed300529635549,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 690401094}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 405129f43f2032e4bbed300529635549,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 690401100}
   m_SourcePrefab: {fileID: 100100000, guid: 405129f43f2032e4bbed300529635549, type: 3}
+--- !u!4 &1965905898 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2349476437193732044, guid: 405129f43f2032e4bbed300529635549,
+    type: 3}
+  m_PrefabInstance: {fileID: 1567054940}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2037958515 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -6394934201113919074, guid: 405129f43f2032e4bbed300529635549,
+    type: 3}
+  m_PrefabInstance: {fileID: 1567054940}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2052853923 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3444371385876697102, guid: 405129f43f2032e4bbed300529635549,
+    type: 3}
+  m_PrefabInstance: {fileID: 1567054940}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2077264773 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4436805663696350335, guid: 405129f43f2032e4bbed300529635549,

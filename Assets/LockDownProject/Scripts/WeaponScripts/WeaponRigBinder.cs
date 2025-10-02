@@ -3,10 +3,7 @@ using UnityEngine;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using System;
 using KINEMATION.FPSAnimationPack.Scripts.Player;
-using KINEMATION.FPSAnimationPack.Scripts.Weapon;
-using UnityEditor;
-using UnityEditor.VersionControl;
-using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
+
 
 [Serializable]
 public struct IKTransforms
@@ -20,16 +17,20 @@ public interface IWeaponRigInfoProvider
     Transform GetWeaponBone();
     Transform GetCameraPoint();
     IKTransforms GetRightHand();
+
+    Quaternion GetAnimatedOffset();
 }
 public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
 {
     [Header("Ref")]
     private PlayerWeaponController weaponController;
     private PlayerAnimationController playerAnimationController;
+    private WeaponBase weaponBase;
 
     [Header("Providers")]
     private IPlayerWeaponInfoProvider playerWeaponInfoProvider;
     private IPlayerAnimationGetFloatWeight playerAnimationWeightProvider;
+    private IWeaponRecoilInfoProvider weaponRecoilInfoProvider;
 
     [Header("Skeleton")]
     [SerializeField] private Transform skeletonRoot;
@@ -39,8 +40,8 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
     [SerializeField] private IKTransforms rightHand;
     [SerializeField] private IKTransforms leftHand;
 
-    private KTwoBoneIkData _rightHandIk;
-    private KTwoBoneIkData _leftHandIk;
+    private KTwoBoneIkData rightHandIk;
+    private KTwoBoneIkData leftHandIk;
 
     private float ikMotionPlayBack;
     private KTransform ikMotion = KTransform.Identity;
@@ -48,16 +49,63 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
     private IKMotion activeMotion;
 
     private static Quaternion ANIMATED_OFFSET = Quaternion.Euler(90f, 0f, 0f);
+    /*
+    public void BindRecoilProvider(IWeaponRecoilInfoProvider provider)
+    {
+        weaponRecoilInfoProvider = provider;
+        if(weaponRecoilInfoProvider == null)
+        {
+            Debug.Log("문제");
+        }
+        // 여기서 한 번 캐시 끝. 이후 매 프레임 GetComponentInChildren() 돌릴 필요 없음.
+    }
+
+    public void UnbindRecoilProvider(IWeaponRecoilInfoProvider provider)
+    {
+        if (weaponRecoilInfoProvider == provider) weaponRecoilInfoProvider = null;
+    }*/
 
     private void Awake()
     {
         weaponController = GetComponent<PlayerWeaponController>();
+        if(weaponController == null )
+        {
+            Debug.LogWarning("[WeaponRigBinder] weaponController is NULL");
+        }
 
         playerAnimationController = GetComponent<PlayerAnimationController>();
+        if (playerAnimationController == null)
+        {
+            Debug.LogWarning("[WeaponRigBinder]playerAnimationController is NULL");
+        }
 
         playerWeaponInfoProvider = weaponController as IPlayerWeaponInfoProvider;
+        if (playerWeaponInfoProvider == null)
+        {
+            Debug.LogWarning("[WeaponRigBinder] playerWeaponInfoProvider is NULL");
+        }
 
         playerAnimationWeightProvider = playerAnimationController as IPlayerAnimationGetFloatWeight;
+        if (playerAnimationWeightProvider == null)
+        {
+            Debug.LogWarning("[WeaponRigBinder] playerAnimationWeightProvider is NULL");
+        }
+
+     
+    }
+    private void Start()
+    {
+        weaponBase = GetComponentInChildren<WeaponBase>(true);
+        if (weaponBase == null)
+        {
+            Debug.LogWarning("[WeaponRigBinder]weaponBase is NULL");
+        }
+
+        weaponRecoilInfoProvider = weaponBase as IWeaponRecoilInfoProvider;
+        if (playerAnimationWeightProvider == null)
+        {
+            Debug.LogWarning("[WeaponRigBinder] weaponRecoilInfoProvider is NULL");
+        }
     }
     private void LateUpdate()
     {
@@ -84,14 +132,14 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         rightHandTarget = weaponTransform.GetWorldTransform(rightHandTarget, false);
         leftHandTarget = weaponTransform.GetWorldTransform(leftHandTarget, false);
 
-        SetupIkData(ref _rightHandIk, rightHandTarget, rightHand, playerSettings.ikWeight);
-        SetupIkData(ref _leftHandIk, leftHandTarget, leftHand, playerSettings.ikWeight);
+        SetupIkData(ref rightHandIk, rightHandTarget, rightHand, playerWeaponInfoProvider.GetIKWeight());
+        SetupIkData(ref leftHandIk, leftHandTarget, leftHand, playerWeaponInfoProvider.GetIKWeight());
 
-        KTwoBoneIK.Solve(ref _rightHandIk);
-        KTwoBoneIK.Solve(ref _leftHandIk);
+        KTwoBoneIK.Solve(ref rightHandIk);
+        KTwoBoneIK.Solve(ref leftHandIk);
 
-        ApplyIkData(_rightHandIk, rightHand);
-        ApplyIkData(_leftHandIk, leftHand);
+        ApplyIkData(rightHandIk, rightHand);
+        ApplyIkData(leftHandIk, leftHand);
     }
     private void SetupIkData(ref KTwoBoneIkData ikData, in KTransform target, in IKTransforms transforms,
            float weight = 1f)
@@ -133,7 +181,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         KTransform rootT = new KTransform(skeletonRoot);
         KTransform additive = rootT.GetRelativeTransform(new KTransform(weaponBoneAdditive), false);
 
-        float weight = Mathf.Lerp(1f, 0.3f, adsWeight) * (1f - animator.GetFloat(GRENADE_WEIGHT));
+        float weight = Mathf.Lerp(1f, 0.3f, playerAnimationWeightProvider.GetFloatADSWeight()) * (1f - playerAnimationWeightProvider.GetFloatGrenadeWeight());
 
         weaponT.position = KAnimationMath.MoveInSpace(rootT, weaponT, additive.position, weight);
         weaponT.rotation = KAnimationMath.RotateInSpace(rootT, weaponT, additive.rotation, weight);
@@ -143,8 +191,8 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
     {
         KTransform recoil = new KTransform()
         {
-            rotation = recoilAnimation.OutRot,
-            position = recoilAnimation.OutLoc,
+            rotation = weaponBase.GetRecoilOutRot(),
+            position = weaponBase.GetRecoilOutLoc(),
         };
 
         KTransform root = new KTransform(transform);
@@ -170,7 +218,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
             KAnimationMath.RotateInSpace(root, adsPose,
                 playerWeaponInfoProvider.GetActiveWeapon().adsPose.rotation, 1f);
 
-        KTransform cameraPose = root.GetWorldTransform(localCameraPoint, false);
+        KTransform cameraPose = root.GetWorldTransform(playerWeaponInfoProvider.GetLocalCameraPoint(), false);
 
         float adsBlendWeight = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.adsBlend;
         adsPose.position = Vector3.Lerp(cameraPose.position, adsPose.position, adsBlendWeight);
@@ -179,7 +227,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         adsPose.position = KAnimationMath.MoveInSpace(root, adsPose, aimPoint.rotation * aimPoint.position, 1f);
         adsPose.rotation = KAnimationMath.RotateInSpace(root, adsPose, aimPoint.rotation, 1f);
 
-        float weight = KCurves.EaseSine(0f, 1f, adsWeight);
+        float weight = KCurves.EaseSine(0f, 1f, playerAnimationWeightProvider.GetFloatADSWeight());
 
         weaponT.position = Vector3.Lerp(weaponT.position, adsPose.position, weight);
         weaponT.rotation = Quaternion.Slerp(weaponT.rotation, adsPose.rotation, weight);
@@ -189,7 +237,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
     {
         KTransform defaultWorldPose =
             new KTransform(rightHand.tip).GetWorldTransform(playerWeaponInfoProvider.GetActiveWeapon().rightHandPose, false);
-        float weight = _animator.GetFloat(RIGHT_HAND_WEIGHT);
+        float weight = playerAnimationWeightProvider.GetFloatRightHandWeight();
 
         return KTransform.Lerp(new KTransform(weaponBone), defaultWorldPose, weight);
     }
@@ -242,6 +290,10 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
     public IKTransforms GetRightHand()
     {
         return rightHand;
+    }
+    public Quaternion GetAnimatedOffset()
+    {
+        return ANIMATED_OFFSET;
     }
     /*
     [Header("Refs")]

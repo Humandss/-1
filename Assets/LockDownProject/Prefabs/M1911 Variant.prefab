@@ -65,6 +65,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7784558525833575978, guid: 8e489e7f96cc8a844a939320b2d379d1, type: 3}
+    - {fileID: 4325917308450455064, guid: 8e489e7f96cc8a844a939320b2d379d1, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -76,6 +77,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 7444944454858489423}
+    - targetCorrespondingSourceObject: {fileID: 1394008405709340952, guid: 8e489e7f96cc8a844a939320b2d379d1,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 112132016498108535}
   m_SourcePrefab: {fileID: 100100000, guid: 8e489e7f96cc8a844a939320b2d379d1, type: 3}
 --- !u!4 &35205902024118212 stripped
 Transform:
@@ -83,6 +88,24 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 5937346780715191826}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4700968779878780682 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1394008405709340952, guid: 8e489e7f96cc8a844a939320b2d379d1,
+    type: 3}
+  m_PrefabInstance: {fileID: 5937346780715191826}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &112132016498108535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4700968779878780682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3a6255be6b1a964e8f27cb2e700b269, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5574649351490658479 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2249710175363591869, guid: 8e489e7f96cc8a844a939320b2d379d1,
@@ -102,12 +125,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponSettings: {fileID: 11400000, guid: 8459539ebdd80da4597382d1cea0ee22, type: 2}
-  weaponAnimation: {fileID: 0}
-  playerAnimation: {fileID: 0}
-  weaponSound: {fileID: 0}
-  recoilAnimation: {fileID: 0}
   aimPoint: {fileID: 35205902024118212}
   fireMode: 0
+  rightHandPose:
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
+    scale: {x: 0, y: 0, z: 0}
+  adsPose:
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
+    scale: {x: 0, y: 0, z: 0}
 --- !u!114 &7444944454858489423
 MonoBehaviour:
   m_ObjectHideFlags: 0

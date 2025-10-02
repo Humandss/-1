@@ -16,31 +16,29 @@ public struct MovementMode
 }
 public interface IMoveInfoProvider
 {
-    Vector2 GetMoveInfo();
+    
     float GetDesiredGait(Vector2 moveInfo);
 }
 public class PlayerController : MonoBehaviour
 {
     [Header("Refs")]
-    [SerializeField] private PlayerInputController inputController;
-    [SerializeField] private PlayerMovementController movementController;
-    [SerializeField] private PlayerLookController lookController;
+    private PlayerInputController inputController;
+    private PlayerMovementController movementController;
+    private PlayerLookController lookController;
+    private PlayerAnimationController animationController;
 
    
     [Header("PlayerControllerClassComponent")]
-    [SerializeField] private PlayerMovementManager movementManager;
-    [SerializeField] private PlayerLookManager lookManager;
-    [SerializeField] private PlayerActionManager actionManager;
+    private PlayerMovementManager movementManager;
+    private PlayerLookManager lookManager;
+    private PlayerActionManager actionManager;
 
     private void Awake()
     {
         inputController=GetComponent<PlayerInputController>();
         movementController=GetComponent<PlayerMovementController>();
         lookController=GetComponent<PlayerLookController>();
-        
-        //movementManager=GetComponent<PlayerMovementManager>();
-        //lookManager=GetComponent<PlayerLookManager>();
-       
+             
 
     }
    
@@ -82,10 +80,7 @@ public class PlayerController : MonoBehaviour
        
 
     }
-    public Vector2 GetMoveInfo()
-    {
-        return inputController.Move;
-    }
+   
 }
 [System.Serializable]
 public class PlayerActionManager

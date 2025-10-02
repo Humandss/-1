@@ -37,6 +37,7 @@ namespace KINEMATION.FPSAnimationPack.Scripts.Sounds
 
         private static int GAIT = Animator.StringToHash("Gait");
         private static int IS_IN_AIR = Animator.StringToHash("IsInAir");
+
         private float _playback = 0f;
 
         public static AudioClip GetRandomAudioClip(List<AudioClip> audioClips)

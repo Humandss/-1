@@ -8,30 +8,27 @@ public interface IAnimatorControllerProvider
 {
     RuntimeAnimatorController SetCharacterController();
 }
+public interface IWeaponRecoilInfoProvider
+{
+    Quaternion GetRecoilOutRot();
+    Vector3 GetRecoilOutLoc();
+}
 
-public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider
+public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRecoilInfoProvider
 {
     [Header("Ref")]
     [SerializeField]public FPSWeaponSettings weaponSettings;
-    [SerializeField]private WeaponAnimationController weaponAnimation;
-    [SerializeField]private PlayerAnimationController playerAnimation;
-    [SerializeField]private WeaponSound weaponSound;
-    [SerializeField]private RecoilAnimation recoilAnimation;
-    [SerializeField]private WeaponAnimationClip weaponAnimationClip;
-
+    private WeaponAnimationController weaponAnimation;
+    private PlayerAnimationController playerAnimation;
+    private WeaponSoundController weaponSound;
+    private RecoilAnimation recoilAnimation;
+    private WeaponAnimationClip weaponAnimationClip;
+    protected GameObject ownerPlayer;
     public Transform aimPoint;
 
     [Header("Providers")]
     private IWeaponAnimator weaponAnimator;
     private IPlayerAnimator playerAnimator;
-
-    protected GameObject ownerPlayer;
-
-    [SerializeField] protected FireMode fireMode = FireMode.Semi;
-    public FireMode ActiveFireMode => fireMode;
-
-    [HideInInspector] public KTransform rightHandPose;
-    [HideInInspector] public KTransform adsPose;
 
     [Header("CheckState")]
     private bool isReloading;
@@ -43,10 +40,23 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider
 
     private int activeAmmo;
 
+    [SerializeField] protected FireMode fireMode = FireMode.Semi;
+    public FireMode ActiveFireMode => fireMode;
+    [HideInInspector] public KTransform rightHandPose;
+    [HideInInspector] public KTransform adsPose;
+
+    /*
     private void Awake()
-    {      
-        playerAnimator = playerAnimation as PlayerAnimationController;
+    {
+        var binder = GetComponentInParent<WeaponRigBinder>();
+        if (binder != null) binder.BindRecoilProvider(this);
     }
+    private void OnDisable()
+    {
+        // 무기 비활성/교체 시 해제 (선택)
+        var binder = GetComponentInParent<WeaponRigBinder>();
+        if (binder != null) binder.UnbindRecoilProvider(this);
+    }*/
     public virtual void Initialize(GameObject owner)
     {
         playerAnimation = owner.GetComponent<PlayerAnimationController>();
@@ -79,7 +89,7 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider
             Debug.LogWarning("[WeaponBase] weaponAnimator is NULL");
         }
 
-        weaponSound = GetComponentInChildren<WeaponSound>();
+        weaponSound = GetComponentInChildren<WeaponSoundController>();
         if(weaponSound==null)
         {
             Debug.LogWarning("[WeaponBase] weaponSound is NULL");
@@ -120,6 +130,14 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider
     public RuntimeAnimatorController SetCharacterController()
     {
         return weaponSettings.characterController;
+    }
+    public Quaternion GetRecoilOutRot()
+    {
+        return recoilAnimation.OutRot;
+    }
+    public Vector3 GetRecoilOutLoc()
+    {
+        return recoilAnimation.OutLoc;
     }
     public void OnEquipped(bool fastEquip = false)
     {
