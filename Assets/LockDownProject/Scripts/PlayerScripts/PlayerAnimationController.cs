@@ -1,15 +1,17 @@
 using KINEMATION.KAnimationCore.Runtime.Core;
-using Unity.Burst.CompilerServices;
-using UnityEditor;
 using UnityEngine;
 
 public interface IPlayerAnimator
 {
-    void SetCharacterController();
+    void SetCharacterController(IAnimatorControllerProvider provider);
     void PlayIdle();
     void PlayEquippedOverride(bool fastEquip = false);
     void PlayEquipped();
     void PlayUnEquipped();
+
+    void PlayReload();
+
+    void PlayTacticalReload();
 
 }
 public interface IPlayerAnimationGetFloatWeight
@@ -28,11 +30,10 @@ public class PlayerAnimationController : MonoBehaviour,IPlayerAnimator, IPlayerA
     [Header("Ref")]
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private PlayerWeaponController playerWeaponController;
-    [SerializeField] private PlayerMovementManager playerMovementManager;
+    [SerializeField] private MovementSettings movementSettings;
     [SerializeField] private WeaponBase weaponBase;
 
     [Header("Providers")]
-    private IAnimatorControllerProvider controllerProvider;
     private IPlayerWeaponInfoProvider weaponInfoProvider;
     private IPlayerMoveInfoProvider moveInfoProvider;
 
@@ -57,54 +58,89 @@ public class PlayerAnimationController : MonoBehaviour,IPlayerAnimator, IPlayerA
     private int triggerDisciplineLayerIndex;
     private int rightHandLayerIndex;
 
-    private bool isAiming;
-
     public float AdsWeight => adsWeight;
     private float adsWeight;
     private float smoothGait;
 
+    [SerializeField] private float defaultGaitSmoothing = 10f;
+
+
     public void Awake()
     {
         playerAnimator = GetComponent<Animator>();
-        if( playerAnimator = null )
+        if( playerAnimator == null )
         {           
              Debug.LogWarning("[PlayerAnimationController] playerAnimator is NULL");          
         }
         playerWeaponController = GetComponent<PlayerWeaponController>();
+        if (playerWeaponController == null)
+        {
+            Debug.LogWarning("[PlayerAnimationController]  playerWeaponController is NULL");
+        }
 
+        movementSettings = GetComponentInParent<MovementSettings>();
+        if (movementSettings == null)
+        {
+             Debug.LogWarning("[PlayerAnimationController] movementSettings is NULL");
+            
+        }
+
+        moveInfoProvider = movementSettings as IPlayerMoveInfoProvider;
+        if (moveInfoProvider == null)
+        {
+            Debug.LogWarning("[PlayerAnimationController]  moveInfoProvider is NULL");
+        }
 
         weaponInfoProvider = playerWeaponController as IPlayerWeaponInfoProvider;
-
-        moveInfoProvider = playerMovementManager as IPlayerMoveInfoProvider;
+        if (weaponInfoProvider == null)
+        {
+            Debug.LogWarning("[PlayerAnimationController] weaponInfoProvider is NULL");
+        }
     }
     private void Start()
     {
-        weaponBase = GetComponentInChildren<WeaponBase>(true);
-        if (weaponBase == null)
-        {
-            Debug.LogWarning("[PlayerAnimationController] weaponBase is NULL");
-        }
-
-        controllerProvider = weaponBase as IAnimatorControllerProvider;
-        if (controllerProvider == null)
-        {
-            Debug.LogWarning("[PlayerAnimationController] controllerProvider is NULL");
-        }
-
+        triggerDisciplineLayerIndex = playerAnimator.GetLayerIndex("TriggerDiscipline");
+        rightHandLayerIndex = playerAnimator.GetLayerIndex("RightHand");
+        tacSprintLayerIndex = playerAnimator.GetLayerIndex("TacSprint");
     }
     private void Update()
     {
-        adsWeight = Mathf.Clamp01(adsWeight + weaponInfoProvider.GetAimSpeed() * Time.deltaTime * (isAiming ? 1f : -1f));
+        /*
+        // --- ADS ---
+        float aimSpeed = Mathf.Max(weaponInfoProvider.GetAimSpeed(), 0f);
+        bool aiming = weaponInfoProvider.GetIsAimingState();
+        adsWeight = Mathf.Clamp01(adsWeight + aimSpeed * Time.deltaTime * (aiming ? 1f : -1f));
+
+        // --- GAIT ---
+        float desired = moveInfoProvider.GetDesiredGait();  // 0~1 / 2 / 3
+        float smoothing = weaponInfoProvider.GetGaitSmoothing();
+        if (smoothing <= 0f) smoothing = defaultGaitSmoothing; // 
+
+        float a = KMath.ExpDecayAlpha(smoothing, Time.deltaTime);
+        smoothGait = Mathf.Lerp(smoothGait, desired, a);
+
+        playerAnimator.SetFloat(GAIT, smoothGait);
+
+        float tacW = Mathf.Clamp01(smoothGait - 2f);
+        playerAnimator.SetLayerWeight(tacSprintLayerIndex, tacW);
+
+        bool triggerAllowed = weaponInfoProvider.GetUseSprintTriggerDiscipline();
+        playerAnimator.SetLayerWeight(triggerDisciplineLayerIndex, triggerAllowed ? tacW : 0f);
+        */
+        adsWeight = Mathf.Clamp01(adsWeight + weaponInfoProvider.GetAimSpeed() * Time.deltaTime * (weaponInfoProvider.GetIsAimingState() ? 1f : -1f));
         smoothGait = Mathf.Lerp(smoothGait, moveInfoProvider.GetDesiredGait(),
             KMath.ExpDecayAlpha(weaponInfoProvider.GetGaitSmoothing(), Time.deltaTime));
 
         playerAnimator.SetFloat(GAIT, smoothGait);
         playerAnimator.SetLayerWeight(tacSprintLayerIndex, Mathf.Clamp01(smoothGait - 2f));
 
+        bool triggerAllowed = weaponInfoProvider.GetUseSprintTriggerDiscipline();
+
         playerAnimator.SetLayerWeight(triggerDisciplineLayerIndex,
-            weaponInfoProvider.GetTriggerState() ? playerAnimator.GetFloat(TAC_SPRINT_WEIGHT) : 0f);
+            triggerAllowed ? playerAnimator.GetFloat(TAC_SPRINT_WEIGHT) : 0f);
 
         playerAnimator.SetLayerWeight(rightHandLayerIndex, playerAnimator.GetFloat(RIGHT_HAND_WEIGHT));
+
     }
     public float GetFloatTacSprintWeight()
     {
@@ -122,9 +158,16 @@ public class PlayerAnimationController : MonoBehaviour,IPlayerAnimator, IPlayerA
     {
         return playerAnimator.GetFloat(GRENADE_WEIGHT);
     }
-    public void SetCharacterController()
+    //호출 순서때문에 직접 할당
+    public void SetCharacterController(IAnimatorControllerProvider provider)
     {
-        playerAnimator.runtimeAnimatorController = controllerProvider.SetCharacterController();
+        var ctrl = provider.SetCharacterController();
+        if (ctrl == null)
+        {
+            Debug.LogError("[PAC] RuntimeAnimatorController is NULL (check weaponSettings.characterController)");
+            return;
+        }
+        playerAnimator.runtimeAnimatorController = ctrl;
     }
     public void PlayIdle()
     {

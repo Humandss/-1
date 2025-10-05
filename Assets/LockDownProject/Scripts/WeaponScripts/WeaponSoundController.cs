@@ -10,7 +10,16 @@ public class WeaponSoundController : MonoBehaviour
     private void Awake()
     {
         settings = GetComponentInParent<WeaponBase>().weaponSettings;
-        audioSource = GetComponentInChildren<AudioSource>();
+        if (settings == null )
+        {
+            Debug.LogWarning("[WeaponSoundController] settings is NULL");
+        }
+
+        audioSource = GetComponentInParent<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogWarning("[WeaponSoundController] audioSource is NULL");
+        }
     }
 
     public void PlayFireSound()

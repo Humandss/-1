@@ -1,7 +1,9 @@
 
+using KINEMATION.FPSAnimationPack.Scripts.Camera;
 using KINEMATION.FPSAnimationPack.Scripts.Weapon;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
+using UnityEditor;
 using UnityEngine;
 
 public interface IAnimatorControllerProvider
@@ -21,6 +23,7 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
     private WeaponAnimationController weaponAnimation;
     private PlayerAnimationController playerAnimation;
     private WeaponSoundController weaponSound;
+    private PlayerLookController playerLookController;
     private RecoilAnimation recoilAnimation;
     private WeaponAnimationClip weaponAnimationClip;
     protected GameObject ownerPlayer;
@@ -29,7 +32,7 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
     [Header("Providers")]
     private IWeaponAnimator weaponAnimator;
     private IPlayerAnimator playerAnimator;
-
+    private ICameraAnimation cameraAnimation;
     [Header("CheckState")]
     private bool isReloading;
     private bool isFiring;
@@ -45,18 +48,11 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
     [HideInInspector] public KTransform rightHandPose;
     [HideInInspector] public KTransform adsPose;
 
-    /*
+    
     private void Awake()
     {
-        var binder = GetComponentInParent<WeaponRigBinder>();
-        if (binder != null) binder.BindRecoilProvider(this);
+       
     }
-    private void OnDisable()
-    {
-        // ¹«±â ºñÈ°¼º/±³Ã¼ ½Ã ÇØÁ¦ (¼±ÅÃ)
-        var binder = GetComponentInParent<WeaponRigBinder>();
-        if (binder != null) binder.UnbindRecoilProvider(this);
-    }*/
     public virtual void Initialize(GameObject owner)
     {
         playerAnimation = owner.GetComponent<PlayerAnimationController>();
@@ -94,7 +90,18 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
         {
             Debug.LogWarning("[WeaponBase] weaponSound is NULL");
         }
-       
+
+        playerLookController = GetComponentInParent<PlayerLookController>();
+        if (playerLookController == null)
+        {
+            Debug.LogWarning("[PlayerWeaponController]playerLookController is NULL");
+        }
+        cameraAnimation = playerLookController as ICameraAnimation;
+        if (cameraAnimation == null)
+        {
+            Debug.LogWarning("[PlayerWeaponController] cameraAnimation is NULL");
+        }
+
         activeAmmo = weaponSettings.ammo;
 
         if (weaponSettings == null || weaponSettings.characterController == null) return;
@@ -122,13 +129,15 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
                 idlePose = clip;
         }
 
-        // ½ÃÀÛÀÚ¼¼ »ùÇÃ¸µ
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
         if (idlePose != null && ownerPlayer != null)
             idlePose.SampleAnimation(ownerPlayer, 0f);
     }
 
     public RuntimeAnimatorController SetCharacterController()
     {
+        if (weaponSettings == null || weaponSettings.characterController == null)
+            Debug.LogError("[WeaponBase] weaponSettings or characterController is NULL");
         return weaponSettings.characterController;
     }
     public Quaternion GetRecoilOutRot()
@@ -141,7 +150,7 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
     }
     public void OnEquipped(bool fastEquip = false)
     {
-        playerAnimation.SetCharacterController();
+        playerAnimation.SetCharacterController(this);
         recoilAnimation.Init(weaponSettings.recoilAnimData, weaponSettings.fireRate, fireMode);
 
         playerAnimator.PlayIdle();
@@ -171,6 +180,7 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
     }
     public void OnFire()
     {
+       
         if (!isFiring || isReloading) return;
 
         bool lastBullet = (activeAmmo == 1);
@@ -182,15 +192,22 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
         }
 
         recoilAnimation.Play();
+        if (weaponSound != null) weaponSound.PlayFireSound();
+        cameraAnimation.PlayCameraShake(weaponSettings.cameraShake);
         weaponAnimator.Fire(lastBullet);
 
-        if (weaponSettings.useFireClip)
-         activeAmmo--;
+        activeAmmo--;
 
+        Debug.Log(activeAmmo);
         if (fireMode == FireMode.Auto && weaponSettings)
         {
             Invoke(nameof(OnFire), 60f / Mathf.Max(1f, weaponSettings.fireRate));
         }
+    }
+    public void OnAim(bool isAiming)
+    {
+        recoilAnimation.isAiming = isAiming;
+       
     }
     public void OnFireModeChange()
     {
@@ -206,10 +223,12 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
         if(activeAmmo == 0)
         {
             weaponAnimator.TacticalReload();
+            playerAnimator.PlayTacticalReload();
         }
         else
         {
             weaponAnimator.Reload();
+            playerAnimator.PlayReload();
         }
 
         float delay = activeAmmo == 0 ? emptyReloadDelay : tacReloadDelay;
@@ -219,6 +238,7 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
         isReloading = true;
 
     }
+   
     protected void ResetActiveAmmo()
     {
         activeAmmo = GetMaxAmmo();

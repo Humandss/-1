@@ -10,14 +10,12 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] private float gravity = 18f;
 
     private CharacterController cc;
-    private FPSPlayer player;
 
     private float jumpValue;
     
     public void Awake()
     {
         cc = GetComponent<CharacterController>();
-        player = GetComponent<FPSPlayer>();
         
     }
     public void UpdateMovement(Vector2 moveInput, float moveSpeed, bool isJumped, float h)

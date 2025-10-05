@@ -1,83 +1,129 @@
-using JetBrains.Annotations;
-using KINEMATION.FPSAnimationPack.Scripts.Player;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-// ÇÃ·¹ÀÌ¾î »óÅÂ ±¸Á¶Ã¼
+
+// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼
 public struct MovementMode
 {
+    public bool idle;
     public bool prone;
     public bool crouch;
     public bool sprint;
     public bool tacticalSprint;
 
 }
-public interface IMoveInfoProvider
-{
-    
-    float GetDesiredGait(Vector2 moveInfo);
-}
+
 public class PlayerController : MonoBehaviour
 {
     [Header("Refs")]
     private PlayerInputController inputController;
     private PlayerMovementController movementController;
     private PlayerLookController lookController;
-    private PlayerAnimationController animationController;
+    private MovementSettings movementSettings;
+    private LookSettings lookSettings;
+    private PlayerWeaponController weaponController;
 
-   
+    [Header("Providers")]
+    private IPlayerWeaponStateProvider playerWeaponStateProvider;
+
     [Header("PlayerControllerClassComponent")]
-    private PlayerMovementManager movementManager;
-    private PlayerLookManager lookManager;
-    private PlayerActionManager actionManager;
+    [SerializeField]private PlayerActionManager actionManager;
 
     private void Awake()
     {
         inputController=GetComponent<PlayerInputController>();
-        movementController=GetComponent<PlayerMovementController>();
-        lookController=GetComponent<PlayerLookController>();
-             
+        if (inputController == null )
+        {
+            Debug.LogWarning("[PlayerController] inputController is NULL");
+        }
 
+        movementController=GetComponent<PlayerMovementController>();
+        if (movementController  == null)
+        {
+            Debug.LogWarning("[PlayerController] movementController is NULL");
+        }
+
+        lookController =GetComponent<PlayerLookController>();
+        if (lookController == null)
+        {
+            Debug.LogWarning("[PlayerController] lookController is NULL");
+        }
+
+        movementSettings = GetComponent<MovementSettings>();
+        if (movementSettings == null)
+        {
+            Debug.LogWarning("[PlayerController] movementSettings is NULL");
+        }
+
+        lookSettings = GetComponent<LookSettings>();
+        if(lookSettings == null)
+        {
+            Debug.LogWarning("[PlayerController] lookSettings is NULL");
+        }
+
+       weaponController=GetComponentInChildren<PlayerWeaponController>();
+        if (weaponController == null)
+        {
+            Debug.LogWarning("[PlayerController]  weaponController is NULL");
+        }
+
+        playerWeaponStateProvider = weaponController as IPlayerWeaponStateProvider;
+        if (playerWeaponStateProvider == null)
+        {
+            Debug.LogWarning("[PlayerController] playerWeaponStateProvider is NULL");
+        }
     }
    
     private void Update()
     {
-        
-        //¿òÁ÷ÀÓ ¸ðµå¿¡ µû¸¥ »óÅÂ º¯È­ ÁöÁ¤
+
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
         var movementInfo = new MovementMode
         {
             prone = inputController.Prone,
             crouch = inputController.Crouch,
             sprint = inputController.Sprint,
-            tacticalSprint = inputController.TacticalSprint,
+            tacticalSprint = inputController.TacSprint,
+            
         };
-        //¿òÁ÷ÀÓ
-        bool isForward = movementManager.IsForward(inputController.Move);
-        float speed = movementManager.GetSpeed(inputController.Move, movementInfo, isForward);
-        bool canJump = movementManager.CanJump(movementInfo, inputController.Jump);
-        //Ä«¸Þ¶ó 
-        float rotationSpeed = lookManager.GetRotationSpeed(movementInfo);
-        float cameraPosition = lookManager.GetCameraPosition(movementInfo);
-        float cameraChangeSpeed = lookManager.GetCameraChangeTime(movementInfo);
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        bool isForward = movementSettings.IsForward(inputController.Move);
+        float speed = movementSettings.GetSpeed(movementInfo, isForward);
+        bool canJump = movementSettings.CanJump(movementInfo, inputController.Jump);
+        //Ä«ï¿½Þ¶ï¿½ 
+        float rotationSpeed = lookSettings.GetRotationSpeed(movementInfo);
+        float cameraPosition = lookSettings.GetCameraPosition(movementInfo);
+        float cameraChangeSpeed = lookSettings.GetCameraChangeTime(movementInfo);
         bool isFreeLook = inputController.FreeLook;
 
-        //getÇÔ¼ö
-        float mSensitivity = lookManager.GetMouseSensitivity();
-        float h = movementManager.GetJumpHeight();
-        //»ç°Ý ¹× Á¶ÁØ
+        //getï¿½Ô¼ï¿½
+        float mSensitivity = lookSettings.GetMouseSensitivity();
+        float h = movementSettings.GetJumpHeight();
+        //ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         bool canFire = actionManager.CanFire(movementInfo, inputController.Fire);
-        //bool canAim = actionManager.CanAim(movementInfo, inputController.Aim);
+        bool canAim = actionManager.CanAim(movementInfo, inputController.Aim);
         bool canReload = actionManager.CanReload(movementInfo, inputController.Reload);
 
-        movementManager.CheckDesiredGait(inputController.Move, movementInfo);
-        //¸í·É
+        movementSettings.CheckDesiredGait(inputController.Move, movementInfo);
+        //ï¿½ï¿½ï¿½
         movementController.UpdateMovement(inputController.Move, speed, canJump, h);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
                                   cameraChangeSpeed, mSensitivity, isFreeLook);  
 
-       
+       if(canFire)
+        {
+            playerWeaponStateProvider.OnFire();
+        }
+        if (canReload)
+        {
+            playerWeaponStateProvider.OnReload();
+        }
+        if(canAim)
+        {
+            playerWeaponStateProvider.OnAim(true);
+            
+        }
+        else playerWeaponStateProvider.OnAim(false);
+
 
     }
    
@@ -124,146 +170,5 @@ public class PlayerActionManager
         return false ;
     }
 }
-public interface IPlayerMoveInfoProvider
-{
-    float GetDesiredGait();
-}
-[System.Serializable]
-public class PlayerMovementManager: ScriptableObject, IPlayerMoveInfoProvider
-{
-    [Header("PlayerRoot")]
-    [SerializeField] private Transform playerRoot;
 
-    [Header("Speeds")]
-    [SerializeField] private float proneSpeed = 0.75f;
-    [SerializeField] private float crouchSpeed = 1.5f;
-    [SerializeField] private float walkSpeed = 2.5f;
-    [SerializeField] private float sprintSpeed = 5.0f;
-    [SerializeField] private float tacticalSprintSpeed = 6.5f;
 
-    [Header("Jump")]
-    [SerializeField] private float jumpHeight = 1.0f;
-
-    private bool sprinting;
-    private bool tacticalSprinting;
-    private float gait;
-
-    public float GetSpeed(Vector2 moveInfo, in MovementMode mode, bool isForward)
-    {
-        if(mode.prone) return proneSpeed;
-       
-        if(mode.crouch) return crouchSpeed;
-
-        if(mode.sprint && isForward) return sprintSpeed;
-
-        if(mode.tacticalSprint && isForward) return tacticalSprintSpeed;
-
-        return walkSpeed;
-    }
-
-    public bool IsForward(Vector2 moveInfo, float dot=0.65f)
-    {
-        //ÀÔ·Â ¹ÞÀº°Å ¾øÀ¸¸é false => ¿òÁ÷ÀÌÁö ¾Ê´Â »óÅÂ
-        if(moveInfo == Vector2.zero) return false;
-
-        Vector2 wish = new Vector2
-        (
-            playerRoot.forward.x * moveInfo.y + playerRoot.right.x * moveInfo.x,
-            playerRoot.forward.z * moveInfo.y + playerRoot.right.z * moveInfo.x
-        );
-
-        if(wish.sqrMagnitude < 1e-6f) return false;
-
-        //Ä³¸¯ÅÍ Á¤¸é ±âÁØ º¤ÅÍ °ª
-        Vector2 fwd = new Vector2 (playerRoot.forward.x, playerRoot.forward.z);
-        //µÎ º¤ÅÍ Á¤±ÔÈ­(ºñ±³¸¦ ½±°ÔÇÏ±â À§ÇØ ±æÀÌ¸¦ 1·Î ¸¸µê) => cos°ªÀ¸·Î dotº¸´Ù Å©¸é Á¤¸é ÆÇ´Ü
-        return Vector2.Dot(wish.normalized, fwd.normalized) > dot;
-
-    }
-
-    public bool CanJump(in MovementMode mode, bool isJumped)
-    {
-        //Á¡ÇÁ¸¦ ´©¸¥ »óÅÂ + ´©¿öÀÖÁö ¾ÊÀº »óÅÂ¿¡¼­¸¸ Á¡ÇÁ °¡´ÉÇÏ°Ô²û
-        if (isJumped && !mode.prone) return true;
-
-        return false;
-
-    }
-    public float GetJumpHeight()
-    {
-        return jumpHeight;
-    }
-    public void CheckDesiredGait(Vector2 moveInfo, in MovementMode mode)
-    {
-        if (mode.tacticalSprint) gait = 3.0f;
-        if (mode.sprint) gait = 2.0f;
-        else gait = moveInfo.magnitude;
-        
-    }
-    public float GetDesiredGait()
-    {
-        return gait;
-    }
-}
-
-[System.Serializable]
-public class PlayerLookManager
-{
-
-    [Header("CameraPositionForPosition")]
-    [SerializeField] private float proneCameraPos = 0.5f;
-    [SerializeField] private float crouchCameraPos = 1.0f;
-    [SerializeField] private float idleCameraPos = 1.65f;
-
-    [Header("RotationSpeeds")]
-    [SerializeField] private float proneRotationSpeed = 0.15f;
-    [SerializeField] private float crouchRotationSpeed = 0.2f;
-    [SerializeField] private float walkRotationSpeed = 0.2f;
-    [SerializeField] private float sprintRotationSpeed = 0.15f;
-    [SerializeField] private float tacticalRotationSprintSpeed = 0.1f;
-
-    [Header("MosueSensitivity")]
-    [SerializeField] private float mouseSensitivity = 0.1f;
-
-    [Header("ChangePositionTime")]
-    [SerializeField] private float changeToProneTime = 0.5f;
-    [SerializeField] private float changeToCrouchTime = 0.1f;
-    [SerializeField] private float changeToIdleTime = 0.2f;
-
-   
-
-    public float GetRotationSpeed(in MovementMode mode)
-    {
-        if (mode.prone) return proneRotationSpeed;
-
-        if (mode.crouch) return crouchRotationSpeed;
-
-        if (mode.sprint) return sprintRotationSpeed;
-
-        if (mode.tacticalSprint) return tacticalRotationSprintSpeed;
-
-        return walkRotationSpeed;
-    }
-
-    public float GetCameraPosition(in MovementMode mode)
-    {
-        if (mode.prone) return proneCameraPos;
-
-        if (mode.crouch) return crouchCameraPos;
-
-        return idleCameraPos;
-    }
-
-    public float GetCameraChangeTime(in MovementMode mode)
-    {
-        if (mode.prone) return changeToProneTime;
-
-        if (mode.crouch) return changeToCrouchTime;
-
-        return changeToIdleTime;
-    }
-    public float GetMouseSensitivity()
-    {
-        return mouseSensitivity;
-    }
-}

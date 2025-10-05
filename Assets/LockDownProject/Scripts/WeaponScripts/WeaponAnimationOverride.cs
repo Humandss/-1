@@ -9,7 +9,7 @@ public class WeaponAnimationOverride
         var aoc = new AnimatorOverrideController(baseCtrl);
         var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>(aoc.overridesCount);
 
-        // ÀÌ¸§ ¸ÅÇÎ(»óÅÂ¸í == Å¬¸³¸í ±âÁØ)
+        // ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Â¸ï¿½ == Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
         var map = new Dictionary<string, AnimationClip> {
             {"Idle",     p.Idle},
             {"AimIn",    p.AimIn    ? p.AimIn  : p.Idle},
@@ -22,7 +22,7 @@ public class WeaponAnimationOverride
 
         foreach (var baseClip in aoc.animationClips)
         {
-            var key = baseClip.name; // º£ÀÌ½º ÄÁÆ®·Ñ·¯ÀÇ state clip ÀÌ¸§
+            var key = baseClip.name; // ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ï¿½ï¿½ state clip ï¿½Ì¸ï¿½
             map.TryGetValue(key, out var repl);
             overrides.Add(new KeyValuePair<AnimationClip, AnimationClip>(baseClip, repl ? repl : baseClip));
         }

@@ -2,7 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerSoundController : MonoBehaviour
+public interface IPlayerSoundProvider
+{
+    void PlayAimSound(bool isAimIn = true);
+}
+public class PlayerSoundController : MonoBehaviour, IPlayerSoundProvider
 {
     [Header("Ref")]
     private PlayerAnimationController playerAnimationController;
@@ -42,7 +46,22 @@ public class PlayerSoundController : MonoBehaviour
         int index = Random.Range(0, audioClips.Count - 1);
         return audioClips[index];
     }
+    private void Awake()
+    {
+        playerAnimationController=GetComponentInChildren<PlayerAnimationController>();
+        if(playerAnimationController == null)
+        {
+            Debug.LogWarning("[PlayerSoundController] playerAnimationController is NULL ");
+        }
 
+        weightProvider = playerAnimationController as IPlayerAnimationGetFloatWeight;
+        if (weightProvider == null)
+        {
+            
+         Debug.LogWarning("[PlayerSoundController] weightProvider is NULL ");
+            
+        }
+    }
     private void Start()
     {
         playerAudioSource = GetComponent<AudioSource>();
@@ -82,9 +101,10 @@ public class PlayerSoundController : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        float gait = playerAnimationController.GetFloatGaitWeight();
+        float gait = weightProvider.GetFloatGaitWeight();
+        
         if (Mathf.Approximately(gait, 0f) || playerAnimationController.GetBoolIsInAirWeight())
         {
             playback = 0f;

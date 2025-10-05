@@ -383,7 +383,7 @@ namespace KINEMATION.FPSAnimationPack.Scripts.Player
 
             _animator.SetLayerWeight(_triggerDisciplineLayerIndex,
                 triggerAllowed ? _animator.GetFloat(TAC_SPRINT_WEIGHT) : 0f);
-
+            Debug.Log(_smoothGait);
             _animator.SetLayerWeight(_rightHandLayerIndex, _animator.GetFloat(RIGHT_HAND_WEIGHT));
             
             Vector3 cameraPosition = -_localCameraPoint.position;

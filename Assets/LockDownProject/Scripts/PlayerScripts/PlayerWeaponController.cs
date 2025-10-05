@@ -3,6 +3,7 @@ using KINEMATION.FPSAnimationPack.Scripts.Player;
 using KINEMATION.KAnimationCore.Runtime.Core;
 
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public interface IPlayerWeaponInfoProvider
@@ -13,20 +14,34 @@ public interface IPlayerWeaponInfoProvider
 
     float GetIKWeight();
 
+    bool GetIsAimingState();
+
     WeaponBase GetActiveWeapon();
 
     KTransform GetLocalCameraPoint();
+
+    bool GetUseSprintTriggerDiscipline();
 }
-public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
+public interface IPlayerWeaponStateProvider
+{
+    void OnFire();
+    void OnReload();
+
+    void OnAim(bool value);
+}
+public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider, IPlayerWeaponStateProvider
 {
     [Header("Ref")]
-    [SerializeField] private FPSPlayerSettings playerSettings;
+    public FPSPlayerSettings playerSettings;
+    private PlayerSoundController playerSoundController;
     [SerializeField] private KTransform armsRoot;
     private WeaponRigBinder rigBinder;
 
     private KTransform localCameraPoint;
     [Header("Providers")]
     private IWeaponRigInfoProvider weaponRigInfoProvider;
+    private IPlayerSoundProvider soundProvider;
+
 
     [Header("WeaponsList")]
     private List<WeaponBase> weapons = new List<WeaponBase>();
@@ -34,7 +49,7 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
     private int activeWeaponIndex = 0;
 
     bool triggerAllowed;
-
+    private bool isAiming;
 
     private void Awake()
     {
@@ -44,11 +59,24 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
             Debug.LogWarning("[PlayerWeaponController] rigBinder is NULL");
         }
 
+        playerSoundController = GetComponentInParent<PlayerSoundController>();
+        if (playerSoundController == null)
+        {
+            Debug.LogWarning("[PlayerWeaponController] playerSoundController is NULL");
+        }
+
         weaponRigInfoProvider = rigBinder as IWeaponRigInfoProvider;
         if(weaponRigInfoProvider == null )
         {
             Debug.LogWarning("[PlayerWeaponController] weaponRigInfoProvider is NULL");
         }
+
+        soundProvider = playerSoundController as IPlayerSoundProvider;
+        if (soundProvider == null)
+        {
+            Debug.LogWarning("[PlayerWeaponController] soundProvider is NULL");
+        }
+
     }
     private void Start()
     {
@@ -66,9 +94,9 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
 
             prefabComponents.Add(wPrefab);
 
-            var component = instance.GetComponent<WeaponBase>();
+            var component = instance.GetComponentInChildren<WeaponBase>();
             component.Initialize(gameObject);
-
+            
             KTransform weaponT = new KTransform(weaponRigInfoProvider.GetWeaponBone());
             component.rightHandPose = new KTransform(weaponRigInfoProvider.GetRightHand().tip).GetRelativeTransform(weaponT, false);
 
@@ -102,11 +130,29 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
         GetActiveWeapon().OnEquipped(true);
         Invoke(nameof(SetWeaponVisible), 0.05f);
     }
+    public void OnFire()
+    {
+        GetActiveWeapon().OnFirePressed();
+        GetActiveWeapon().OnFireReleased();
+    }
     public void OnReload()
     {
         GetActiveWeapon().OnReload();
     }
+    public void OnAim(bool value)
+    {
+        bool wasAiming = isAiming;
+        isAiming = value;
 
+        GetActiveWeapon().OnAim(isAiming);
+
+        if (wasAiming != isAiming)
+        {
+            soundProvider.PlayAimSound(isAiming);
+            weaponRigInfoProvider.PlayIkMotion(playerSettings.aimingMotion);
+            
+        }
+    }
     private void SetWeaponVisible()
     {
         GetActiveWeapon().gameObject.SetActive(true);
@@ -116,7 +162,10 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
     {
         return weapons[activeWeaponIndex];
     }
-
+    public bool GetIsAimingState()
+    {
+        return isAiming;
+    }
     public WeaponBase GetActivePrefab()
     {
         return prefabComponents[activeWeaponIndex];
@@ -141,8 +190,12 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider
     {
         return localCameraPoint;
     }
+    public bool GetUseSprintTriggerDiscipline()
+    {
+        return GetActiveWeapon().weaponSettings.useSprintTriggerDiscipline;
+    }
     private void Update()
     {
-        triggerAllowed = GetActiveWeapon().weaponSettings.useSprintTriggerDiscipline;
+      // triggerAllowed = GetActiveWeapon().weaponSettings.useSprintTriggerDiscipline;
     }
 }

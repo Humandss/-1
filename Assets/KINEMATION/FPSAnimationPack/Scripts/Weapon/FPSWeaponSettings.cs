@@ -14,7 +14,7 @@ namespace KINEMATION.FPSAnimationPack.Scripts.Weapon
         public RuntimeAnimatorController characterController;
         public RecoilAnimData recoilAnimData;
         public FPSCameraShake cameraShake;
-        
+      
         [Header("IK")]
         public Vector3 ikOffset;
         public Vector3 leftClavicleOffset;

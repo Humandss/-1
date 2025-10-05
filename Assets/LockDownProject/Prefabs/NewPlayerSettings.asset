@@ -15,10 +15,10 @@ MonoBehaviour:
   sensitivity: 1
   weaponPrefabs:
   - {fileID: 5574649351490658479, guid: f4eb075d8df890c4482351c5f0b2eb40, type: 3}
-  grenadeDelay: 0
-  gaitSmoothing: 0
-  ikWeight: 0.614
-  aimSpeed: 0
+  grenadeDelay: 2.1
+  gaitSmoothing: 8
+  ikWeight: 1
+  aimSpeed: 2.5
   aimingMotion: {fileID: 11400000, guid: 378c58675d76a5447b524e24fd97e160, type: 2}
   fireModeMotion: {fileID: 11400000, guid: 609ac1aa3b238e94cba7951e370faeae, type: 2}
   generalSounds: []

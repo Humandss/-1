@@ -3,6 +3,7 @@ using UnityEngine;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using System;
 using KINEMATION.FPSAnimationPack.Scripts.Player;
+using UnityEngine.Rendering;
 
 
 [Serializable]
@@ -19,6 +20,8 @@ public interface IWeaponRigInfoProvider
     IKTransforms GetRightHand();
 
     Quaternion GetAnimatedOffset();
+
+    void PlayIkMotion(IKMotion newMotion);
 }
 public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
 {
@@ -55,9 +58,9 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         weaponRecoilInfoProvider = provider;
         if(weaponRecoilInfoProvider == null)
         {
-            Debug.Log("¹®Á¦");
+            Debug.Log("ï¿½ï¿½ï¿½ï¿½");
         }
-        // ¿©±â¼­ ÇÑ ¹ø Ä³½Ã ³¡. ÀÌÈÄ ¸Å ÇÁ·¹ÀÓ GetComponentInChildren() µ¹¸± ÇÊ¿ä ¾øÀ½.
+        // ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GetComponentInChildren() ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½.
     }
 
     public void UnbindRecoilProvider(IWeaponRecoilInfoProvider provider)
@@ -102,7 +105,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         }
 
         weaponRecoilInfoProvider = weaponBase as IWeaponRecoilInfoProvider;
-        if (playerAnimationWeightProvider == null)
+        if (weaponRecoilInfoProvider == null)
         {
             Debug.LogWarning("[WeaponRigBinder] weaponRecoilInfoProvider is NULL");
         }
@@ -140,6 +143,8 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
 
         ApplyIkData(rightHandIk, rightHand);
         ApplyIkData(leftHandIk, leftHand);
+
+        //Debug.Log(playerAnimationWeightProvider.GetFloatADSWeight());
     }
     private void SetupIkData(ref KTwoBoneIkData ikData, in KTransform target, in IKTransforms transforms,
            float weight = 1f)
@@ -202,6 +207,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
 
     private void ProcessAds(ref KTransform weaponT)
     {
+      
         var weaponOffset = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.ikOffset;
         var adsPose = weaponT;
 
@@ -242,7 +248,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         return KTransform.Lerp(new KTransform(weaponBone), defaultWorldPose, weight);
     }
 
-    private void PlayIkMotion(IKMotion newMotion)
+    public void PlayIkMotion(IKMotion newMotion)
     {
         ikMotionPlayBack = 0f;
         cachedIkMotion = ikMotion;
@@ -346,10 +352,10 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
 
         if (currentWeapon == null || weaponBone == null || rightHand.tip == null) return;
 
-        // ¿À¸¥¼Õ ±×¸³ Æ÷Áî(¹«±â ·ÎÄÃ)
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
         currentWeapon.rightHandPose = new KTransform(rightHand.tip).GetRelativeTransform(new KTransform(weaponBone), false);
 
-        // ADS Æ÷Áî(Ä«¸Þ¶ó ·ÎÄÃ ±âÁØ)
+        // ADS ï¿½ï¿½ï¿½ï¿½(Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
         var root = new KTransform(transform);
         var weaponT = new KTransform(weaponBone);
         var localWeapon = root.GetRelativeTransform(weaponT, false);

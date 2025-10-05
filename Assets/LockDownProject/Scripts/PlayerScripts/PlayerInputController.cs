@@ -9,7 +9,7 @@ public class PlayerInputController : MonoBehaviour
     public Vector2 Look { get; private set; }
     public bool Jump { get; private set; }
     public bool Sprint { get; private set; }
-    public bool TacticalSprint { get; private set; }
+    public bool TacSprint { get; private set; }
     public bool Crouch { get; private set; }
     public bool Prone { get; private set; }
     public bool FreeLook { get; private set; }
@@ -30,7 +30,7 @@ public class PlayerInputController : MonoBehaviour
     
     public void OnSprint(InputValue value) => Sprint=value.isPressed;
 
-    public void OnTacticalSprint(InputValue value) => TacticalSprint = value.isPressed;
+    public void OnTacSprint(InputValue value) => TacSprint = value.isPressed;
 
     public void OnCrouch(InputValue value)
     {
@@ -78,5 +78,6 @@ public class PlayerInputController : MonoBehaviour
     {
         Jump = false;
         Fire = false;
+        Reload = false;
     }
 }

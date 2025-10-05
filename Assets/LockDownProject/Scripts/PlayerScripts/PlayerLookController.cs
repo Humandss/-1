@@ -1,10 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Mathematics;
+using KINEMATION.FPSAnimationPack.Scripts.Camera;
+using KINEMATION.KAnimationCore.Runtime.Core;
 using UnityEngine;
 
-public class PlayerLookController : MonoBehaviour
+public interface ICameraAnimation
 {
+     void PlayCameraShake(FPSCameraShake newShake);
+}
+public class PlayerLookController : MonoBehaviour,ICameraAnimation
+{
+    [Header("Refs")]
+    private FPSCameraShake activeShake;
+    private PlayerAnimationController player;
+    private PlayerWeaponController playerWeaponController;
+
+    [Header("Camera")]
+    private Vector3 cameraShake;
+    private Vector3 cameraShakeTarget;
+    private float cameraShakePlayback;
+    private UnityEngine.Camera _camera;
+    private float baseFov;
+
     [Header("Root")]
     [SerializeField] Transform cameraRoot;
     [SerializeField] Transform yawRoot;
@@ -22,12 +37,35 @@ public class PlayerLookController : MonoBehaviour
     private float bodyYaw;
     private float headYaw;
     private float smoothTime; 
-    private float headYawTime; //Çìµå yaw ½Ã°£
+    private float headYawTime; //ï¿½ï¿½ï¿½ yaw ï¿½Ã°ï¿½
     private bool bodyYawControllable = true;
 
+   
+
+    private IPlayerWeaponInfoProvider playerWeaponInfoProvider;
     private void Awake()
     {
         if (!yawRoot) yawRoot = transform;
+
+        player = GetComponentInChildren<PlayerAnimationController>();
+        if (player == null)
+        {
+            Debug.LogWarning("[PlayerCameraAnimation] player is NULL ");
+        }
+
+        playerWeaponController = GetComponentInChildren<PlayerWeaponController>();
+        if (playerWeaponController == null)
+        {
+            Debug.LogWarning("[PlayerCameraAnimation] playerWeaponController is NULL ");
+        }
+
+        playerWeaponInfoProvider = playerWeaponController as IPlayerWeaponInfoProvider;
+        if (playerWeaponInfoProvider == null)
+        {
+            Debug.LogWarning("[PlayerCameraAnimation] playerWeaponInfoProvider is NULL ");
+        }
+        _camera = GetComponentInChildren<UnityEngine.Camera>();
+        baseFov = _camera.fieldOfView;
     }
     private void OnEnable()
     {
@@ -67,7 +105,7 @@ public class PlayerLookController : MonoBehaviour
     }
     private Vector3 UpdateCameraPosition(Vector3 pos,  float cameraPosition, float camChangeSpeed)
     {
-        //Ä«¸Þ¶ó ·ÎÄÃ Æ÷Áö¼Ç °ªÀ» vector3·Î ¹Þ¾Æ¿Â ´ÙÀ½ ÀÚ¼¼º° float °ªÀ» y°ª¿¡ ´ëÀÔ
+        //Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ vector3ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¼ï¿½ï¿½ï¿½ float ï¿½ï¿½ï¿½ï¿½ yï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         Vector3 cameraPos = cameraRoot.localPosition;
         float speed = camChangeSpeed;
         float newPos = Mathf.SmoothDamp(cameraPos.y, cameraPosition, ref smoothTime, speed);
@@ -75,6 +113,50 @@ public class PlayerLookController : MonoBehaviour
 
         return newCameraPosition;
     }
+    protected virtual void UpdateCameraShake()
+    {
+        if (activeShake == null) return;
 
+        float length = activeShake.shakeCurve.GetCurveLength();
+        cameraShakePlayback += Time.deltaTime * activeShake.playRate;
+        cameraShakePlayback = Mathf.Clamp(cameraShakePlayback, 0f, length);
+
+        float alpha = KMath.ExpDecayAlpha(activeShake.smoothSpeed, Time.deltaTime);
+        if (!KAnimationMath.IsWeightRelevant(activeShake.smoothSpeed))
+        {
+            alpha = 1f;
+        }
+
+        Vector3 target = activeShake.shakeCurve.GetValue(cameraShakePlayback);
+        target.x *= cameraShakeTarget.x;
+        target.y *= cameraShakeTarget.y;
+        target.z *= cameraShakeTarget.z;
+
+        cameraShake = Vector3.Lerp(cameraShake, target, alpha);
+        transform.rotation *= Quaternion.Euler(cameraShake);
+    }
+    public virtual void PlayCameraShake(FPSCameraShake newShake)
+    {
+        if (newShake == null) return;
+
+        activeShake = newShake;
+        cameraShakePlayback = 0f;
+
+        cameraShakeTarget.x = FPSCameraShake.GetTarget(activeShake.pitch);
+        cameraShakeTarget.y = FPSCameraShake.GetTarget(activeShake.yaw);
+        cameraShakeTarget.z = FPSCameraShake.GetTarget(activeShake.roll);
+    }
+    protected virtual void UpdateFOV()
+    {
+        if (_camera == null || player == null) return;
+
+        _camera.fieldOfView = Mathf.Lerp(baseFov,
+           playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.aimFov, player.AdsWeight);
+    }
+    private void LateUpdate()
+    {
+        UpdateCameraShake();
+        UpdateFOV();
+    }
 
 }
