@@ -10,13 +10,13 @@ namespace KINEMATION.KAnimationCore.Runtime.Rig
     {
         public string name;
         [HideInInspector] public int index;
-        public bool isVirtual;
+        public int depth;
 
-        public KRigElement(int index = -1, string name = "None", bool isVirtual = false)
+        public KRigElement(int index = -1, string name = "None", int depth = -1)
         {
             this.index = index;
             this.name = name;
-            this.isVirtual = isVirtual;
+            this.depth = depth;
         }
     }
 }

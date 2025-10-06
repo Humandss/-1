@@ -11,6 +11,8 @@ public interface IPlayerAnimator
 
     void PlayReload();
 
+    void OnJump();
+    void OnLand();
     void PlayTacticalReload();
 
 }
@@ -62,8 +64,6 @@ public class PlayerAnimationController : MonoBehaviour,IPlayerAnimator, IPlayerA
     private float adsWeight;
     private float smoothGait;
 
-    [SerializeField] private float defaultGaitSmoothing = 10f;
-
 
     public void Awake()
     {
@@ -103,34 +103,14 @@ public class PlayerAnimationController : MonoBehaviour,IPlayerAnimator, IPlayerA
         rightHandLayerIndex = playerAnimator.GetLayerIndex("RightHand");
         tacSprintLayerIndex = playerAnimator.GetLayerIndex("TacSprint");
     }
+ 
     private void Update()
     {
-        /*
-        // --- ADS ---
-        float aimSpeed = Mathf.Max(weaponInfoProvider.GetAimSpeed(), 0f);
-        bool aiming = weaponInfoProvider.GetIsAimingState();
-        adsWeight = Mathf.Clamp01(adsWeight + aimSpeed * Time.deltaTime * (aiming ? 1f : -1f));
-
-        // --- GAIT ---
-        float desired = moveInfoProvider.GetDesiredGait();  // 0~1 / 2 / 3
-        float smoothing = weaponInfoProvider.GetGaitSmoothing();
-        if (smoothing <= 0f) smoothing = defaultGaitSmoothing; // 
-
-        float a = KMath.ExpDecayAlpha(smoothing, Time.deltaTime);
-        smoothGait = Mathf.Lerp(smoothGait, desired, a);
-
-        playerAnimator.SetFloat(GAIT, smoothGait);
-
-        float tacW = Mathf.Clamp01(smoothGait - 2f);
-        playerAnimator.SetLayerWeight(tacSprintLayerIndex, tacW);
-
-        bool triggerAllowed = weaponInfoProvider.GetUseSprintTriggerDiscipline();
-        playerAnimator.SetLayerWeight(triggerDisciplineLayerIndex, triggerAllowed ? tacW : 0f);
-        */
+      
         adsWeight = Mathf.Clamp01(adsWeight + weaponInfoProvider.GetAimSpeed() * Time.deltaTime * (weaponInfoProvider.GetIsAimingState() ? 1f : -1f));
         smoothGait = Mathf.Lerp(smoothGait, moveInfoProvider.GetDesiredGait(),
             KMath.ExpDecayAlpha(weaponInfoProvider.GetGaitSmoothing(), Time.deltaTime));
-
+        
         playerAnimator.SetFloat(GAIT, smoothGait);
         playerAnimator.SetLayerWeight(tacSprintLayerIndex, Mathf.Clamp01(smoothGait - 2f));
 
@@ -209,9 +189,9 @@ public class PlayerAnimationController : MonoBehaviour,IPlayerAnimator, IPlayerA
     public void OnJump()
     {
         playerAnimator.SetBool(IS_IN_AIR, true);
-        Invoke(nameof(OnLand), 0.4f);
+        Invoke(nameof(OnLand), 0.45f);
     }
-    private void OnLand()
+    public void OnLand()
     {
         playerAnimator.SetBool(IS_IN_AIR, false);
     }

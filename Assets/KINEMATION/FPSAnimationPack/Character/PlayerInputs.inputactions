@@ -28,7 +28,7 @@
                     "name": "Aim",
                     "type": "Value",
                     "id": "b70ae42d-4c4d-4d0f-9a96-6e841b0abdfe",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -37,7 +37,7 @@
                     "name": "ChangeWeapon",
                     "type": "Button",
                     "id": "45916b94-6f34-4bb2-b3e8-0d89daa9fe69",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -64,7 +64,7 @@
                     "name": "Sprint",
                     "type": "Value",
                     "id": "10ddf3be-1522-4804-91f8-e456c8082f7a",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -73,7 +73,7 @@
                     "name": "TacSprint",
                     "type": "Value",
                     "id": "46fc7d27-c381-4166-9611-0501298d4b89",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -100,7 +100,7 @@
                     "name": "Jump",
                     "type": "Button",
                     "id": "4e072d88-7f09-4e19-a5d7-618ac11babbb",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -126,7 +126,7 @@
                 {
                     "name": "Crouch",
                     "type": "Button",
-                    "id": "78e34001-6838-4dbf-952f-1f4710282410",
+                    "id": "854061d4-df75-4bc2-b21c-4185cc382473",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -135,10 +135,10 @@
                 {
                     "name": "Prone",
                     "type": "Button",
-                    "id": "18eed1ee-fea3-4547-b034-296a70f5ab7b",
+                    "id": "d4709718-ffb6-41a3-9523-e1f98e2568d8",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "initialStateCheck": false
                 }
             ],
@@ -354,7 +354,7 @@
                 },
                 {
                     "name": "",
-                    "id": "4f2d6fb0-038b-4259-96ec-d75beeb9efc3",
+                    "id": "bace75a5-6f3e-4a57-a290-cfaa32f39ffe",
                     "path": "<Keyboard>/leftCtrl",
                     "interactions": "Press(behavior=2)",
                     "processors": "",
@@ -365,9 +365,9 @@
                 },
                 {
                     "name": "",
-                    "id": "2e0ae262-9034-4eba-b58e-ac22d4e255b4",
+                    "id": "7c03da24-0d0d-4123-bf2e-c17c394d8eee",
                     "path": "<Keyboard>/z",
-                    "interactions": "Press(behavior=2)",
+                    "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Prone",

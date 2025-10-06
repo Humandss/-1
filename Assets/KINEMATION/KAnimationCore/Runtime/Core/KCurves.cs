@@ -57,6 +57,12 @@ namespace KINEMATION.KAnimationCore.Runtime.Core
             return new Vector3(x.Evaluate(time), y.Evaluate(time), z.Evaluate(time));
         }
 
+        public Vector3 GetLastValue()
+        {
+            float length = GetCurveLength();
+            return GetValue(length);
+        }
+
         public bool IsValid()
         {
             return x != null && y != null && z != null;

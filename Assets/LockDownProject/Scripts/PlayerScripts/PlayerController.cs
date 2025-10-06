@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using UnityEngine;
 
 
@@ -21,12 +22,24 @@ public class PlayerController : MonoBehaviour
     private MovementSettings movementSettings;
     private LookSettings lookSettings;
     private PlayerWeaponController weaponController;
+    private PlayerAnimationController animationController;
 
     [Header("Providers")]
     private IPlayerWeaponStateProvider playerWeaponStateProvider;
+    private ICameraAnimation camSettings;
+    private IPlayerAnimator playerAnimator;
 
     [Header("PlayerControllerClassComponent")]
     [SerializeField]private PlayerActionManager actionManager;
+
+    [Header("StateBools")]
+    bool isForward;
+    bool canFire;
+    bool canAim;
+    bool canReload;
+    bool canJump;
+    bool isGrounded;
+   // bool wasGrounded = true;
 
     private void Awake()
     {
@@ -60,7 +73,25 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("[PlayerController] lookSettings is NULL");
         }
 
-       weaponController=GetComponentInChildren<PlayerWeaponController>();
+        animationController = GetComponentInChildren<PlayerAnimationController>();
+        if (animationController == null)
+        {
+            Debug.LogWarning("[ PlayerMovementController] animationController is NULL");
+        }
+
+        playerAnimator = animationController as IPlayerAnimator;
+        if (playerAnimator == null)
+        {
+            Debug.LogWarning("[ PlayerMovementController] playerAnimator is NULL");
+        }
+
+        camSettings = lookController as ICameraAnimation;
+        if (camSettings == null)
+        {
+            Debug.LogWarning("[PlayerController]  camSettings is NULL");
+        }
+
+        weaponController =GetComponentInChildren<PlayerWeaponController>();
         if (weaponController == null)
         {
             Debug.LogWarning("[PlayerController]  weaponController is NULL");
@@ -72,7 +103,7 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("[PlayerController] playerWeaponStateProvider is NULL");
         }
     }
-   
+
     private void Update()
     {
 
@@ -86,9 +117,11 @@ public class PlayerController : MonoBehaviour
             
         };
         //������
-        bool isForward = movementSettings.IsForward(inputController.Move);
+        isForward = movementSettings.IsForward(inputController.Move);
         float speed = movementSettings.GetSpeed(movementInfo, isForward);
-        bool canJump = movementSettings.CanJump(movementInfo, inputController.Jump);
+        canJump = movementSettings.CanJump(movementInfo, inputController.Jump, movementController.IsGrounded());
+        isGrounded = movementController.IsGrounded();
+
         //ī�޶� 
         float rotationSpeed = lookSettings.GetRotationSpeed(movementInfo);
         float cameraPosition = lookSettings.GetCameraPosition(movementInfo);
@@ -99,34 +132,63 @@ public class PlayerController : MonoBehaviour
         float mSensitivity = lookSettings.GetMouseSensitivity();
         float h = movementSettings.GetJumpHeight();
         //��� �� ����
-        bool canFire = actionManager.CanFire(movementInfo, inputController.Fire);
-        bool canAim = actionManager.CanAim(movementInfo, inputController.Aim);
-        bool canReload = actionManager.CanReload(movementInfo, inputController.Reload);
+        canFire = actionManager.CanFire(movementInfo, inputController.Fire);
+        canAim = actionManager.CanAim(movementInfo, inputController.Aim);
+        canReload = actionManager.CanReload(movementInfo, inputController.Reload);
 
-        movementSettings.CheckDesiredGait(inputController.Move, movementInfo);
+        movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
+        
+
         //���
+        PlayFire(canFire);
+        PlayReload(canReload);
+        PlayAim(canAim);
+
+        PlayJump(canJump);
         movementController.UpdateMovement(inputController.Move, speed, canJump, h);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
-                                  cameraChangeSpeed, mSensitivity, isFreeLook);  
+                                  cameraChangeSpeed, mSensitivity, isFreeLook);
 
-       if(canFire)
+        //카메라(반동. fov 변화는 update에서 사격 및 줌인하고 이후 처리하기 때문에 제일 마지막 처리, 추후 문제가 된다면 LateUpdate로 뺄 예정
+        camSettings.UpdateFOVandCameraShake();
+
+    }
+    private void PlayJump(bool canJump)
+    {
+       
+        if (canJump)
+        {
+            playerAnimator.OnJump();
+         
+        }
+        else return;
+    }
+
+    private void PlayFire(bool canFire)
+    {
+        if (canFire)
         {
             playerWeaponStateProvider.OnFire();
         }
+        else return;
+    }
+    private void PlayReload(bool canReload)
+    {
         if (canReload)
         {
             playerWeaponStateProvider.OnReload();
         }
-        if(canAim)
+        else return;
+    }
+    private void PlayAim(bool canAim)
+    {
+        if (canAim)
         {
             playerWeaponStateProvider.OnAim(true);
-            
+
         }
         else playerWeaponStateProvider.OnAim(false);
-
-
     }
-   
 }
 [System.Serializable]
 public class PlayerActionManager

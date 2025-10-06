@@ -198,7 +198,7 @@ public class WeaponBase : MonoBehaviour, IAnimatorControllerProvider, IWeaponRec
 
         activeAmmo--;
 
-        Debug.Log(activeAmmo);
+        //Debug.Log(activeAmmo);
         if (fireMode == FireMode.Auto && weaponSettings)
         {
             Invoke(nameof(OnFire), 60f / Mathf.Max(1f, weaponSettings.fireRate));

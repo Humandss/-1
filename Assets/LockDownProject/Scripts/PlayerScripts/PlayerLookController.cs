@@ -5,13 +5,16 @@ using UnityEngine;
 public interface ICameraAnimation
 {
      void PlayCameraShake(FPSCameraShake newShake);
+     void UpdateFOVandCameraShake();
+
 }
 public class PlayerLookController : MonoBehaviour,ICameraAnimation
 {
     [Header("Refs")]
     private FPSCameraShake activeShake;
-    private PlayerAnimationController player;
-    private PlayerWeaponController playerWeaponController;
+    //private PlayerAnimationController player;
+    // private PlayerWeaponController playerWeaponController;
+    private Player player;
 
     [Header("Camera")]
     private Vector3 cameraShake;
@@ -23,6 +26,7 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
     [Header("Root")]
     [SerializeField] Transform cameraRoot;
     [SerializeField] Transform yawRoot;
+ 
 
     [Header("Limits")]
     [SerializeField] private float maxPitch = 65.0f;
@@ -46,7 +50,7 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
     private void Awake()
     {
         if (!yawRoot) yawRoot = transform;
-
+        /*
         player = GetComponentInChildren<PlayerAnimationController>();
         if (player == null)
         {
@@ -63,7 +67,9 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
         if (playerWeaponInfoProvider == null)
         {
             Debug.LogWarning("[PlayerCameraAnimation] playerWeaponInfoProvider is NULL ");
-        }
+        }*/
+        player = GetComponentInChildren<Player> ();
+
         _camera = GetComponentInChildren<UnityEngine.Camera>();
         baseFov = _camera.fieldOfView;
     }
@@ -150,13 +156,18 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
     {
         if (_camera == null || player == null) return;
 
+        //_camera.fieldOfView = Mathf.Lerp(baseFov,
+        // playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.aimFov, player.AdsWeight);
+
         _camera.fieldOfView = Mathf.Lerp(baseFov,
-           playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.aimFov, player.AdsWeight);
+         player.GetActiveWeapon().weaponSettings.aimFov, player.AdsWeight);
     }
-    private void LateUpdate()
+    
+
+    public void UpdateFOVandCameraShake()
     {
-        UpdateCameraShake();
         UpdateFOV();
+        UpdateCameraShake();
     }
 
 }

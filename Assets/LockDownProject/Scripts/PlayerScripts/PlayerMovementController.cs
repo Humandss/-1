@@ -12,11 +12,11 @@ public class PlayerMovementController : MonoBehaviour
     private CharacterController cc;
 
     private float jumpValue;
-    
+
+
     public void Awake()
     {
         cc = GetComponent<CharacterController>();
-        
     }
     public void UpdateMovement(Vector2 moveInput, float moveSpeed, bool isJumped, float h)
     {
@@ -25,13 +25,20 @@ public class PlayerMovementController : MonoBehaviour
 
         Vector3 totalDir = dir * moveSpeed;
 
-        if (isJumped && cc.isGrounded) jumpValue = Mathf.Sqrt(2.0f * gravity * h);
-
+        if (isJumped)
+        {
+            jumpValue = Mathf.Sqrt(2.0f * gravity * h);
+       
+        }
         jumpValue += (-gravity) * Time.deltaTime;
 
         cc.Move(totalDir * Time.deltaTime + Vector3.up * jumpValue * Time.deltaTime);
 
     }
-    
+    public bool IsGrounded()
+    {
+        if(cc.isGrounded) return true;
+        else return false;
+    }
 
 }

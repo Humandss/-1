@@ -11,14 +11,10 @@ namespace KINEMATION.KAnimationCore.Editor.Input
     public class UserInputControllerInspector : UnityEditor.Editor
     {
         private UserInputController _controller;
-
-        private AssetObjectWidget<UserInputConfig> _configWidget;
-       
+        
         private void OnEnable()
         {
             _controller = (UserInputController) target;
-            _configWidget = new AssetObjectWidget<UserInputConfig>(serializedObject, "inputConfig",
-                "Config");
         }
         
         private static bool IsInspectorFocused() 

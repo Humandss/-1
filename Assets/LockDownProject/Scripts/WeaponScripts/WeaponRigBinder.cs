@@ -51,6 +51,8 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
     private KTransform cachedIkMotion = KTransform.Identity;
     private IKMotion activeMotion;
 
+    [SerializeField] bool armsAreChildOfCamera = true;
+
     private static Quaternion ANIMATED_OFFSET = Quaternion.Euler(90f, 0f, 0f);
     /*
     public void BindRecoilProvider(IWeaponRecoilInfoProvider provider)
@@ -112,6 +114,8 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
     }
     private void LateUpdate()
     {
+
+
         KAnimationMath.RotateInSpace(transform, rightHand.tip,
                 playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.rightHandSprintOffset, playerAnimationWeightProvider.GetFloatTacSprintWeight());
 
@@ -144,6 +148,12 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         ApplyIkData(rightHandIk, rightHand);
         ApplyIkData(leftHandIk, leftHand);
 
+        var active = playerWeaponInfoProvider.GetActiveWeapon();
+        Debug.Log($"[DBG] tacW={playerAnimationWeightProvider.GetFloatTacSprintWeight():0.00} " +
+                  $"hasRHPose={(active?.rightHandPose.position != Vector3.zero)} " +
+                  $"hasAim={(active?.aimPoint != null)}");
+
+
         //Debug.Log(playerAnimationWeightProvider.GetFloatADSWeight());
     }
     private void SetupIkData(ref KTwoBoneIkData ikData, in KTransform target, in IKTransforms transforms,
@@ -173,7 +183,7 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
         KTransform rootT = new KTransform(root);
         var weaponOffset = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.ikOffset;
 
-        float mask = 1f - playerAnimationWeightProvider.GetFloatTacSprintWeight();
+        float mask = 1.0f - playerAnimationWeightProvider.GetFloatTacSprintWeight();
         weaponT.position = KAnimationMath.MoveInSpace(rootT, weaponT, weaponOffset, mask);
 
         var settings = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings;
@@ -207,36 +217,73 @@ public class WeaponRigBinder : MonoBehaviour, IWeaponRigInfoProvider
 
     private void ProcessAds(ref KTransform weaponT)
     {
-      
-        var weaponOffset = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.ikOffset;
-        var adsPose = weaponT;
+        /*
+          var weaponOffset = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.ikOffset;
+          var adsPose = weaponT;
 
+          KTransform aimPoint = KTransform.Identity;
+
+          aimPoint.position = -weaponBone.InverseTransformPoint(playerWeaponInfoProvider.GetActiveWeapon().aimPoint.position);
+          aimPoint.position -= playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.aimPointOffset;
+          aimPoint.rotation = Quaternion.Inverse(weaponBone.rotation) * playerWeaponInfoProvider.GetActiveWeapon().aimPoint.rotation;
+
+          KTransform root = new KTransform(transform);
+          adsPose.position = KAnimationMath.MoveInSpace(root, adsPose,
+              playerWeaponInfoProvider.GetActiveWeapon().adsPose.position - weaponOffset, 1f);
+          adsPose.rotation =
+              KAnimationMath.RotateInSpace(root, adsPose,
+                  playerWeaponInfoProvider.GetActiveWeapon().adsPose.rotation, 1f);
+
+          KTransform cameraPose = root.GetWorldTransform(playerWeaponInfoProvider.GetLocalCameraPoint(), false);
+
+          float adsBlendWeight = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.adsBlend;
+          adsPose.position = Vector3.Lerp(cameraPose.position, adsPose.position, adsBlendWeight);
+          adsPose.rotation = Quaternion.Slerp(cameraPose.rotation, adsPose.rotation, adsBlendWeight);
+
+          adsPose.position = KAnimationMath.MoveInSpace(root, adsPose, aimPoint.rotation * aimPoint.position, 1f);
+          adsPose.rotation = KAnimationMath.RotateInSpace(root, adsPose, aimPoint.rotation, 1f);
+
+          float weight = KCurves.EaseSine(0f, 1f, playerAnimationWeightProvider.GetFloatADSWeight());
+
+          weaponT.position = Vector3.Lerp(weaponT.position, adsPose.position, weight);
+          weaponT.rotation = Quaternion.Slerp(weaponT.rotation, adsPose.rotation, weight);
+        */
+
+        var w = playerWeaponInfoProvider.GetActiveWeapon();
+        // 1) aimPoint을 "weaponBone 로컬"로 환산
         KTransform aimPoint = KTransform.Identity;
+        aimPoint.position = -weaponBone.InverseTransformPoint(w.aimPoint.position);
+        aimPoint.position -= w.weaponSettings.aimPointOffset; // 원문은 '-' 적용
+        aimPoint.rotation = Quaternion.Inverse(weaponBone.rotation) * w.aimPoint.rotation;
 
-        aimPoint.position = -weaponBone.InverseTransformPoint(playerWeaponInfoProvider.GetActiveWeapon().aimPoint.position);
-        aimPoint.position -= playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.aimPointOffset;
-        aimPoint.rotation = Quaternion.Inverse(weaponBone.rotation) * playerWeaponInfoProvider.GetActiveWeapon().aimPoint.rotation;
+        // 2) 무기 자산에 저장된 ADS 포즈 적용(루트 공간)
+        var root = new KTransform(transform);
+        var adsPose = weaponT;
+        var weaponOffset = w.weaponSettings.ikOffset;
 
-        KTransform root = new KTransform(transform);
-        adsPose.position = KAnimationMath.MoveInSpace(root, adsPose,
-            playerWeaponInfoProvider.GetActiveWeapon().adsPose.position - weaponOffset, 1f);
-        adsPose.rotation =
-            KAnimationMath.RotateInSpace(root, adsPose,
-                playerWeaponInfoProvider.GetActiveWeapon().adsPose.rotation, 1f);
+        adsPose.position = KAnimationMath.MoveInSpace(root, adsPose, w.adsPose.position - weaponOffset, 1f);
+        adsPose.rotation = KAnimationMath.RotateInSpace(root, adsPose, w.adsPose.rotation, 1f);
 
+        // 3) 카메라 기준과 블렌딩
         KTransform cameraPose = root.GetWorldTransform(playerWeaponInfoProvider.GetLocalCameraPoint(), false);
+        /* 고정 앵커 쓰면 */
+        //root.GetWorldTransform(_localCameraPoint, false);
+        /* 라이브 쓰면  */ // new KTransform(cameraPoint);
 
-        float adsBlendWeight = playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.adsBlend;
-        adsPose.position = Vector3.Lerp(cameraPose.position, adsPose.position, adsBlendWeight);
-        adsPose.rotation = Quaternion.Slerp(cameraPose.rotation, adsPose.rotation, adsBlendWeight);
+        float blend = w.weaponSettings.adsBlend; // 0=카메라 100%, 1=자산 100%
+        adsPose.position = Vector3.Lerp(cameraPose.position, adsPose.position, blend);
+        adsPose.rotation = Quaternion.Slerp(cameraPose.rotation, adsPose.rotation, blend);
 
+        // 4) aimPoint를 cameraPose로 정렬
         adsPose.position = KAnimationMath.MoveInSpace(root, adsPose, aimPoint.rotation * aimPoint.position, 1f);
         adsPose.rotation = KAnimationMath.RotateInSpace(root, adsPose, aimPoint.rotation, 1f);
 
-        float weight = KCurves.EaseSine(0f, 1f, playerAnimationWeightProvider.GetFloatADSWeight());
+        // 5) ADS 가중치로 최종 보간
+        float wADS = KCurves.EaseSine(0f, 1f, playerAnimationWeightProvider.GetFloatADSWeight());
+        weaponT.position = Vector3.Lerp(weaponT.position, adsPose.position, wADS);
+        weaponT.rotation = Quaternion.Slerp(weaponT.rotation, adsPose.rotation, wADS);
 
-        weaponT.position = Vector3.Lerp(weaponT.position, adsPose.position, weight);
-        weaponT.rotation = Quaternion.Slerp(weaponT.rotation, adsPose.rotation, weight);
+
     }
 
     private KTransform GetWeaponPose()

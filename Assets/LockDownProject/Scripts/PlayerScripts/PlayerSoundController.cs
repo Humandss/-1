@@ -5,6 +5,8 @@ using UnityEngine;
 public interface IPlayerSoundProvider
 {
     void PlayAimSound(bool isAimIn = true);
+    void PlayJumpSound();
+    void PlayLandSound();
 }
 public class PlayerSoundController : MonoBehaviour, IPlayerSoundProvider
 {
@@ -71,6 +73,7 @@ public class PlayerSoundController : MonoBehaviour, IPlayerSoundProvider
 
     private void PlayMovementSounds(float gait, float error = 0.4f)
     {
+        
         if (gait >= error && gait <= 1f + error)
         {
             if (playback >= walkDelay)
@@ -101,7 +104,7 @@ public class PlayerSoundController : MonoBehaviour, IPlayerSoundProvider
         }
     }
 
-    private void LateUpdate()
+    private void Update()
     {
         float gait = weightProvider.GetFloatGaitWeight();
         

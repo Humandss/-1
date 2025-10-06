@@ -5,17 +5,26 @@ using KINEMATION.KAnimationCore.Runtime.Input;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace KINEMATION.KAnimationCore.Runtime.Rig
 {
-    // Character skeleton asset.
-    [CreateAssetMenu(fileName = "NewRig", menuName = "KINEMATION/Rig")]
-    public class KRig : ScriptableObject
+    public abstract class KRigBase : ScriptableObject, IRigProvider
     {
         public RuntimeAnimatorController targetAnimator;
-        public UserInputConfig inputConfig;
         public List<KRigElement> rigHierarchy = new List<KRigElement>();
         public List<KRigElementChain> rigElementChains = new List<KRigElementChain>();
+        
+        public KRigElement[] GetHierarchy()
+        {
+            return rigHierarchy.ToArray();
+        }
+    }
+    
+    // Character skeleton asset.
+    public class KRig : KRigBase
+    {
+        public UserInputConfig inputConfig;
         public List<string> rigCurves = new List<string>();
 
         public KRigElementChain GetElementChainByName(string chainName)
@@ -46,6 +55,18 @@ namespace KINEMATION.KAnimationCore.Runtime.Rig
 #if UNITY_EDITOR
         public List<int> rigDepths = new List<int>();
         private List<Object> _rigObservers = new List<Object>();
+
+        private void OnEnable()
+        {
+            // Force update rig depths for compatibility reasons.
+            int count = rigHierarchy.Count;
+            for (int i = 0; i < count; i++)
+            {
+                var element = rigHierarchy[i];
+                element.depth = rigDepths[i];
+                rigHierarchy[i] = element;
+            }
+        }
 
         public void ImportRig(KRigComponent rigComponent)
         {

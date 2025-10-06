@@ -13,7 +13,14 @@ namespace KINEMATION.KAnimationCore.Runtime.Rig
     {
         public string chainName;
         [HideInInspector] public List<KRigElement> elementChain = new List<KRigElement>();
-        [HideInInspector] public bool isStandalone;
+
+        public KRigElementChain GetCopy()
+        {
+            KRigElementChain copy = new KRigElementChain();
+            copy.chainName = chainName;
+            foreach (var element in elementChain) copy.elementChain.Add(element);
+            return copy;
+        }
     }
 
     // A simplified version of the KRigElementChain, which contains transforms only.

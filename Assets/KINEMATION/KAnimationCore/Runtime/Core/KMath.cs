@@ -77,6 +77,16 @@ namespace KINEMATION.KAnimationCore.Runtime.Core
             return 1 - Mathf.Exp(-speed * deltaTime);
         }
 
+        public static float FloatInterp(float a, float b, float speed, float deltaTime)
+        {
+            return speed > 0f ? Mathf.Lerp(a, b, ExpDecayAlpha(speed, deltaTime)) : b;
+        }
+
+        public static Quaternion SmoothSlerp(Quaternion a, Quaternion b, float speed, float deltaTime)
+        {
+            return speed > 0f ? Quaternion.Slerp(a, b, ExpDecayAlpha(speed, deltaTime)) : b;
+        }
+
         public static Vector2 ComputeLookAtInput(Transform root, Transform from, Transform to)
         {
             Vector2 result = Vector2.zero;

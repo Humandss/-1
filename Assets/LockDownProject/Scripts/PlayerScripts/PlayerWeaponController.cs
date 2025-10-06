@@ -1,8 +1,9 @@
 using KINEMATION.FPSAnimationPack.Scripts.Player;
-
+using KINEMATION.FPSAnimationPack.Scripts.Weapon;
 using KINEMATION.KAnimationCore.Runtime.Core;
 
 using System.Collections.Generic;
+using System.Reflection;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -26,7 +27,6 @@ public interface IPlayerWeaponStateProvider
 {
     void OnFire();
     void OnReload();
-
     void OnAim(bool value);
 }
 public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider, IPlayerWeaponStateProvider
@@ -34,10 +34,11 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider, 
     [Header("Ref")]
     public FPSPlayerSettings playerSettings;
     private PlayerSoundController playerSoundController;
-    [SerializeField] private KTransform armsRoot;
+    private KTransform armsRoot;
     private WeaponRigBinder rigBinder;
 
     private KTransform localCameraPoint;
+
     [Header("Providers")]
     private IWeaponRigInfoProvider weaponRigInfoProvider;
     private IPlayerSoundProvider soundProvider;
@@ -80,7 +81,9 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider, 
     }
     private void Start()
     {
-        localCameraPoint = armsRoot.GetRelativeTransform(new KTransform(weaponRigInfoProvider.GetCameraPoint()), false);
+        /*
+        armsRoot = new KTransform(transform);
+        localCameraPoint = new KTransform(weaponRigInfoProvider.GetCameraPoint());
 
         foreach (var prefab in playerSettings.weaponPrefabs)
         {
@@ -104,7 +107,49 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider, 
 
             localWeapon.rotation *= rigBinder.GetAnimatedOffset();
 
-            component.adsPose.position = localCameraPoint.position - localWeapon.position;
+           component.adsPose.position = weaponRigInfoProvider.GetCameraPoint().position - localWeapon.position;
+           component.adsPose.rotation = Quaternion.Inverse(localWeapon.rotation);
+
+            weapons.Add(component);
+        }
+
+        GetActiveWeapon().gameObject.SetActive(true);
+  
+        GetActiveWeapon().OnEquipped();*/
+
+        armsRoot = new KTransform(transform);
+
+        foreach (var prefab in playerSettings.weaponPrefabs)
+        {
+            var wPrefab = prefab.GetComponent<WeaponBase>();
+            if (wPrefab == null) continue;
+
+            // ❌ prefabComponents.Add(wPrefab); // 이건 굳이 필요 없고, 아래 중복도 제거
+
+            // 무기를 weaponBone 밑에 생성
+            var weaponBoneTf = weaponRigInfoProvider.GetWeaponBone();
+            var instance = Instantiate(prefab, weaponBoneTf, false);
+            instance.SetActive(false);
+
+            var component = instance.GetComponentInChildren<WeaponBase>(true);
+            component.Initialize(gameObject);
+
+            // 기준 변환들
+            var weaponT = new KTransform(weaponBoneTf);             // weaponBone의 '월드' 변환
+            var rightHandTipT = new KTransform(weaponRigInfoProvider.GetRightHand().tip);
+            var cameraPointT = new KTransform(weaponRigInfoProvider.GetCameraPoint());
+            var rootT = new KTransform(transform);                  // armsRoot와 동일
+
+            // 1) rightHandPose: [손 → 무기] 상대 변환(무기 기준 포즈)
+            component.rightHandPose = rightHandTipT.GetRelativeTransform(weaponT, false);
+
+            // 2) ADS 포즈: 카메라와 무기 모두 같은 'root' 기준으로 변환 후 계산
+            var localWeapon = rootT.GetRelativeTransform(weaponT, false);
+            localWeapon.rotation *= rigBinder.GetAnimatedOffset();  // 네가 런타임에서 항상 더하던 오프셋
+
+            var localCamera = rootT.GetRelativeTransform(cameraPointT, false);
+
+            component.adsPose.position = localCamera.position - localWeapon.position;
             component.adsPose.rotation = Quaternion.Inverse(localWeapon.rotation);
 
             weapons.Add(component);
@@ -113,6 +158,7 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider, 
         GetActiveWeapon().gameObject.SetActive(true);
         GetActiveWeapon().OnEquipped();
     }
+  
     public void OnChangeFireMode()
     {
         var prevFireMode = GetActiveWeapon().ActiveFireMode;
@@ -124,6 +170,7 @@ public class PlayerWeaponController : MonoBehaviour, IPlayerWeaponInfoProvider, 
            // PlayIkMotion(playerSettings.fireModeMotion);
         }
     }
+    
     private void EquipWeapon()
     {
         GetActiveWeapon().gameObject.SetActive(false);

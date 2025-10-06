@@ -16,7 +16,8 @@ namespace KINEMATION.KAnimationCore.Runtime.Rig
     public enum EModifyMode
     {
         Add,
-        Replace
+        Replace,
+        Ignore
     }
     
     // Represents the pose for the specific rig element.

@@ -58,10 +58,10 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
 
     }
 
-    public bool CanJump(in MovementMode mode, bool isJumped)
+    public bool CanJump(in MovementMode mode, bool isJumped, bool isGrounded)
     {
         //������ ���� ���� + �������� ���� ���¿����� ���� �����ϰԲ�
-        if (isJumped && !mode.prone) return true;
+        if (isJumped && !mode.prone && isGrounded) return true;
 
         return false;
 
@@ -70,18 +70,17 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     {
         return jumpHeight;
     }
-    public void CheckDesiredGait(Vector2 moveInfo, in MovementMode mode)
+    public void CheckDesiredGait(Vector2 moveInfo, in MovementMode mode, float speed)
     {
-
-        if (mode.tacticalSprint) gait = 3.0f;
-        else if (mode.sprint) gait = 2.0f;
+        //모드가 달리기이면서 속도도 달리기로 동일한 경우(실제 달리는 경우)에만 gait값 할당/ 애니메이션 동기화
+        if (mode.tacticalSprint && speed == tacticalSprintSpeed) gait = 3.0f;
+        else if (mode.sprint && speed == sprintSpeed) gait = 2.0f;
         else gait = moveInfo.magnitude;
 
     }
     public float GetDesiredGait()
     {
-       // Debug.Log(gait);
         return gait;
     }
-   
+ 
 }

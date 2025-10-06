@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sensitivity: 1
   weaponPrefabs:
-  - {fileID: 5574649351490658479, guid: f4eb075d8df890c4482351c5f0b2eb40, type: 3}
+  - {fileID: 7028620536768362918, guid: 18f13e9f0284d0a41a64a62b7cdc0f3b, type: 3}
   grenadeDelay: 2.1
   gaitSmoothing: 8
   ikWeight: 1
