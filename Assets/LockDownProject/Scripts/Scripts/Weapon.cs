@@ -105,6 +105,7 @@ public class Weapon : MonoBehaviour
     public virtual void OnReload()
     {
         if (_activeAmmo == weaponSettings.ammo) return;
+        if(_isReloading) return;    
 
         var reloadHash = _activeAmmo == 0 ? RELOAD_EMPTY : RELOAD_TAC;
         characterAnimator.Play(reloadHash, -1, 0f);
