@@ -5,14 +5,14 @@ using System;
 using KINEMATION.FPSAnimationPack.Scripts.Player;
 using UnityEngine.Rendering;
 
-
+/*
 [Serializable]
 public struct IKTransforms
 {
     public Transform tip;
     public Transform mid;
     public Transform root;
-}
+}*/
 public interface IWeaponRigInfoProvider
 {
     Transform GetWeaponBone();

@@ -21,8 +21,6 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     [Header("Jump")]
     [SerializeField] private float jumpHeight = 1.0f;
 
-    private bool sprinting;
-    private bool tacticalSprinting;
     private float gait;
   
     public float GetSpeed(in MovementMode mode, bool isForward)
@@ -82,5 +80,42 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     {
         return gait;
     }
- 
+    public bool CanFire(in MovementMode mode, bool isFire)
+    {
+        if (isFire)
+        {
+            if (mode.tacticalSprint) return false;
+
+            return true;
+        }
+
+        return false;
+    }
+    public bool CanAim(in MovementMode mode, bool isAim)
+    {
+        if (isAim)
+        {
+            if (mode.sprint) return false;
+
+            if (mode.tacticalSprint) return false;
+
+            return true;
+        }
+
+        return false;
+
+
+    }
+    public bool CanReload(in MovementMode mode, bool isReload)
+    {
+        if (isReload)
+        {
+            if (mode.tacticalSprint) return false;
+
+            return true;
+        }
+
+
+        return false;
+    }
 }

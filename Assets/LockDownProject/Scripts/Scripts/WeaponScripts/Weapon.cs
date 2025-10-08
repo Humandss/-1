@@ -1,5 +1,5 @@
+
 using KINEMATION.FPSAnimationPack.Scripts.Camera;
-using KINEMATION.FPSAnimationPack.Scripts.Sounds;
 using KINEMATION.FPSAnimationPack.Scripts.Weapon;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
@@ -10,66 +10,94 @@ public class Weapon : MonoBehaviour
     public float UnEquipDelay => unEquipDelay;
     public FireMode ActiveFireMode => fireMode;
 
+    [Header("Refs")]
     public FPSWeaponSettings weaponSettings;
     public Transform aimPoint;
+    protected GameObject ownerPlayer;
+    protected RecoilAnimation recoilAnimation;
+    protected WeaponSound weaponSound;
+    protected Animator characterAnimator;
+    protected Animator weaponAnimator;
+    private PlayerLookController playerLookController;
+
+    [Header("Providers")]
+    private ICameraAnimation cameraAnimation;
+
+    [Header("Animator Hash")]
+    protected static int RELOAD_EMPTY = Animator.StringToHash("Reload_Empty");
+    protected static int RELOAD_TAC = Animator.StringToHash("Reload_Tac");
+    protected static int FIRE = Animator.StringToHash("Fire");
+    protected static int FIREOUT = Animator.StringToHash("FireOut");
+    protected static int EQUIP = Animator.StringToHash("Equip");
+    protected static int EQUIP_OVERRIDE = Animator.StringToHash("Equip_Override");
+    protected static int UNEQUIP = Animator.StringToHash("UnEquip");
+    protected static int IDLE = Animator.StringToHash("Idle");
+
+    [Header("Delay")]
+    protected float unEquipDelay;
+    protected float emptyReloadDelay;
+    protected float tacReloadDelay;
+
+    [Header("State")]
+    protected bool isReloading;
+    protected bool isFiring;
+    [Header("etc")]
+    protected int activeAmmo;
 
     [SerializeField] protected FireMode fireMode = FireMode.Semi;
 
     [HideInInspector] public KTransform rightHandPose;
     [HideInInspector] public KTransform adsPose;
 
-    protected GameObject ownerPlayer;
-    protected RecoilAnimation recoilAnimation;
-    protected WeaponSound weaponSound;
-
-    protected Animator characterAnimator;
-    protected Animator weaponAnimator;
-
-    protected static int RELOAD_EMPTY = Animator.StringToHash("Reload_Empty");
-    protected static int RELOAD_TAC = Animator.StringToHash("Reload_Tac");
-    protected static int FIRE = Animator.StringToHash("Fire");
-    protected static int FIREOUT = Animator.StringToHash("FireOut");
-
-    protected static int EQUIP = Animator.StringToHash("Equip");
-    protected static int EQUIP_OVERRIDE = Animator.StringToHash("Equip_Override");
-    protected static int UNEQUIP = Animator.StringToHash("UnEquip");
-    protected static int IDLE = Animator.StringToHash("Idle");
-
-    protected float unEquipDelay;
-    protected float emptyReloadDelay;
-    protected float tacReloadDelay;
-
-    protected int _activeAmmo;
-
-    protected bool _isReloading;
-    protected bool _isFiring;
-
-    private PlayerLookController playerLookController;
-
     public virtual void Initialize(GameObject owner)
     {
         ownerPlayer = owner;
-        recoilAnimation = owner.GetComponent<RecoilAnimation>();
-        characterAnimator = owner.GetComponent<Animator>();
-        _activeAmmo = weaponSettings.ammo;
+        if (ownerPlayer == null)
+        {
+            Debug.LogWarning("[Weapon] ownerPlayer not found!");
+        }
 
-        playerLookController = owner.GetComponentInParent<PlayerLookController>();
+        recoilAnimation = owner.GetComponent<RecoilAnimation>();
+        if (recoilAnimation == null)
+        {
+            Debug.LogWarning("[Weapon] recoilAnimation  is NULL!");
+        }
+
+        characterAnimator = owner.GetComponent<Animator>();
+        if (characterAnimator == null)
+        {
+            Debug.LogWarning("[Weapon] characterAnimator is NULL!");
+        }
+
+        activeAmmo = weaponSettings.ammo;
+
+         playerLookController = owner.GetComponentInParent<PlayerLookController>();
+         if (playerLookController == null)
+         {
+             Debug.LogWarning("[Weapon] playerLookController is NULL!");
+         }
+    
+        cameraAnimation = playerLookController as ICameraAnimation;
+        if (cameraAnimation == null)
+        {
+            Debug.LogWarning("[Weapon] cameraAnimation is NULL!");
+        }
 
         weaponAnimator = GetComponentInChildren<Animator>();
         if (weaponAnimator == null)
         {
-            Debug.LogWarning("FPSWeapon: Animator not found!");
+            Debug.LogWarning("[Weapon] Animator is NULL!");
         }
 
         weaponSound = GetComponentInChildren<WeaponSound>();
         if (weaponSound == null)
         {
-            Debug.LogWarning("FPSWeapon: WeaponSound not found!");
+            Debug.LogWarning("[Weapon] WeaponSound is NULL!");
         }
 
         if (Mathf.Approximately(weaponSettings.fireRate, 0f))
         {
-            Debug.LogWarning("FPSWeapon: Fire Rate is ZERO, setting it to default 600.");
+            Debug.LogWarning("[Weapon] Fire Rate is ZERO, setting it to default 600.");
             weaponSettings.fireRate = 600f;
         }
 
@@ -98,22 +126,21 @@ public class Weapon : MonoBehaviour
         {
             idlePose.SampleAnimation(ownerPlayer, 0f);
         }
-
-        //cameraAnimator = owner.transform.parent.GetComponentInChildren<FPSCameraAnimator>();
+       
     }
 
     public virtual void OnReload()
     {
-        if (_activeAmmo == weaponSettings.ammo) return;
-        if(_isReloading) return;    
+        if (activeAmmo == weaponSettings.ammo) return;
+        if(isReloading) return;    
 
-        var reloadHash = _activeAmmo == 0 ? RELOAD_EMPTY : RELOAD_TAC;
+        var reloadHash = activeAmmo == 0 ? RELOAD_EMPTY : RELOAD_TAC;
         characterAnimator.Play(reloadHash, -1, 0f);
         weaponAnimator.Play(reloadHash, -1, 0f);
 
-        float delay = _activeAmmo == 0 ? emptyReloadDelay : tacReloadDelay;
+        float delay = activeAmmo == 0 ? emptyReloadDelay : tacReloadDelay;
         Invoke(nameof(ResetActiveAmmo), delay * weaponSettings.ammoResetTimeScale);
-        _isReloading = true;
+        isReloading = true;
     }
 
     public void OnFireModeChange()
@@ -157,21 +184,21 @@ public class Weapon : MonoBehaviour
 
     public void OnFirePressed()
     {
-        _isFiring = true;
+        isFiring = true;
         OnFire();
     }
 
     public void OnFireReleased()
     {
-        _isFiring = false;
+        isFiring = false;
         recoilAnimation.Stop();
     }
 
     private void OnFire()
     {
-        if (!_isFiring || _isReloading) return;
+        if (!isFiring || isReloading) return;
 
-        if (_activeAmmo == 0)
+        if (activeAmmo == 0)
         {
             OnFireReleased();
             return;
@@ -180,14 +207,14 @@ public class Weapon : MonoBehaviour
         recoilAnimation.Play();
         if (weaponSound != null) weaponSound.PlayFireSound();
 
-        playerLookController.PlayCameraShake(weaponSettings.cameraShake);
+        cameraAnimation.PlayCameraShake(weaponSettings.cameraShake);
 
         if (weaponSettings.useFireClip) characterAnimator.Play(FIRE, -1, 0f);
-        weaponAnimator.Play(weaponSettings.hasFireOut && _activeAmmo == 1
+        weaponAnimator.Play(weaponSettings.hasFireOut && activeAmmo == 1
             ? FIREOUT
             : FIRE, -1, 0f);
 
-        _activeAmmo--;
+        activeAmmo--;
 
         if (fireMode == FireMode.Semi) return;
         Invoke(nameof(OnFire), 60f / weaponSettings.fireRate);
@@ -195,13 +222,13 @@ public class Weapon : MonoBehaviour
 
     protected void ResetActiveAmmo()
     {
-        _activeAmmo = weaponSettings.ammo;
-        _isReloading = false;
+        activeAmmo = weaponSettings.ammo;
+        isReloading = false;
     }
 
     public int GetActiveAmmo()
     {
-        return _activeAmmo;
+        return activeAmmo;
     }
 
     public int GetMaxAmmo()

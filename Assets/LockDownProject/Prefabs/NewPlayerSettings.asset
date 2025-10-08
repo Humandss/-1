@@ -15,6 +15,7 @@ MonoBehaviour:
   sensitivity: 1
   weaponPrefabs:
   - {fileID: 7028620536768362918, guid: 18f13e9f0284d0a41a64a62b7cdc0f3b, type: 3}
+  - {fileID: 1020663007571479226, guid: 5ef2b3aa3f8998a4d8331d778a711e31, type: 3}
   grenadeDelay: 2.1
   gaitSmoothing: 8
   ikWeight: 1

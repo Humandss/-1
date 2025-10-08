@@ -126,16 +126,16 @@
                 {
                     "name": "Crouch",
                     "type": "Button",
-                    "id": "854061d4-df75-4bc2-b21c-4185cc382473",
+                    "id": "99aa6a39-84eb-4cc0-bd73-107ffaf0638d",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "initialStateCheck": false
                 },
                 {
                     "name": "Prone",
                     "type": "Button",
-                    "id": "d4709718-ffb6-41a3-9523-e1f98e2568d8",
+                    "id": "f0930346-3a72-433b-88a1-3d330136ca3a",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "Press(behavior=2)",
@@ -354,9 +354,9 @@
                 },
                 {
                     "name": "",
-                    "id": "bace75a5-6f3e-4a57-a290-cfaa32f39ffe",
+                    "id": "20722463-08a0-455d-b4a8-d816b9a191dd",
                     "path": "<Keyboard>/leftCtrl",
-                    "interactions": "Press(behavior=2)",
+                    "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Crouch",
@@ -365,7 +365,7 @@
                 },
                 {
                     "name": "",
-                    "id": "7c03da24-0d0d-4123-bf2e-c17c394d8eee",
+                    "id": "e4631f54-6f25-4c1f-875d-f358ef3518d1",
                     "path": "<Keyboard>/z",
                     "interactions": "",
                     "processors": "",

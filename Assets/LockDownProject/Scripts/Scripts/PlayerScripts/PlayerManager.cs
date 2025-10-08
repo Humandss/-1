@@ -102,24 +102,23 @@ public class PlayerManager : MonoBehaviour
         float mSensitivity = lookSettings.GetMouseSensitivity();
         float h = movementSettings.GetJumpHeight();
         //��� �� ����
-        canFire = actionManager.CanFire(movementInfo, inputController.Fire);
-        canAim = actionManager.CanAim(movementInfo, inputController.Aim);
-        canReload = actionManager.CanReload(movementInfo, inputController.Reload);
+        canFire = movementSettings.CanFire(movementInfo, inputController.Fire);
+        canAim = movementSettings.CanAim(movementInfo, inputController.Aim);
+        canReload = movementSettings.CanReload(movementInfo, inputController.Reload);
 
         PlayFire(canFire);
         PlayReload(canReload);
         PlayAim(canAim);
-
         PlayJump(canJump);
 
-        //movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
+        movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
 
         movementController.UpdateMovement(inputController.Move, speed, canJump, h);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
                                   cameraChangeSpeed, mSensitivity, isFreeLook);
 
 
-        //camSettings.UpdateFOVandCameraShake();
+        camSettings.UpdateFOVandCameraShake();
 
     }
     private void PlayJump(bool canJump)
@@ -158,45 +157,4 @@ public class PlayerManager : MonoBehaviour
         else stateProvider.OnAim(false);
     }
 }
-[System.Serializable]
-public class PlayerActionController
-{
-    public bool CanFire(in MovementMode mode, bool isFire)
-    {
-        if (isFire)
-        {
-            if (mode.tacticalSprint) return false;
 
-            return true;
-        }
-
-        return false;
-    }
-    public bool CanAim(in MovementMode mode, bool isAim)
-    {
-        if (isAim)
-        {
-            if (mode.sprint) return false;
-
-            if (mode.tacticalSprint) return false;
-
-            return true;
-        }
-
-        return false;
-
-
-    }
-    public bool CanReload(in MovementMode mode, bool isReload)
-    {
-        if (isReload)
-        {
-            if (mode.tacticalSprint) return false;
-
-            return true;
-        }
-
-
-        return false;
-    }
-}

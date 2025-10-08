@@ -1,6 +1,9 @@
 using KINEMATION.FPSAnimationPack.Scripts.Camera;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
+using static UnityEditor.SceneView;
+using static UnityEngine.GraphicsBuffer;
 
 public interface ICameraAnimation
 {
@@ -12,8 +15,6 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
 {
     [Header("Refs")]
     private FPSCameraShake activeShake;
-    //private PlayerAnimationController player;
-    // private PlayerWeaponController playerWeaponController;
     private Player player;
 
     [Header("Camera")]
@@ -26,7 +27,7 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
     [Header("Root")]
     [SerializeField] Transform cameraRoot;
     [SerializeField] Transform yawRoot;
- 
+
 
     [Header("Limits")]
     [SerializeField] private float maxPitch = 65.0f;
@@ -44,30 +45,12 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
     private float headYawTime; //��� yaw �ð�
     private bool bodyYawControllable = true;
 
-   
-
     private IPlayerWeaponInfoProvider playerWeaponInfoProvider;
+
     private void Awake()
     {
         if (!yawRoot) yawRoot = transform;
-        /*
-        player = GetComponentInChildren<PlayerAnimationController>();
-        if (player == null)
-        {
-            Debug.LogWarning("[PlayerCameraAnimation] player is NULL ");
-        }
-
-        playerWeaponController = GetComponentInChildren<PlayerWeaponController>();
-        if (playerWeaponController == null)
-        {
-            Debug.LogWarning("[PlayerCameraAnimation] playerWeaponController is NULL ");
-        }
-
-        playerWeaponInfoProvider = playerWeaponController as IPlayerWeaponInfoProvider;
-        if (playerWeaponInfoProvider == null)
-        {
-            Debug.LogWarning("[PlayerCameraAnimation] playerWeaponInfoProvider is NULL ");
-        }*/
+       
         player = GetComponentInChildren<Player> ();
 
         _camera = GetComponentInChildren<UnityEngine.Camera>();
@@ -92,6 +75,7 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
         if(isFreeLook)
         {
             headYaw = Mathf.Clamp(headYaw+dx, -freeLookYawLimit, freeLookYawLimit);
+          
         }
         else
         {
@@ -103,7 +87,6 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
         Vector3 newCameraPos = UpdateCameraPosition(cameraRoot.localPosition, cameraPosition, camChangeSpeed);
 
         yawRoot.rotation = Quaternion.Euler(0.0f, bodyYaw, 0.0f);
-
         cameraRoot.localPosition= newCameraPos;
         cameraRoot.localRotation=Quaternion.Euler(pitch, headYaw, 0.0f);
         
@@ -155,9 +138,6 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
     protected virtual void UpdateFOV()
     {
         if (_camera == null || player == null) return;
-
-        //_camera.fieldOfView = Mathf.Lerp(baseFov,
-        // playerWeaponInfoProvider.GetActiveWeapon().weaponSettings.aimFov, player.AdsWeight);
 
         _camera.fieldOfView = Mathf.Lerp(baseFov,
          player.GetActiveWeapon().weaponSettings.aimFov, player.AdsWeight);
