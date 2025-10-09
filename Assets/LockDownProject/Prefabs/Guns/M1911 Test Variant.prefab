@@ -108,6 +108,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 4620520362185247908}
+    - targetCorrespondingSourceObject: {fileID: 2249710175363591869, guid: 8e489e7f96cc8a844a939320b2d379d1,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3101787193292413750}
     - targetCorrespondingSourceObject: {fileID: 1394008405709340952, guid: 8e489e7f96cc8a844a939320b2d379d1,
         type: 3}
       insertIndex: -1
@@ -148,6 +152,21 @@ MonoBehaviour:
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 0}
     scale: {x: 0, y: 0, z: 0}
+--- !u!114 &3101787193292413750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7028620536768362918}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44e855a49da24684eb1003d06494d1f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  muzzle: {fileID: 1522576034102251883}
+  projectile: {fileID: 6091451633445714463, guid: 53ff4befe82a90f44b897345588c0d11,
+    type: 3}
 --- !u!4 &7395312672238046393 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1734822566465805218, guid: 8e489e7f96cc8a844a939320b2d379d1,

@@ -19,9 +19,11 @@ public class Weapon : MonoBehaviour
     protected Animator characterAnimator;
     protected Animator weaponAnimator;
     private PlayerLookController playerLookController;
+    private WeaponFireController weaponFireController;
 
     [Header("Providers")]
     private ICameraAnimation cameraAnimation;
+    private IFireBulletProvider fireBulletProvider;
 
     [Header("Animator Hash")]
     protected static int RELOAD_EMPTY = Animator.StringToHash("Reload_Empty");
@@ -49,6 +51,7 @@ public class Weapon : MonoBehaviour
     [HideInInspector] public KTransform rightHandPose;
     [HideInInspector] public KTransform adsPose;
 
+ 
     public virtual void Initialize(GameObject owner)
     {
         ownerPlayer = owner;
@@ -93,6 +96,18 @@ public class Weapon : MonoBehaviour
         if (weaponSound == null)
         {
             Debug.LogWarning("[Weapon] WeaponSound is NULL!");
+        }
+
+        weaponFireController = GetComponent<WeaponFireController>();
+        if (weaponFireController == null)
+        {
+            Debug.LogWarning("[Weapon] weaponFireController is NULL!");
+        }
+
+        fireBulletProvider = weaponFireController as IFireBulletProvider;
+        if (fireBulletProvider == null)
+        {
+            Debug.LogWarning("[Weapon]  fireBulletProvider is NULL!");
         }
 
         if (Mathf.Approximately(weaponSettings.fireRate, 0f))
@@ -186,6 +201,7 @@ public class Weapon : MonoBehaviour
     {
         isFiring = true;
         OnFire();
+        
     }
 
     public void OnFireReleased()
@@ -213,7 +229,7 @@ public class Weapon : MonoBehaviour
         weaponAnimator.Play(weaponSettings.hasFireOut && activeAmmo == 1
             ? FIREOUT
             : FIRE, -1, 0f);
-
+        fireBulletProvider.FireBullet();
         activeAmmo--;
 
         if (fireMode == FireMode.Semi) return;

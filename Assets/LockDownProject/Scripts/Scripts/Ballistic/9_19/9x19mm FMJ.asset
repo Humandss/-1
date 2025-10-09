@@ -14,15 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ammoName: 9x19mm FMJ
   description: 
-  ammoKey: 9x19mm FMJ
+  ammoKey: 9x19mm
   caliberMm: 9
   mass: 0.004
   muzzleVelocity: 350
-  dragCoeff: 0.6
-  refAreaScale: 1
+  dragCoeff: 0.3
+  refAreaScale: 0.9
   penetrationPower: 35
   tracer: 0
   damage: 65
   criticalChance: 0.035
   criticalDamMultiplier: 0.21
   jamChance: 0.001
+  lifeTime: 7
