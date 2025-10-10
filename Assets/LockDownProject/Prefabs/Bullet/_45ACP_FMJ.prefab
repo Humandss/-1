@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6385734321107309359}
   - component: {fileID: 6091451633445714463}
   - component: {fileID: 4021191341837868933}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: _45ACP_FMJ
   m_TagString: Untagged
   m_Icon: {fileID: 0}

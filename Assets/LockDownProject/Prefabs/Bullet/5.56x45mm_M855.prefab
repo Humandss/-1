@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3175402876923827724}
   - component: {fileID: 2487843424798778260}
   - component: {fileID: -7001548528304526049}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: 5.56x45mm_M855
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,7 +46,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ammo: {fileID: 11400000, guid: b47938a728cc92b489a3f9600ee07cb6, type: 2}
-  windWorld: {x: 0, y: 0, z: 0}
 --- !u!96 &-7001548528304526049
 TrailRenderer:
   serializedVersion: 3

@@ -20,7 +20,12 @@ public class BulletInfo : ScriptableObject
     [Range(0.0f, 2.0f)] public float refAreaScale = 1.0f;   // 단면적 스케일 mm단위
     [Range(5.0f, 120.0f)] public float penetrationPower = 35.0f; // 관통력
     public bool tracer; // 예광 유무
-    
+
+    [Header("Ricochet")]
+    [Range(0.0f, 100.0f)] public float baseRicochetAngleDeg = 24.0f;
+    [Range(0.0f, 1.0f)] public float afterRicochetEnergyPercent = 0.62f;
+    [Range(0.0f, 1.0f)] public float randomRicochetAngle = 0.28f;
+
     [Header("Damage")]
     [Range(37.0f, 150.0f)] public float damage = 45.0f;
     [Range(0.000f, 1.0f)] public float criticalChance =  0.035f;

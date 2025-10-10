@@ -8,15 +8,20 @@ using UnityEngine;
 public class BallisticProjectile : MonoBehaviour
 {
     [SerializeField] private BulletInfo ammo;
+    private LayerMask layerMask;
 
     [Header("Bullet Value")]
     private Vector3 velocity;
     private float refArea;
     private Vector3 pos;
+    private Vector3 prevPos;
     private Vector3 dir;
     private float flightTime;
     private float k; // 공기저항
-    [Header("World")]
+    private float recochetMinSpeed = 150.0f;
+    private int recochetChance = 0;
+    float speed;
+   [Header("World")]
     private float airDensity = 1.225f;
     private Vector3 windWorld = Vector3.zero;
 #if true // 탄 트레일 남기는 로직
@@ -35,6 +40,10 @@ public class BallisticProjectile : MonoBehaviour
         trailRenderer.receiveShadows = false;
     }
 #endif
+    private void Start()
+    {
+        layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default");
+    }
     public void Initialize(Vector3 position, Vector3 direction)
     {
         pos=position;
@@ -59,17 +68,91 @@ public class BallisticProjectile : MonoBehaviour
         flightTime += dt;
         if (flightTime > ammo.lifeTime) { Destroy(gameObject); return; }
 
+        prevPos = pos;
         //바람 저항
         Vector3 vRel = velocity - windWorld;
         //숫자 0이 되지 않게끔
-        float speed = vRel.magnitude + 1e-6f;
+        speed = vRel.magnitude + 1e-6f;
         //중력 계수*공기저항
-        Vector3 g = Physics.gravity + (-k*vRel*speed);
+        Vector3 g = Physics.gravity + (-k * vRel * speed);
 
+        //속도 및 포지션 변환
         velocity += g * dt;
         pos += velocity * dt;
+
+        HandleImpact(prevPos);
+       
         transform.position = pos;
 
-        Debug.Log($"ammo type ={ammo.name}, pos={pos}, Vector_velocity={velocity.z}, time={flightTime}, distance={(flightTime*velocity).z}");
+       //Debug.Log($"ammo type ={ammo.name}, pos={pos}, Vector_velocity={velocity}, time={flightTime}, distance={(flightTime*velocity).z}");
+    }
+
+    private void HandleImpact(Vector3 prevPos)
+    {
+        //seg가 갱신될때마다 Layer체크
+        Vector3 seg = pos - prevPos;
+        float segLen = seg.magnitude;
+        if (segLen > 0.0f)
+        {
+            //매 업데이트마다 총알 방향
+            Vector3 segDir = seg / segLen;
+            if (Physics.Raycast(prevPos, segDir, out var hit, segLen, layerMask, QueryTriggerInteraction.Ignore))
+            {
+                //피탄 지점과 탄 방향을 내적
+                float cosToNormal = Mathf.Clamp01(Vector3.Dot(-seg, hit.normal));
+                // 90도에서 내적을 빼면 입사각도
+                float incAngleToPlane = 90.0f - Mathf.Acos(cosToNormal) * Mathf.Rad2Deg;
+
+                //일단 기본레이어 벽같은 거에 닿았을 때 처리
+                if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default" && recochetChance < 1) 
+                {
+                    Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
+                    if (ammo.baseRicochetAngleDeg >= incAngleToPlane)
+                    {
+                        HandleRicochet(hit, seg);
+                        return;
+                    }
+                    else
+                    {
+                        Destroy(gameObject);
+                        return;
+                    }
+                   
+                }
+                //그외 사람한테 닿았을 경우
+                else
+                {
+                    Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
+                    Destroy(gameObject);
+                    return;
+                }
+                
+            }
+            else
+            {
+                //Debug.Log($"[MISS] mask={layerMask.value} len={segLen:F3}");
+            }
+        }
+        
+    }
+    private void HandleRicochet(RaycastHit hit, Vector3 vDir)
+    {
+        Vector3 recochetAngle = Vector3.Reflect(vDir, hit.normal).normalized;
+        //도탄후 랜덤으로 도탄될 각 기준 정하기
+        Vector3 axis = Vector3.Cross(hit.normal, recochetAngle);
+        axis.Normalize();
+        //도탄 됐을 경우 퍼질 수 있는 최대각
+        float maxRecochetAngle = Mathf.Lerp(0.0f, 6.0f, Mathf.Clamp01(ammo.randomRicochetAngle));
+        float angle = UnityEngine.Random.Range(-maxRecochetAngle, maxRecochetAngle);
+        //최종 도탄 앵글
+        recochetAngle = (Quaternion.AngleAxis(angle, axis)* recochetAngle).normalized;
+        //도탄 후 에너지
+        float aterRicochetSpeed = speed * ammo.afterRicochetEnergyPercent;
+        //최종 계산
+        velocity = recochetAngle * aterRicochetSpeed;
+        pos = hit.point+hit.normal * 0.002f;
+        transform.position = pos;
+        recochetChance++;
+            
     }
 }
