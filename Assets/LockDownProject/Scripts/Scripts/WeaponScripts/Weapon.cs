@@ -20,10 +20,12 @@ public class Weapon : MonoBehaviour
     protected Animator weaponAnimator;
     private PlayerLookController playerLookController;
     private WeaponFireController weaponFireController;
+    private PlayerManager playerManager;
 
     [Header("Providers")]
     private ICameraAnimation cameraAnimation;
     private IFireBulletProvider fireBulletProvider;
+    private IPlayerCanFireCheckProvider canFireCheckProvider;
 
     [Header("Animator Hash")]
     protected static int RELOAD_EMPTY = Animator.StringToHash("Reload_Empty");
@@ -109,6 +111,17 @@ public class Weapon : MonoBehaviour
         {
             Debug.LogWarning("[Weapon]  fireBulletProvider is NULL!");
         }
+        playerManager = owner.GetComponentInParent<PlayerManager>();
+        if (playerManager == null)
+        {
+            Debug.LogWarning("[Weapon] playerManager is NULL");
+        }
+
+        canFireCheckProvider = playerManager as IPlayerCanFireCheckProvider;
+        if (canFireCheckProvider == null)
+        {
+            Debug.LogWarning("[Weapon]  canFireCheckProvider is NULL");
+        }
 
         if (Mathf.Approximately(weaponSettings.fireRate, 0f))
         {
@@ -162,6 +175,7 @@ public class Weapon : MonoBehaviour
     {
         fireMode = fireMode == FireMode.Auto ? FireMode.Semi : weaponSettings.fullAuto ? FireMode.Auto : FireMode.Semi;
         recoilAnimation.fireMode = fireMode;
+    
     }
 
     public void OnEquipped_Immediate()
@@ -199,8 +213,12 @@ public class Weapon : MonoBehaviour
 
     public void OnFirePressed()
     {
-        isFiring = true;
-        OnFire();
+        if (canFireCheckProvider.CanPlayerFire())
+        {
+            isFiring = true;
+            OnFire();
+        }
+        else return;
         
     }
 

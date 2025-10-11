@@ -4,7 +4,27 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerInputController : MonoBehaviour
-{ 
+{
+    private Player player;
+
+    private IStateProvider stateProvider;
+   
+    private void Awake()
+    {
+        //총쪽 부분만 디테일한 인풋을 요구하기 때문에 따로 뺌
+        player = GetComponentInChildren<Player>();
+        if (player == null)
+        {
+            Debug.LogWarning("[PlayerInputController]  player is NULL");
+        }
+
+        stateProvider = player as IStateProvider;
+        if (stateProvider == null)
+        {
+            Debug.LogWarning("[PlayerInputController] stateProvider is NULL");
+        }
+    }
+
     public Vector2 Move { get; private set; }
     public Vector2 Look { get; private set; }
     public bool Jump { get; private set; }
@@ -16,7 +36,10 @@ public class PlayerInputController : MonoBehaviour
     public bool Fire { get; private set; }
     public bool Aim { get; private set; }
     public bool Reload { get; private set; }
-    
+    public bool ChangeFireMode { get; private set; }
+    public bool ChangeWeapon { get; private set; }
+
+
     public void OnMove(InputValue value) => Move = value.Get<Vector2>();
     public void OnLook(InputValue value)=> Look = value.Get<Vector2>();
  
@@ -57,10 +80,14 @@ public class PlayerInputController : MonoBehaviour
 
     public void OnFire(InputValue value)
     {
+ 
         if (value.isPressed)
         {
-            Fire = true;
+            stateProvider.OnFire(true);
+            return;
+            
         }
+        else stateProvider.OnFire(false);
 
     }
    
@@ -73,11 +100,27 @@ public class PlayerInputController : MonoBehaviour
         }
     }
 
+    public void OnChangeFireMode(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            ChangeFireMode = true;
+        }
+    }
 
+    public void OnChangeWeapon(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            ChangeWeapon = true;
+        }
+    }
     private void LateUpdate()
     {
         Jump = false;
-        Fire = false;
+        //Fire = false;
         Reload = false;
+        ChangeFireMode = false;
+        ChangeWeapon = false;
     }
 }

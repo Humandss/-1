@@ -6,42 +6,42 @@ using UnityEngine;
 
 public class WeaponSound : MonoBehaviour
 {
-    private FPSWeaponSettings _settings;
-    private AudioSource _audioSource;
+    private FPSWeaponSettings settings;
+    private AudioSource audioSource;
 
     private void Awake()
     {
-        _settings = transform.parent.GetComponent<Weapon>().weaponSettings;
-        _audioSource = transform.root.GetComponentInChildren<AudioSource>();
+        settings = transform.parent.GetComponent<Weapon>().weaponSettings;
+        audioSource = transform.root.GetComponentInChildren<AudioSource>();
     }
 
     public void PlayFireSound()
     {
-        if (_audioSource == null)
+        if (audioSource == null)
         {
             Debug.LogWarning($"Failed to play weapon sound: invalid Audio Source!");
             return;
         }
 
-        _audioSource.pitch = Random.Range(_settings.firePitchRange.x, _settings.firePitchRange.y);
-        _audioSource.volume = Random.Range(_settings.fireVolumeRange.x, _settings.fireVolumeRange.y);
-        _audioSource.PlayOneShot(FPSPlayerSound.GetRandomAudioClip(_settings.fireSounds));
+        audioSource.pitch = Random.Range(settings.firePitchRange.x, settings.firePitchRange.y);
+        audioSource.volume = Random.Range(settings.fireVolumeRange.x, settings.fireVolumeRange.y);
+        audioSource.PlayOneShot(FPSPlayerSound.GetRandomAudioClip(settings.fireSounds));
     }
 
     public void PlayWeaponSound(int clipIndex)
     {
-        if (clipIndex < 0 || clipIndex > _settings.weaponEventSounds.Count - 1)
+        if (clipIndex < 0 || clipIndex > settings.weaponEventSounds.Count - 1)
         {
             Debug.LogWarning($"Failed to play weapon sound: invalid index!");
             return;
         }
 
-        if (_audioSource == null)
+        if (audioSource == null)
         {
             Debug.LogWarning($"Failed to play weapon sound: invalid Audio Source!");
             return;
         }
 
-        _audioSource.PlayOneShot(_settings.weaponEventSounds[clipIndex]);
+        audioSource.PlayOneShot(settings.weaponEventSounds[clipIndex]);
     }
 }

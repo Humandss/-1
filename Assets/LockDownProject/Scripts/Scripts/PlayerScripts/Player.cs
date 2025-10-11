@@ -11,9 +11,11 @@ public interface IStateProvider
 {
     void OnReload();
     void OnJump();
-    void OnFire();
+    void OnFire(bool value);
     void OnAim(bool value);
-  
+    void OnChangeFireMode();
+    void OnChangeWeapon();
+
 }
 public interface IGetActiveWeaponProvider
 {
@@ -384,11 +386,15 @@ public class Player : MonoBehaviour, IStateProvider
             PlayIkMotion(playerSettings.fireModeMotion);
         }
     }
-    public void OnFire()
+    public void OnFire(bool value)
     {
+        if(value)
+        {
+            GetActiveWeapon().OnFirePressed();
+            return;
+        }
+        else GetActiveWeapon().OnFireReleased();
 
-        GetActiveWeapon().OnFirePressed();
-        GetActiveWeapon().OnFireReleased();
     }
 
     public void OnAim(bool value)

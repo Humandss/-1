@@ -2,7 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerManager : MonoBehaviour
+public interface IPlayerCanFireCheckProvider
+{
+    bool CanPlayerFire();
+}
+public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
 {
     [Header("Refs")]
     private PlayerInputController inputController;
@@ -12,8 +16,6 @@ public class PlayerManager : MonoBehaviour
     private LookSettings lookSettings;
     private Player player;
 
-    [Header("PlayerControllerClassComponent")]
-    [SerializeField] private PlayerActionManager actionManager;
 
     [Header("Providers")]
     private IStateProvider stateProvider;
@@ -25,6 +27,8 @@ public class PlayerManager : MonoBehaviour
     bool canAim;
     bool canReload;
     bool canJump;
+    bool canChangeFireMode;
+    bool canChangeWeapon;
 
     private void Awake()
     {
@@ -102,14 +106,18 @@ public class PlayerManager : MonoBehaviour
         float mSensitivity = lookSettings.GetMouseSensitivity();
         float h = movementSettings.GetJumpHeight();
         //��� �� ����
-        canFire = movementSettings.CanFire(movementInfo, inputController.Fire);
+        canFire = movementSettings.CanFire(movementInfo);
         canAim = movementSettings.CanAim(movementInfo, inputController.Aim);
         canReload = movementSettings.CanReload(movementInfo, inputController.Reload);
+        canChangeFireMode = movementSettings.CanChangeFireMode(movementInfo, inputController.ChangeFireMode);
+        canChangeWeapon = movementSettings.CanChangeWeapon(movementInfo, inputController.ChangeWeapon);
 
-        PlayFire(canFire);
         PlayReload(canReload);
         PlayAim(canAim);
         PlayJump(canJump);
+        ChangeWeaponFireMode(canChangeFireMode);
+        ChangeWeapon(canChangeWeapon);
+
 
         movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
 
@@ -131,14 +139,6 @@ public class PlayerManager : MonoBehaviour
         else return;
     }
 
-    private void PlayFire(bool canFire)
-    {
-        if (canFire)
-        {
-            stateProvider.OnFire();
-        }
-        else return;
-    }
     private void PlayReload(bool canReload)
     {
         if (canReload)
@@ -155,6 +155,27 @@ public class PlayerManager : MonoBehaviour
 
         }
         else stateProvider.OnAim(false);
+    }
+    private void ChangeWeaponFireMode(bool canChangeWeaponFireMode)
+    {
+        if (canChangeWeaponFireMode)
+        {
+            stateProvider.OnChangeFireMode();
+        }
+        else return;
+   
+    }
+    private void ChangeWeapon(bool canChangeWeapon)
+    {
+        if(canChangeWeapon)
+        {
+            stateProvider.OnChangeWeapon();
+        }
+        else return;
+    }
+    public bool CanPlayerFire()
+    {
+        return canFire;
     }
 }
 

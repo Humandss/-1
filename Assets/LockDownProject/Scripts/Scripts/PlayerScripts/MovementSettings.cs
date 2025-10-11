@@ -80,16 +80,13 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     {
         return gait;
     }
-    public bool CanFire(in MovementMode mode, bool isFire)
+    public bool CanFire(in MovementMode mode)
     {
-        if (isFire)
-        {
-            if (mode.tacticalSprint) return false;
+        
+        if (mode.tacticalSprint) return false;
 
-            return true;
-        }
-
-        return false;
+        return true;
+        
     }
     public bool CanAim(in MovementMode mode, bool isAim)
     {
@@ -109,6 +106,30 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     public bool CanReload(in MovementMode mode, bool isReload)
     {
         if (isReload)
+        {
+            if (mode.tacticalSprint) return false;
+
+            return true;
+        }
+
+
+        return false;
+    }
+    public bool CanChangeFireMode(in MovementMode mode, bool isChaneFM)
+    {
+        if (isChaneFM)
+        {
+            if (mode.tacticalSprint) return false;
+
+            return true;
+        }
+
+
+        return false;
+    }
+    public bool CanChangeWeapon(in MovementMode mode, bool isChangeWeapon)
+    {
+        if (isChangeWeapon)
         {
             if (mode.tacticalSprint) return false;
 

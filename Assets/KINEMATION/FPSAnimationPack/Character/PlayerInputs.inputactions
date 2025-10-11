@@ -37,7 +37,7 @@
                     "name": "ChangeWeapon",
                     "type": "Button",
                     "id": "45916b94-6f34-4bb2-b3e8-0d89daa9fe69",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -82,7 +82,7 @@
                     "name": "ChangeFireMode",
                     "type": "Button",
                     "id": "e84c3707-933b-41fc-9ccf-54be3129f87b",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
