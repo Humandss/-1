@@ -17,7 +17,7 @@ public class BulletInfo : ScriptableObject
     [Range(0.001f, 0.05f)] public float mass = 0.004f;       // g
     [Range(100.0f, 1500.0f)] public float muzzleVelocity = 920.0f; // 속도 m/s
     [Range(0.0f, 1.0f)] public float dragCoeff = 0.3f;    // 탄두 형상에 따른 공지 저항 계수
-    [Range(0.0f, 2.0f)] public float refAreaScale = 1.0f;   // 단면적 스케일 mm단위
+    [Range(0.0f, 15.0f)] public float refAreaScale = 1.0f;   // 단면적 스케일 mm단위
     [Range(5.0f, 120.0f)] public float penetrationPower = 35.0f; // 관통력
     public bool tracer; // 예광 유무
 
