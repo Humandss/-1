@@ -19,7 +19,7 @@ MonoBehaviour:
   mass: 0.00119
   muzzleVelocity: 920
   dragCoeff: 0.3
-  refAreaScale: 5.56
+  refAreaScale: 1
   penetrationPower: 50
   tracer: 0
   baseRicochetAngleDeg: 23

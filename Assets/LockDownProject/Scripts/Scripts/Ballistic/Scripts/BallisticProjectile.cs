@@ -54,7 +54,7 @@ public class BallisticProjectile : MonoBehaviour
         float invMass = 1.0f / Mathf.Max(1e-6f, ammo.mass); // 1/중량
 
         float r = Mathf.Max(1e-6f, (ammo.caliberMm * 0.001f)) * 0.5f; // m로 바꾸기
-        refArea = Mathf.PI * r * r * (ammo.refAreaScale * 0.001f); // 단면적(m)
+        refArea = Mathf.PI * r * r * ammo.refAreaScale; // 단면적(m)
 
         k = 0.5f * airDensity * ammo.dragCoeff * refArea * invMass;
 
