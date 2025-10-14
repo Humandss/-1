@@ -24,8 +24,7 @@ public class BulletInfo : ScriptableObject
     [Header("Ricochet")]
     [Range(0.0f, 100.0f)] public float baseRicochetAngleDeg = 24.0f;
     [Range(0.0f, 1.0f)] public float afterRicochetEnergyPercent = 0.62f;
-    [Range(0.0f, 1.0f)] public float randomRicochetAngle = 0.28f;
-
+    [Range(0.0f, 5.0f)] public float randomRicochetAngle = 0.28f;
     [Header("Damage")]
     [Range(37.0f, 150.0f)] public float damage = 45.0f;
     [Range(0.000f, 1.0f)] public float criticalChance =  0.035f;

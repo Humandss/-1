@@ -37,7 +37,7 @@ public class Player : MonoBehaviour, IStateProvider
     private FPSPlayerSound playerSound;
     private Animator animator;
     private MovementSettings movementSettings;
-    private CharacterController controller;
+   
 
     [Header("Interface Providers")]
     private IPlayerMoveInfoProvider movementInfoProvider;
@@ -98,6 +98,8 @@ public class Player : MonoBehaviour, IStateProvider
         {
             Debug.LogWarning("[Player]  movementInfoProvider is NULL!");
         }
+
+        
     }
 
     private void Start()

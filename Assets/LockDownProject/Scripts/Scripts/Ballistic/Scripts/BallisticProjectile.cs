@@ -7,8 +7,15 @@ using UnityEngine;
 
 public class BallisticProjectile : MonoBehaviour
 {
+    [Header("Refs")]
     [SerializeField] private BulletInfo ammo;
+    private BulletSoundController bulletSoundController;
+    private MaterialManager materialManager;
     private LayerMask layerMask;
+
+    [Header("Providers")]
+    private IBulletSoundProvider bulletSoundProvider;
+    private IMaterialFactorProvider materialFactorProvider;
 
     [Header("Bullet Value")]
     private Vector3 velocity;
@@ -18,19 +25,21 @@ public class BallisticProjectile : MonoBehaviour
     private Vector3 dir;
     private float flightTime;
     private float k; // 공기저항
-    private float recochetMinSpeed = 150.0f;
     private int recochetChance = 0;
     float speed;
+
    [Header("World")]
     private float airDensity = 1.225f;
     private Vector3 windWorld = Vector3.zero;
+
+
 #if true // 탄 트레일 남기는 로직
     TrailRenderer trailRenderer;
 
     private void Awake()
     {
         trailRenderer = GetComponent<TrailRenderer>();
-
+        
         trailRenderer.time = 0.45f;              // 궤적이 남아있는 시간
         trailRenderer.minVertexDistance = 0.005f;
         trailRenderer.startWidth = 0.9f;       // 살짝 굵게
@@ -42,7 +51,21 @@ public class BallisticProjectile : MonoBehaviour
 #endif
     private void Start()
     {
+        bulletSoundController = GetComponent<BulletSoundController>();
+        if(bulletSoundController == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] bulletSoundController is NULL");
+        }
+
+        bulletSoundProvider = bulletSoundController as IBulletSoundProvider;
+        if (bulletSoundProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile]  bulletSoundProvide is NULL");
+        }
+
+     
         layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default");
+
     }
     public void Initialize(Vector3 position, Vector3 direction)
     {
@@ -98,18 +121,24 @@ public class BallisticProjectile : MonoBehaviour
             Vector3 segDir = seg / segLen;
             if (Physics.Raycast(prevPos, segDir, out var hit, segLen, layerMask, QueryTriggerInteraction.Ignore))
             {
+                
                 //피탄 지점과 탄 방향을 내적
-                float cosToNormal = Mathf.Clamp01(Vector3.Dot(-seg, hit.normal));
+                float cosToNormal = Mathf.Clamp(Vector3.Dot(-segDir, hit.normal.normalized), -1.0f, 1.0f);
                 // 90도에서 내적을 빼면 입사각도
                 float incAngleToPlane = 90.0f - Mathf.Acos(cosToNormal) * Mathf.Rad2Deg;
 
                 //일단 기본레이어 벽같은 거에 닿았을 때 처리
                 if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default" && recochetChance < 1) 
                 {
-                    Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
-                    if (ammo.baseRicochetAngleDeg >= incAngleToPlane)
+                    //각 재질에 따른 보정각
+                    float compensateAngle= ammo.baseRicochetAngleDeg*GetMaterialRicochetFactor(hit.collider);
+                    Debug.Log(compensateAngle);
+                    Debug.Log(incAngleToPlane);
+                    //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
+                    if (compensateAngle >= incAngleToPlane)
                     {
-                        HandleRicochet(hit, seg);
+                        HandleRicochet(hit, segDir);
+                        bulletSoundProvider.PlayRicochetSound();
                         return;
                     }
                     else
@@ -154,5 +183,24 @@ public class BallisticProjectile : MonoBehaviour
         transform.position = pos;
         recochetChance++;
             
+    }
+    float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
+    {
+        materialManager = col.GetComponent<MaterialManager>();
+        if(materialManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] materialManager is NULL");
+            return defaultFactor;
+        }
+
+        materialFactorProvider = materialManager as IMaterialFactorProvider;
+        if (materialFactorProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] materialFactorProvider is NULL");
+            return defaultFactor;
+        }
+
+        return materialFactorProvider.GetMaterialFactor();
+
     }
 }

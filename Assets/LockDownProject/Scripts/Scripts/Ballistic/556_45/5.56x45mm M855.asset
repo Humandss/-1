@@ -22,9 +22,9 @@ MonoBehaviour:
   refAreaScale: 1
   penetrationPower: 50
   tracer: 0
-  baseRicochetAngleDeg: 23
-  afterRicochetEnergyPercent: 0.82
-  randomRicochetAngle: 0.1
+  baseRicochetAngleDeg: 20
+  afterRicochetEnergyPercent: 0.75
+  randomRicochetAngle: 0.25
   damage: 45
   criticalChance: 0.035
   criticalDamMultiplier: 0.21

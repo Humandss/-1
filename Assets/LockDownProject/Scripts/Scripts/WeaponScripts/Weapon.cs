@@ -189,7 +189,7 @@ public class Weapon : MonoBehaviour
     {
         characterAnimator.runtimeAnimatorController = weaponSettings.characterController;
         recoilAnimation.Init(weaponSettings.recoilAnimData, weaponSettings.fireRate, fireMode);
-
+        
         // Reset the default pose to idle.
         characterAnimator.Play(IDLE, -1, 0f);
 
