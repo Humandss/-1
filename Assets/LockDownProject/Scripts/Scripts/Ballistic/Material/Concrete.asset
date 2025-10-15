@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb0ea987b2d73b4419e10fc582a7fd3e, type: 3}
   m_Name: Concrete
   m_EditorClassIdentifier: 
+  MaterialName: Concrete
   materialFactor: 0.7

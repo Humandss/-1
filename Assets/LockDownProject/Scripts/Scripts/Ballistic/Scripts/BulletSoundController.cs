@@ -6,17 +6,24 @@ using Random = UnityEngine.Random;
 public interface IBulletSoundProvider
 {
     void PlayRicochetSound();
+
+    void PlayDefaultImpactSound(Vector3 hitPoint);
+
+    void PlayMetalImpactSound(Vector3 hitPoint);
 }
-public interface IInitializeBulletAudioSource
-{
-    void InitializeBulletAudioSource();
-}
-public class BulletSoundController : MonoBehaviour,IBulletSoundProvider,IInitializeBulletAudioSource
+
+public class BulletSoundController : MonoBehaviour,IBulletSoundProvider
 {
     private AudioSource bulletAudioSource;
 
     [Header("Ricochet Sound")]
     [SerializeField] private List<AudioClip> ricochetSounds;
+
+    [Header("Default Impact Sound")]
+    [SerializeField] private List<AudioClip> defaultImpactSounds;
+
+    [Header("Metal Impact Sound")]
+    [SerializeField] private List<AudioClip> metalImpactSounds;
 
     [Header("Bullet Fly By Sound")]
     [SerializeField] private List<AudioClip> bulletFlyBySounds;
@@ -45,5 +52,14 @@ public class BulletSoundController : MonoBehaviour,IBulletSoundProvider,IInitial
         bulletAudioSource.PlayOneShot(GetRandomAudioClip(ricochetSounds));
         return;
     }
-
+    public void PlayDefaultImpactSound(Vector3 hitPoint)
+    {
+        AudioSource.PlayClipAtPoint(GetRandomAudioClip(defaultImpactSounds), hitPoint);
+        return;
+    }
+    public void PlayMetalImpactSound(Vector3 hitPoint)
+    {
+        AudioSource.PlayClipAtPoint(GetRandomAudioClip(metalImpactSounds), hitPoint);
+        return;
+    }
 }

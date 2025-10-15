@@ -15,7 +15,7 @@ public class BallisticProjectile : MonoBehaviour
 
     [Header("Providers")]
     private IBulletSoundProvider bulletSoundProvider;
-    private IMaterialFactorProvider materialFactorProvider;
+    private IMaterialInfoProvider materialInfoProvider;
 
     [Header("Bullet Value")]
     private Vector3 velocity;
@@ -25,7 +25,7 @@ public class BallisticProjectile : MonoBehaviour
     private Vector3 dir;
     private float flightTime;
     private float k; // 공기저항
-    private int recochetChance = 0;
+    private int ricochetChance=0;
     float speed;
 
    [Header("World")]
@@ -128,14 +128,13 @@ public class BallisticProjectile : MonoBehaviour
                 float incAngleToPlane = 90.0f - Mathf.Acos(cosToNormal) * Mathf.Rad2Deg;
 
                 //일단 기본레이어 벽같은 거에 닿았을 때 처리
-                if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default" && recochetChance < 1) 
+                if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default") 
                 {
                     //각 재질에 따른 보정각
                     float compensateAngle= ammo.baseRicochetAngleDeg*GetMaterialRicochetFactor(hit.collider);
-                    Debug.Log(compensateAngle);
-                    Debug.Log(incAngleToPlane);
+
                     //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
-                    if (compensateAngle >= incAngleToPlane)
+                    if (compensateAngle >= incAngleToPlane && ricochetChance < 1) 
                     {
                         HandleRicochet(hit, segDir);
                         bulletSoundProvider.PlayRicochetSound();
@@ -143,6 +142,15 @@ public class BallisticProjectile : MonoBehaviour
                     }
                     else
                     {
+                        if (GetMaterialName(hit.collider) == "Metal")
+                        {
+                            bulletSoundController.PlayMetalImpactSound(hit.point);
+                        }
+                        if(GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete")
+                        {
+                            bulletSoundController.PlayDefaultImpactSound(hit.point);
+                        }
+
                         Destroy(gameObject);
                         return;
                     }
@@ -181,8 +189,12 @@ public class BallisticProjectile : MonoBehaviour
         velocity = recochetAngle * aterRicochetSpeed;
         pos = hit.point+hit.normal * 0.002f;
         transform.position = pos;
-        recochetChance++;
+        ricochetChance++;
             
+    }
+    void InitializeMaterialManager()
+    {
+
     }
     float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
     {
@@ -193,14 +205,34 @@ public class BallisticProjectile : MonoBehaviour
             return defaultFactor;
         }
 
-        materialFactorProvider = materialManager as IMaterialFactorProvider;
-        if (materialFactorProvider == null)
+        materialInfoProvider = materialManager as IMaterialInfoProvider;
+        if (materialInfoProvider == null)
         {
             Debug.LogWarning("[BallisticProjectile] materialFactorProvider is NULL");
             return defaultFactor;
         }
 
-        return materialFactorProvider.GetMaterialFactor();
+        return materialInfoProvider.GetMaterialFactor();
+
+    }
+
+    string GetMaterialName(Collider col)
+    {
+        materialManager = col.GetComponent<MaterialManager>();
+        if (materialManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] materialManager is NULL");
+          
+        }
+
+        materialInfoProvider = materialManager as IMaterialInfoProvider;
+        if (materialInfoProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] materialFactorProvider is NULL");
+            
+        }
+
+        return materialInfoProvider.GetMaterialName();
 
     }
 }

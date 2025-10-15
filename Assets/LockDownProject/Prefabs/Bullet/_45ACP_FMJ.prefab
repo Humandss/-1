@@ -265,4 +265,14 @@ MonoBehaviour:
   - {fileID: 8300000, guid: d3311ab8b28e0b74aa62ec610443dd51, type: 3}
   - {fileID: 8300000, guid: 78b54b87242fb3c459f16c36494e36ed, type: 3}
   - {fileID: 8300000, guid: 6779d64173d647a4ea1832e533f4e48e, type: 3}
+  defaultImpactSounds:
+  - {fileID: 8300000, guid: 80ebf9f1401508b4c91996efa66df6e0, type: 3}
+  - {fileID: 8300000, guid: 3ed2960e176a5214496adad82100f7ed, type: 3}
+  - {fileID: 8300000, guid: 4c71d12000000db4ca5be48610e36345, type: 3}
+  - {fileID: 8300000, guid: 33c531cadab099248887815c73548157, type: 3}
+  - {fileID: 8300000, guid: 87c96957eb91e1d4cb3be3297cf1b3e2, type: 3}
+  metalImpactSounds:
+  - {fileID: 8300000, guid: b7d773f35c029a74c8ce7d96c4ced747, type: 3}
+  - {fileID: 8300000, guid: 062d68ebe6dc5e3499863f556684e15f, type: 3}
+  - {fileID: 8300000, guid: a6d96048ff34fb84f82ce7667ecb2310, type: 3}
   bulletFlyBySounds: []
