@@ -1,7 +1,4 @@
 
-using System;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 
@@ -11,11 +8,13 @@ public class BallisticProjectile : MonoBehaviour
     [SerializeField] private BulletInfo ammo;
     private BulletSoundController bulletSoundController;
     private MaterialManager materialManager;
+    private HealthManager healthManager;
     private LayerMask layerMask;
 
     [Header("Providers")]
     private IBulletSoundProvider bulletSoundProvider;
     private IMaterialInfoProvider materialInfoProvider;
+    private ICheckBodyHit bodyHitProvider;
 
     [Header("Bullet Value")]
     private Vector3 velocity;
@@ -159,7 +158,8 @@ public class BallisticProjectile : MonoBehaviour
                 //그외 사람한테 닿았을 경우
                 else
                 {
-                    Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
+                    //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
+                    CheckBulletHitBody(hit.collider);
                     Destroy(gameObject);
                     return;
                 }
@@ -192,9 +192,23 @@ public class BallisticProjectile : MonoBehaviour
         ricochetChance++;
             
     }
-    void InitializeMaterialManager()
+ 
+    private void CheckBulletHitBody(Collider col)
     {
+        healthManager = col.GetComponentInParent<HealthManager>();
+        if (healthManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile]  healthManager is NULL");
+        }
 
+        bodyHitProvider = healthManager as ICheckBodyHit;
+        if (bodyHitProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile]  bodyHitProvider is NULL");
+
+        }
+
+        bodyHitProvider.CheckBodyHit(col, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier);
     }
     float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
     {

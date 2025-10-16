@@ -20,13 +20,13 @@ MonoBehaviour:
   muzzleVelocity: 920
   dragCoeff: 0.3
   refAreaScale: 1
-  penetrationPower: 50
+  penetrationPower: 23
   tracer: 0
   baseRicochetAngleDeg: 20
   afterRicochetEnergyPercent: 0.75
   randomRicochetAngle: 0.25
-  damage: 45
+  damage: 57
   criticalChance: 0.035
-  criticalDamMultiplier: 0.21
+  criticalDamMultiplier: 0.25
   jamChance: 0.001
   lifeTime: 4

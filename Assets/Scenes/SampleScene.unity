@@ -739,12 +739,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 359208424}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.016, y: 1.478, z: 4.966}
+  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
+  m_LocalPosition: {x: -0.016, y: 1.6850001, z: 0.029999733}
   m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 4339328182967037458}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &359208429
 MonoBehaviour:
@@ -5535,6 +5535,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4339328182967037458}
   - component: {fileID: 8818747722817984867}
+  - component: {fileID: 8818747722817984868}
   m_Layer: 0
   m_Name: Enemy_with_M16A4
   m_TagString: Untagged
@@ -5715,6 +5716,7 @@ Transform:
   - {fileID: 6059718550533473017}
   - {fileID: 457015179}
   - {fileID: 616473332}
+  - {fileID: 359208428}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4343283356736822642
@@ -8580,6 +8582,19 @@ LODGroup:
     renderers:
     - renderer: {fileID: 7759091800744989176}
   m_Enabled: 1
+--- !u!114 &8818747722817984868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3995734456075236520}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23874a2c27db9ec418eabb2b39f51c7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
 --- !u!4 &8828423391177337675
 Transform:
   m_ObjectHideFlags: 0
@@ -9085,4 +9100,3 @@ SceneRoots:
   - {fileID: 6880010174049797735}
   - {fileID: 96261533}
   - {fileID: 1374008119}
-  - {fileID: 359208428}

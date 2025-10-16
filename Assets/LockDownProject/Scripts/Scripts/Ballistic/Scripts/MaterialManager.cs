@@ -8,7 +8,7 @@ public interface IMaterialInfoProvider
 }
 public class MaterialManager : MonoBehaviour, IMaterialInfoProvider
 {
-   
+    [Header("Refs")]
     [SerializeField] private RicochetMaterialProfile profile;
 
     public float GetMaterialFactor()

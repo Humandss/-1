@@ -17,16 +17,16 @@ MonoBehaviour:
   ammoKey: .45ACP
   caliberMm: 11.4
   mass: 0.0015
-  muzzleVelocity: 270
+  muzzleVelocity: 340
   dragCoeff: 0.35
   refAreaScale: 1
-  penetrationPower: 30
+  penetrationPower: 25
   tracer: 0
   baseRicochetAngleDeg: 30
   afterRicochetEnergyPercent: 0.5
   randomRicochetAngle: 0.28
-  damage: 55
-  criticalChance: 0.035
-  criticalDamMultiplier: 0.21
+  damage: 72
+  criticalChance: 0.015
+  criticalDamMultiplier: 0.15
   jamChance: 0.001
   lifeTime: 10
