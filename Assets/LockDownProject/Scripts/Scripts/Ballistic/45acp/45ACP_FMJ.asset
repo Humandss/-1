@@ -28,5 +28,7 @@ MonoBehaviour:
   damage: 72
   criticalChance: 0.015
   criticalDamMultiplier: 0.15
-  jamChance: 0.001
+  lightBleedingChance: 0.015
+  heavyBleedingChance: 0.012
+  fractureChance: 0.02
   lifeTime: 10

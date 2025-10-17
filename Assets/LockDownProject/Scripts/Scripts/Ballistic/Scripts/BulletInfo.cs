@@ -25,13 +25,16 @@ public class BulletInfo : ScriptableObject
     [Range(0.0f, 100.0f)] public float baseRicochetAngleDeg = 24.0f;
     [Range(0.0f, 1.0f)] public float afterRicochetEnergyPercent = 0.62f;
     [Range(0.0f, 5.0f)] public float randomRicochetAngle = 0.28f;
+
     [Header("Damage")]
     [Range(37.0f, 150.0f)] public float damage = 45.0f;
     [Range(0.000f, 1.0f)] public float criticalChance =  0.035f;
     [Range(0.0f, 1.0f)] public float criticalDamMultiplier = 0.21f;
 
-    [Header("Jam")]
-    [Range(0.000f, 1.0f)] public float jamChance = 0.001f;
+    [Header("Effects")]
+    [Range(0.000f, 1.0f)] public float lightBleedingChance = 0.001f;
+    [Range(0.000f, 1.0f)] public float heavyBleedingChance = 0.001f;
+    [Range(0.000f, 1.0f)] public float fractureChance = 0.001f;
 
     [Header("LifeTime")]
     [Range(0.0f, 15.0f)] public float lifeTime = 0.0f;
