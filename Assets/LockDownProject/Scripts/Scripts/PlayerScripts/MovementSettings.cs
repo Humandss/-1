@@ -7,11 +7,17 @@ public interface IPlayerMoveInfoProvider
 }
 public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
 {
-  
+    [Header("Refs")]
+    private HealthManager healthManager;
+
+    [Header("Providers")]
+    private IHealthStateProvider healthStateProvider;
+
     [Header("PlayerRoot")]
     [SerializeField] private Transform playerRoot;
 
     [Header("Speeds")]
+    [SerializeField] private float legFractureSpeed = 1.0f;
     [SerializeField] private float proneSpeed = 0.75f;
     [SerializeField] private float crouchSpeed = 1.5f;
     [SerializeField] private float walkSpeed = 2.5f;
@@ -21,17 +27,40 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     [Header("Jump")]
     [SerializeField] private float jumpHeight = 1.0f;
 
+    [Header("HealthState")]
+    private bool isLeftLegFrac = false;
+    private bool isRightLegFrac = false;
+    private bool isLeftArmFrac = false;
+    private bool isRightArmFrac = false;
+
     private float gait;
-  
+
+    private void Awake()
+    {
+
+        healthManager = GetComponent<HealthManager>();
+        if (healthManager == null)
+        {
+            Debug.LogWarning("[PlayerController]  healthManager is NULL");
+        }
+
+        healthStateProvider = healthManager as IHealthStateProvider;
+        if (healthStateProvider == null)
+        {
+            Debug.LogWarning("[PlayerController] healthStateProvider is NULL");
+        }
+    }
     public float GetSpeed(in MovementMode mode, bool isForward)
     {
+        if (isLeftLegFrac && isRightLegFrac) return legFractureSpeed;
+
         if (mode.prone) return proneSpeed;
 
         if (mode.crouch) return crouchSpeed;
 
-        if (mode.sprint && isForward) return sprintSpeed;
+        if (mode.sprint && isForward && (!isLeftLegFrac && !isRightLegFrac))  return sprintSpeed;
 
-        if (mode.tacticalSprint && isForward) return tacticalSprintSpeed;
+        if (mode.tacticalSprint && isForward && (!isLeftLegFrac && !isRightLegFrac))   return tacticalSprintSpeed;
 
         return walkSpeed;
     }
@@ -59,7 +88,7 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     public bool CanJump(in MovementMode mode, bool isJumped, bool isGrounded)
     {
         //������ ���� ���� + �������� ���� ���¿����� ���� �����ϰԲ�
-        if (isJumped && !mode.prone && isGrounded) return true;
+        if (isJumped && !mode.prone && isGrounded && (!isLeftLegFrac || !isRightLegFrac))  return true;
 
         return false;
 
@@ -90,7 +119,7 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     }
     public bool CanAim(in MovementMode mode, bool isAim)
     {
-        if (isAim)
+        if (isAim && (!isLeftArmFrac || !isRightArmFrac))
         {
             if (mode.sprint) return false;
 
@@ -138,5 +167,12 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
 
 
         return false;
+    }
+    public void CheckPlayerHealthState()
+    {
+        isLeftLegFrac = healthStateProvider.GetIsLeftLegFracture();
+        isRightLegFrac = healthStateProvider.GetIsRightLegFracture();
+        isLeftArmFrac = healthStateProvider.GetIsLeftArmFracture();
+        isRightArmFrac = healthStateProvider.GetIsRightArmFracture();
     }
 }

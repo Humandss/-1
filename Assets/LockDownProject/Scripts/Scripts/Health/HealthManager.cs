@@ -1,11 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 using UnityEngine;
 
+public interface IHealthStateProvider
+{
+    bool GetIsLeftArmFracture();
+    bool GetIsRightArmFracture();
+    bool GetIsLeftLegFracture();
+    bool GetIsRightLegFracture();
+}
 public interface ICheckBodyHit
 {
     void CheckBodyHit(Collider col,float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul);
+    void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance);
 }
 public enum BodyParts
 {
@@ -17,7 +26,7 @@ public enum BodyParts
     LeftLeg,
     RightLeg,
 }
-public class HealthManager : MonoBehaviour, ICheckBodyHit
+public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
 {
     [Header("Refs")]
     [SerializeField] private HealthProfile health;
@@ -31,6 +40,11 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit
     private float rightArmHP;
     private float leftLegHP;
     private float rightLegHP;
+
+    float tickPenaltyMul = 2.0f;
+
+    [SerializeField] float tickInterval = 1.0f;
+    float nextTick;
 
     private void Awake()
     {
@@ -60,9 +74,17 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit
     }
     private void FixedUpdate()
     {
+        if (Time.time >= nextTick)
+        {
+            nextTick = Time.time + tickInterval;
+            CheckHP();
+            CheckBleedingEffects();
+
+        }
         
-        CheckHP();
+   
     }
+  
     public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul)
     {
         Debug.Log($"[HIT] {col.name} layer={LayerMask.LayerToName(col.gameObject.layer)}");
@@ -153,7 +175,189 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit
         }
     }
 
+    public void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance)
+    {
+        if (col.name == "Head") return;
 
+        if (col.name == "Thorax") return;
+
+        if (col.name == "Stomach") return;
+
+        bool isLightBleeding = (UnityEngine.Random.value <= lightBleedingChance);
+        bool isHeavyBleeding = (UnityEngine.Random.value <= heavyBleedingChance);
+        bool isFracture = (UnityEngine.Random.value <= fractureChance);
+        //확률 안걸리면 스킵
+        if (!isLightBleeding && !isHeavyBleeding && !isFracture) return;
+        //상호베타, 과다출혈과 일반 출혈 동시 발생시 과다출혈만 인정
+        if (isLightBleeding && isHeavyBleeding) isLightBleeding = false; 
+
+        if (col.name == "LeftArm")
+        {
+            if(isLightBleeding) health.leftArmLightBleeding = true; 
+           
+            if(isHeavyBleeding) health.leftArmHeavyBleeding = true; 
+           
+            if(isFracture) health.leftArmFracture = true; 
+
+            return;
+        }
+
+        if (col.name == "RightArm")
+        {
+            if (isLightBleeding) health.rightArmLightBleeding = true; 
+
+            if (isHeavyBleeding) health.rightArmHeavyBleeding = true; 
+
+            if (isFracture) health.rightArmFracture = true;
+
+            return;
+        }
+
+        if (col.name == "LeftLeg")
+        {
+            if (isLightBleeding) health.leftLegLightBleeding = true; 
+
+            if (isHeavyBleeding) health.leftLegHeavyBleeding = true; 
+        
+            if (isFracture) health.leftLegFracture = true;
+
+            return;
+        }
+
+        if (col.name == "RightLeg")
+        {
+            if (isLightBleeding) health.rightLegLightBleeding = true;
+      
+            if (isHeavyBleeding) health.rightLegHeavyBleeding = true;
+       
+            if (isFracture) health.rightLegFracture = true;
+
+            return;
+        }
+    
+    }
+    
+    private void CheckBleedingEffects()
+    {
+        var aliveParts = GetAliveParts();
+        //왼팔
+        if (health.leftArmLightBleeding || health.leftArmHeavyBleeding)
+        {
+            float tickDam = (health.leftArmLightBleeding ? 1.0f : 2.0f);
+        
+            if (hp[BodyParts.LeftArm] <= 0.0f)
+            {
+                foreach (var part in aliveParts)
+                {
+                    hp[part] = Mathf.Max(0, hp[part]-(tickDam + tickPenaltyMul));
+                }
+            }
+            else
+            {
+                foreach (var part in aliveParts)
+                {
+                    
+                    if (part == BodyParts.LeftArm)
+                    {
+                        hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                    }
+                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); 
+                }
+            }
+          
+        }
+       
+        //오른팔
+        if(health.rightArmLightBleeding|| health.rightArmHeavyBleeding)
+        {
+            float tickDam = (health.rightArmLightBleeding ? 1.0f : 2.0f);
+          
+            if (hp[BodyParts.RightArm] <= 0.0f)
+            {
+                foreach (var part in aliveParts)
+                {
+                    hp[part] = Mathf.Max(0, hp[part] - (tickDam + tickPenaltyMul));
+                }
+            }
+            else
+            {
+                foreach (var part in aliveParts)
+                {
+                    if (part == BodyParts.RightArm)
+                    {
+                        hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                    }
+                    else hp[part] = Mathf.Max(0, (hp[part] - tickDam));
+                }
+            }
+        }
+       
+        //왼다리
+        if (health.leftLegLightBleeding|| health.leftLegHeavyBleeding)
+        {
+            float tickDam = (health.leftLegLightBleeding ? 1.0f : 2.0f);
+          
+            if (hp[BodyParts.LeftLeg] <= 0.0f)
+            {
+                foreach (var part in aliveParts)
+                {
+                    hp[part] = Mathf.Max(0, hp[part] - (tickDam + tickPenaltyMul));
+                }
+            }
+            else
+            {
+                foreach (var part in aliveParts)
+                {
+                    if (part == BodyParts.LeftLeg)
+                    {
+                        hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                    }
+                    else hp[part] = Mathf.Max(0, hp[part] - tickDam);
+                }
+            }
+        }
+       
+        //오른다리
+        if (health.rightLegLightBleeding|| health.rightLegHeavyBleeding)
+        {
+            float tickDam = (health.rightLegLightBleeding ? 1.0f : 2.0f);
+           
+            if (hp[BodyParts.RightLeg] <= 0.0f)
+            {
+                foreach (var part in aliveParts)
+                {
+                    hp[part] = Mathf.Max(0, hp[part] - (tickDam + tickPenaltyMul));
+                }
+            }
+            else
+            {
+                foreach (var part in aliveParts)
+                {
+                    if (part == BodyParts.RightLeg)
+                    {
+                        hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                    }
+                    else hp[part] = Mathf.Max(0, hp[part] - tickDam);
+                }
+            }
+        }
+
+    }
+
+    private List<BodyParts> GetAliveParts()
+    {
+        List<BodyParts> aliveParts = new List<BodyParts>();
+
+        //살아 있는 부분만 계산
+        foreach (var parts in hp)
+        {
+            if (parts.Value > 0.0f) aliveParts.Add(parts.Key);
+            // Debug.Log($"살아있는 부위 ={parts}, 해당 부위 체력 ={parts.Value}");
+
+        }
+
+        return aliveParts;
+    }
     private void DistributeDamageToOtherParts(float damage)
     {
        
@@ -161,7 +365,7 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit
         int maxRound = 0;
         //잔여 피해 x, 최대 5번까지만 진행
         while (remaining > 0.0f && maxRound < 5) 
-        {
+        {/*
             List<BodyParts> aliveParts = new List<BodyParts>();
  
             //살아 있는 부분만 계산
@@ -170,7 +374,9 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit
                 if (parts.Value > 0.0f) aliveParts.Add(parts.Key);
                // Debug.Log($"살아있는 부위 ={parts}, 해당 부위 체력 ={parts.Value}");
  
-            }
+            }*/
+
+            var aliveParts = GetAliveParts();
             if (aliveParts.Count == 0) return;
 
             float distributeDamage = remaining / aliveParts.Count;
@@ -228,11 +434,27 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit
     }
     private float CalculateDamage(float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul)
     {
-        float critcalChance = Mathf.Clamp01(ammoCriticalChance);
-
-        bool isCritical = (UnityEngine.Random.value <= critcalChance);
+ 
+        bool isCritical = (UnityEngine.Random.value <= ammoCriticalChance);
 
         return ammoDamage + (isCritical ? ammoDamage * ammoCriticalDamMul : 0.0f);
 
+    }
+
+    public bool GetIsLeftArmFracture()
+    {
+        return health.leftArmFracture;
+    }
+    public bool GetIsRightArmFracture()
+    {
+        return health.rightArmFracture;
+    }
+    public bool GetIsLeftLegFracture()
+    {
+        return health.leftLegFracture;
+    }
+    public bool GetIsRightLegFracture()
+    {
+        return health.rightLegFracture;
     }
 }

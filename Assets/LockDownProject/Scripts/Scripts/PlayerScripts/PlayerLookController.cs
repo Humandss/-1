@@ -1,9 +1,7 @@
 using KINEMATION.FPSAnimationPack.Scripts.Camera;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
-using static UnityEditor.SceneView;
-using static UnityEngine.GraphicsBuffer;
+
 
 public interface ICameraAnimation
 {
@@ -15,6 +13,7 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
 {
     [Header("Refs")]
     private FPSCameraShake activeShake;
+    private HealthManager healthManager;
     private Player player;
 
     [Header("Camera")]
@@ -47,6 +46,7 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
 
     private IPlayerWeaponInfoProvider playerWeaponInfoProvider;
 
+
     private void Awake()
     {
         if (!yawRoot) yawRoot = transform;
@@ -55,6 +55,7 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
 
         _camera = GetComponentInChildren<UnityEngine.Camera>();
         baseFov = _camera.fieldOfView;
+
     }
     private void OnEnable()
     {
@@ -149,5 +150,6 @@ public class PlayerLookController : MonoBehaviour,ICameraAnimation
         UpdateFOV();
         UpdateCameraShake();
     }
+   
 
 }

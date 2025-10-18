@@ -8,18 +8,13 @@ public class HealthProfile : ScriptableObject
 
     [Header("Head Health")]
     public float headHP = 35.0f;
-    public bool headLightBleeding = false;
 
     [Header("Thorax Health")]
     public float thoraxHP = 85.0f;
-    public bool thoraxLightBleeding = false;
-    public bool thoraxFracture = false;
 
     [Header("Stomach Health")]
     public float stomachHP = 70.0f;
-    public bool stomachLightBleeding = false;
-    public bool stomachFracture = false;
-
+ 
     [Header("Right arm Health")]
     public float rightArmHP = 60.0f;
     public bool rightArmLightBleeding = false;
@@ -40,7 +35,7 @@ public class HealthProfile : ScriptableObject
 
     [Header("Left leg Health")]
     public float leftLegHP = 65.0f;
-    public bool leftRightLightBleeding = false;
-    public bool leftRightHeavyBleeding = false;
-    public bool leftRightFracture = false;
+    public bool rightLegLightBleeding = false;
+    public bool rightLegHeavyBleeding = false;
+    public bool rightLegFracture = false;
 }

@@ -146,6 +146,7 @@ GameObject:
   - component: {fileID: 96261546}
   - component: {fileID: 96261550}
   - component: {fileID: 96261551}
+  - component: {fileID: 96261552}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -264,6 +265,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerRoot: {fileID: 96261533}
+  legFractureSpeed: 1
   proneSpeed: 0.75
   crouchSpeed: 1.5
   walkSpeed: 2.5
@@ -285,11 +287,14 @@ MonoBehaviour:
   proneCameraPos: 0.5
   crouchCameraPos: 1
   idleCameraPos: 1.65
+  fractureRotationSpeed: 0.1
   proneRotationSpeed: 0.15
   crouchRotationSpeed: 0.2
   walkRotationSpeed: 0.2
   sprintRotationSpeed: 0.15
   tacticalRotationSprintSpeed: 0.1
+  bothArmFractureMouseSensitivity: 0.025
+  oneArmFractureMouseSensitivity: 0.05
   mouseSensitivity: 0.1
   changeToProneTime: 0.5
   changeToCrouchTime: 0.1
@@ -324,6 +329,20 @@ MonoBehaviour:
   minPitch: -65
   freeLookYawLimit: 75
   freeLookRecoverTime: 0.25
+--- !u!114 &96261552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96261525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23874a2c27db9ec418eabb2b39f51c7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 11400000, guid: 2a1aaaa59638bb940b638026286219a0, type: 2}
+  tickInterval: 1
 --- !u!1 &161047954
 GameObject:
   m_ObjectHideFlags: 0
@@ -507,7 +526,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 1000
-  field of view: 80
+  field of view: 65
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -534,7 +553,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.65, z: 0.014999986}
+  m_LocalPosition: {x: 0, y: 1.65, z: 0.016}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8595,6 +8614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
+  tickInterval: 1
 --- !u!4 &8828423391177337675
 Transform:
   m_ObjectHideFlags: 0

@@ -20,6 +20,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     [Header("Providers")]
     private IStateProvider stateProvider;
     private ICameraAnimation camSettings;
+  
 
     [Header("StateBools")]
     bool isForward;
@@ -68,6 +69,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             Debug.LogWarning("[PlayerController]  player is NULL");
         }
 
+
         stateProvider = player as IStateProvider;
         if (stateProvider == null)
         {
@@ -78,6 +80,8 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         {
             Debug.LogWarning("[PlayerController]  camSettings is NULL");
         }
+
+         
     }
 
     private void Update()
@@ -90,6 +94,9 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             tacticalSprint = inputController.TacSprint,
 
         };
+        //플레이어 부상 상태 확인
+        movementSettings.CheckPlayerHealthState();
+        lookSettings.CheckPlayerHealthState();
         //������
         isForward = movementSettings.IsForward(inputController.Move);
         float speed = movementSettings.GetSpeed(movementInfo, isForward);
@@ -105,6 +112,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         //get�Լ�
         float mSensitivity = lookSettings.GetMouseSensitivity();
         float h = movementSettings.GetJumpHeight();
+       
         //��� �� ����
         canFire = movementSettings.CanFire(movementInfo);
         canAim = movementSettings.CanAim(movementInfo, inputController.Aim);

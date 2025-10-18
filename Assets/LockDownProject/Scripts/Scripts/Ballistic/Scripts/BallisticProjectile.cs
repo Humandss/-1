@@ -207,8 +207,8 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile]  bodyHitProvider is NULL");
 
         }
-
         bodyHitProvider.CheckBodyHit(col, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier);
+        bodyHitProvider.CheckEffectTrigger(col, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
     }
     float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
     {
