@@ -12,22 +12,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e9022106949a0b4fbb83df44bd8e6ab, type: 3}
   m_Name: Enemy
   m_EditorClassIdentifier: 
-  headHP: 35
-  thoraxHP: 85
-  stomachHP: 70
-  rightArmHP: 60
-  rightArmLightBleeding: 0
-  rightArmHeavyBleeding: 0
-  rightArmFracture: 0
-  leftArmHP: 60
-  leftArmLightBleeding: 0
-  leftArmHeavyBleeding: 0
-  leftArmFracture: 0
-  rightLegHP: 65
-  leftLegLightBleeding: 0
-  leftLegHeavyBleeding: 0
-  leftLegFracture: 0
-  leftLegHP: 65
-  rightLegLightBleeding: 0
-  rightLegHeavyBleeding: 0
-  rightLegFracture: 0
+  parts:
+  - parts: 0
+    maxHP: 35
+    allowed: 8
+    damageDistributeMul: 0.3
+    startLight: 0
+    startHeavy: 0
+    startFrac: 0
+    startBlackout: 0
+  - parts: 1
+    maxHP: 85
+    allowed: 8
+    damageDistributeMul: 1
+    startLight: 0
+    startHeavy: 0
+    startFrac: 0
+    startBlackout: 0
+  - parts: 2
+    maxHP: 70
+    allowed: 8
+    damageDistributeMul: 0.8
+    startLight: 0
+    startHeavy: 0
+    startFrac: 0
+    startBlackout: 0
+  - parts: 3
+    maxHP: 60
+    allowed: -1
+    damageDistributeMul: 0.8
+    startLight: 0
+    startHeavy: 1
+    startFrac: 0
+    startBlackout: 0
+  - parts: 4
+    maxHP: 60
+    allowed: -1
+    damageDistributeMul: 0.8
+    startLight: 0
+    startHeavy: 1
+    startFrac: 0
+    startBlackout: 0
+  - parts: 5
+    maxHP: 65
+    allowed: -1
+    damageDistributeMul: 0.8
+    startLight: 0
+    startHeavy: 0
+    startFrac: 0
+    startBlackout: 0
+  - parts: 6
+    maxHP: 65
+    allowed: -1
+    damageDistributeMul: 0.8
+    startLight: 0
+    startHeavy: 0
+    startFrac: 0
+    startBlackout: 0
+  lightPerTickDam: 1
+  heavyPerTickDam: 2
+  tickPenaltyMul: 2
+  defaultDamageDistributeMul: 0.8
