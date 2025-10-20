@@ -109,10 +109,12 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         float cameraChangeSpeed = lookSettings.GetCameraChangeTime(movementInfo);
         bool isFreeLook = inputController.FreeLook;
 
+        
         //get�Լ�
         float mSensitivity = lookSettings.GetMouseSensitivity();
         float h = movementSettings.GetJumpHeight();
-       
+
+        Debug.Log($"rotationSpeed = {rotationSpeed}, mouseS ={mSensitivity}");
         //��� �� ����
         canFire = movementSettings.CanFire(movementInfo);
         canAim = movementSettings.CanAim(movementInfo, inputController.Aim);

@@ -14,7 +14,7 @@ public class LookSettings : MonoBehaviour
     [SerializeField] private float idleCameraPos = 1.65f;
 
     [Header("RotationSpeeds")]
-    [SerializeField] private float fractureRotationSpeed = 0.1f;
+    [SerializeField] private float woundedRotationSpeed = 0.05f;
     [SerializeField] private float proneRotationSpeed = 0.15f;
     [SerializeField] private float crouchRotationSpeed = 0.2f;
     [SerializeField] private float walkRotationSpeed = 0.2f;
@@ -22,8 +22,8 @@ public class LookSettings : MonoBehaviour
     [SerializeField] private float tacticalRotationSprintSpeed = 0.1f;
 
     [Header("MosueSensitivity")]
-    [SerializeField] private float bothArmFractureMouseSensitivity = 0.025f;
-    [SerializeField] private float oneArmFractureMouseSensitivity = 0.05f;
+    [SerializeField] private float bothArmWoundedMouseSensitivity = 0.025f;
+    [SerializeField] private float oneArmWoundedMouseSensitivity = 0.05f;
     [SerializeField] private float mouseSensitivity = 0.1f;
 
     [Header("ChangePositionTime")]
@@ -31,11 +31,16 @@ public class LookSettings : MonoBehaviour
     [SerializeField] private float changeToCrouchTime = 0.1f;
     [SerializeField] private float changeToIdleTime = 0.2f;
 
-    [Header("HealthState")]
+    [Header("HealthState Fracture")]
     private bool isLeftLegFrac = false;
     private bool isRightLegFrac = false;
     private bool isLeftArmFrac = false;
     private bool isRightArmFrac = false;
+    [Header("HealthState Blackout")]
+    private bool isLeftLegBlackout = false;
+    private bool isRightLegBlackout = false;
+    private bool isLeftArmBlackout = false;
+    private bool isRightArmBlackout = false;
 
     private void Awake()
     {
@@ -53,7 +58,7 @@ public class LookSettings : MonoBehaviour
     }
     public float GetRotationSpeed(in MovementMode mode)
     {
-        if (isLeftLegFrac || isRightLegFrac) return fractureRotationSpeed;
+        if (((isLeftArmFrac || isRightArmFrac) || (isLeftArmBlackout || isRightArmBlackout))) return woundedRotationSpeed;
 
         if (mode.prone) return proneRotationSpeed;
 
@@ -85,17 +90,23 @@ public class LookSettings : MonoBehaviour
     }
     public float GetMouseSensitivity()
     {
-        if (isLeftArmFrac && isRightArmFrac) return bothArmFractureMouseSensitivity;
+        if (((isLeftArmFrac || isLeftArmBlackout) && (isRightArmFrac || isRightArmBlackout))) return bothArmWoundedMouseSensitivity;
 
-        if (isLeftArmFrac || isRightArmFrac) return oneArmFractureMouseSensitivity;
+        if (((isLeftArmFrac || isLeftArmBlackout) || (isRightArmFrac || isRightArmBlackout))) return oneArmWoundedMouseSensitivity;
 
         return mouseSensitivity;
     }
     public void CheckPlayerHealthState()
     {
+        //골절 상태 체크
         isLeftLegFrac = healthStateProvider.GetIsLeftLegFracture();
         isRightLegFrac = healthStateProvider.GetIsRightLegFracture();
         isLeftArmFrac = healthStateProvider.GetIsLeftArmFracture();
         isRightArmFrac = healthStateProvider.GetIsRightArmFracture();
+        //블랙 아웃 상태 체크
+        isLeftLegBlackout = healthStateProvider.GetIsLeftLegBlackout();
+        isRightLegBlackout = healthStateProvider.GetIsRightLegBlackout();
+        isLeftArmBlackout = healthStateProvider.GetIsLeftArmBlackout();
+        isRightArmBlackout = healthStateProvider.GetIsRightArmBlackout();
     }
 }

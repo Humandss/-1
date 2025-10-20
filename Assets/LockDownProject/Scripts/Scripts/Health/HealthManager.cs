@@ -7,6 +7,11 @@ public interface IHealthStateProvider
     bool GetIsRightArmFracture();
     bool GetIsLeftLegFracture();
     bool GetIsRightLegFracture();
+
+    bool GetIsLeftArmBlackout();
+    bool GetIsRightArmBlackout();
+    bool GetIsLeftLegBlackout();
+    bool GetIsRightLegBlackout();
 }
 public interface ICheckBodyHit
 {
@@ -19,10 +24,10 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     [SerializeField] private HealthProfile health;
 
     [Header("Health Component")]
+    private float fullHP = 0.0f;
     private Dictionary<BodyParts, float> hp = new();
     private Dictionary<BodyParts, float> damMul = new();
     private Dictionary<BodyParts, InjuryMask> allowedInjury = new();
-
     private struct LimbStatus { public bool light, heavy, fracture, blackout; }
     private Dictionary<BodyParts, LimbStatus> status = new();
 
@@ -37,7 +42,7 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     */
 
     [Header("Time")]
-    [SerializeField] float tickInterval = 1.0f;
+    [SerializeField] float tickInterval =2.5f;
     float nextTick;
 
     private void Awake()
@@ -89,14 +94,14 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
         {
             nextTick = Time.time + tickInterval;          
             CheckBleedingEffects();
-            CheckBlackOutEffects();
+            CheckBlackoutEffects();
             Debug.Log($"¸Ó¸® Ã¼·Â : {hp[BodyParts.Head]}, ÈäºÎ Ã¼·Â : {hp[BodyParts.Thorax]}");
 
         }
         
    
     }
-    private void CheckBlackOutEffects()
+    private void CheckBlackoutEffects()
     {
         foreach(var parts in hp)
         {
@@ -525,11 +530,26 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     }
     private void CheckHP()
     {
+        fullHP = GetFullHP();
+        if (fullHP <= 150.0f)
+        {
+
+        }
         if (hp[BodyParts.Head] < 0.0f || hp[BodyParts.Thorax] < 0.0f)
         {
             Debug.Log("»ç¸Á");
         }
         
+    }
+    private float GetFullHP()
+    {
+        float maxHP = 0.0f;
+        foreach (var part in hp)
+        {
+            maxHP+= part.Value;
+        }
+
+        return maxHP;
     }
     private float CalculateDamage(float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul)
     {
@@ -539,6 +559,7 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
         return ammoDamage + (isCritical ? ammoDamage * ammoCriticalDamMul : 0.0f);
 
     }
+    
 
     public bool GetIsLeftArmFracture()
     {
@@ -555,5 +576,21 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     public bool GetIsRightLegFracture()
     {
         return status[BodyParts.RightLeg].fracture;
+    }
+    public bool GetIsLeftArmBlackout()
+    {
+        return status[BodyParts.LeftArm].blackout;
+    }
+    public bool GetIsRightArmBlackout()
+    {
+        return status[BodyParts.RightArm].blackout;
+    }
+    public bool GetIsLeftLegBlackout()
+    {
+        return status[BodyParts.LeftLeg].blackout;
+    }
+    public bool GetIsRightLegBlackout()
+    {
+        return status[BodyParts.RightLeg].blackout;
     }
 }
