@@ -42,7 +42,7 @@ MonoBehaviour:
     allowed: -1
     damageDistributeMul: 0.8
     startLight: 0
-    startHeavy: 1
+    startHeavy: 0
     startFrac: 0
     startBlackout: 0
   - parts: 4
@@ -69,7 +69,7 @@ MonoBehaviour:
     startHeavy: 0
     startFrac: 0
     startBlackout: 0
-  lightPerTickDam: 1
-  heavyPerTickDam: 2
+  lightPerTickDam: 0.5
+  heavyPerTickDam: 1
   tickPenaltyMul: 2
   defaultDamageDistributeMul: 0.8

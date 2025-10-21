@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 96261552}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -342,7 +342,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: {fileID: 11400000, guid: 2a1aaaa59638bb940b638026286219a0, type: 2}
-  tickInterval: 1
+  tickInterval: 2.5
 --- !u!1 &161047954
 GameObject:
   m_ObjectHideFlags: 0
@@ -1608,10 +1608,57 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b151aeb1804f9747ac681cc7f6324d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  healthManager: {fileID: 96261552}
   volume: {fileID: 832575518}
   speed: 0.5
-  min: 0.3
-  max: 0.5
+  min: 0.25
+  max: 0.7
+  weightLerpSpeed: 4
+  valueLerpSpeed: 10
+  hpCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.7
+      value: 0.3
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  half: 0.5
+  low: 0.2
+  eps: 0.05
+  bleed: 0
+  bleedColor: {r: 0.45, g: 0.05, b: 0.05, a: 1}
+  bleedAffectsColor: 1
+  bleedAffectsColorAdjust: 1
+  bleedSatMin: 0
+  bleedSatMax: -0.12
+  bleedExpMin: 0
+  bleedExpMax: -0.1
 --- !u!1 &849674611
 GameObject:
   m_ObjectHideFlags: 0
@@ -5642,7 +5689,7 @@ GameObject:
   - component: {fileID: 8818747722817984868}
   m_Layer: 0
   m_Name: Enemy_with_M16A4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

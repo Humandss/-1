@@ -3,6 +3,8 @@ using UnityEngine;
 
 public interface IHealthStateProvider
 {
+    float GetMaxHP();
+    float GetTotalHP();
     bool GetIsLeftArmFracture();
     bool GetIsRightArmFracture();
     bool GetIsLeftLegFracture();
@@ -24,7 +26,7 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     [SerializeField] private HealthProfile health;
 
     [Header("Health Component")]
-    private float fullHP = 0.0f;
+    private float totalHP = 0.0f;
     private Dictionary<BodyParts, float> hp = new();
     private Dictionary<BodyParts, float> damMul = new();
     private Dictionary<BodyParts, InjuryMask> allowedInjury = new();
@@ -48,7 +50,8 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     private void Awake()
     {
         InitializeHealthProfile();
-    }
+        GetMaxHP();
+     }
     private void InitializeHealthProfile()
     {
         hp.Clear(); damMul.Clear(); allowedInjury.Clear(); status.Clear();
@@ -92,7 +95,8 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
         CheckHP();
         if (Time.time >= nextTick)
         {
-            nextTick = Time.time + tickInterval;          
+            
+            nextTick = Time.time + tickInterval;
             CheckBleedingEffects();
             CheckBlackoutEffects();
             Debug.Log($"¸Ó¸® Ã¼·Â : {hp[BodyParts.Head]}, ÈäºÎ Ã¼·Â : {hp[BodyParts.Thorax]}");
@@ -530,23 +534,30 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     }
     private void CheckHP()
     {
-        fullHP = GetFullHP();
-        if (fullHP <= 150.0f)
-        {
-
-        }
-        if (hp[BodyParts.Head] < 0.0f || hp[BodyParts.Thorax] < 0.0f)
+        totalHP = GetTotalHP();
+       
+        if (hp[BodyParts.Head] < 0.0f || hp[BodyParts.Thorax] < 0.0f || totalHP <= 0)
         {
             Debug.Log("»ç¸Á");
         }
         
     }
-    private float GetFullHP()
+    public float GetTotalHP()
+    {
+        float totalHP = 0.0f;
+        foreach (var part in hp)
+        {
+            totalHP += part.Value;
+        }
+
+        return totalHP;
+    }
+    public float GetMaxHP()
     {
         float maxHP = 0.0f;
         foreach (var part in hp)
         {
-            maxHP+= part.Value;
+            maxHP += part.Value;
         }
 
         return maxHP;

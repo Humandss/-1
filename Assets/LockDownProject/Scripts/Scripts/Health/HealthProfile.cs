@@ -93,8 +93,8 @@ public class HealthProfile : ScriptableObject
         };
     }
 
-    public float lightPerTickDam = 1.0f;
-    public float heavyPerTickDam = 2.0f;
+    public float lightPerTickDam = 0.5f;
+    public float heavyPerTickDam = 1.0f;
     public float tickPenaltyMul = 2.0f;
     public float defaultDamageDistributeMul = 0.8f;
 
