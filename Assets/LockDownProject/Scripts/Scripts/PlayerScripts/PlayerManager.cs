@@ -114,7 +114,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         float mSensitivity = lookSettings.GetMouseSensitivity();
         float h = movementSettings.GetJumpHeight();
 
-        Debug.Log($"rotationSpeed = {rotationSpeed}, mouseS ={mSensitivity}");
+        //Debug.Log($"rotationSpeed = {rotationSpeed}, mouseS ={mSensitivity}");
         //��� �� ����
         canFire = movementSettings.CanFire(movementInfo);
         canAim = movementSettings.CanAim(movementInfo, inputController.Aim);

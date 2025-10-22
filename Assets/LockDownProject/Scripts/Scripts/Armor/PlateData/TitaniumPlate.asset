@@ -9,8 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb0ea987b2d73b4419e10fc582a7fd3e, type: 3}
-  m_Name: Helmet_Titanium
+  m_Script: {fileID: 11500000, guid: e33d457c116079548bb4278c2c6df6ff, type: 3}
+  m_Name: TitaniumPlate
   m_EditorClassIdentifier: 
-  MaterialName: Metal
-  materialFactor: 1.85
+  armorName: 
+  description: 
+  material: 2
+  durability: 45
+  armorClass: 30

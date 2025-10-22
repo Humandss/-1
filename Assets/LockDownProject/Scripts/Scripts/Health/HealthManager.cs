@@ -3,6 +3,9 @@ using UnityEngine;
 
 public interface IHealthStateProvider
 {
+    int GetNumberHeavyBleeding();
+    int GetNumberLightBleeding();
+
     float GetMaxHP();
     float GetTotalHP();
     bool GetIsLeftArmFracture();
@@ -571,7 +574,10 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
 
     }
     
+    private void GetBluntDamager()
+    {
 
+    }
     public bool GetIsLeftArmFracture()
     {
         return status[BodyParts.LeftArm].fracture;
@@ -603,5 +609,25 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     public bool GetIsRightLegBlackout()
     {
         return status[BodyParts.RightLeg].blackout;
+    }
+    public int GetNumberLightBleeding()
+    {
+        int count = 0;
+        foreach(var parts in status)
+        {
+            if (parts.Value.light) count++;
+        }
+
+        return count;
+    }
+    public int GetNumberHeavyBleeding()
+    {
+        int count = 0;
+        foreach (var parts in status)
+        {
+            if (parts.Value.heavy) count++;
+        }
+
+        return count;
     }
 }

@@ -9,12 +9,14 @@ public class BallisticProjectile : MonoBehaviour
     private BulletSoundController bulletSoundController;
     private MaterialManager materialManager;
     private HealthManager healthManager;
+    private ArmorManager armorManager;
     private LayerMask layerMask;
 
     [Header("Providers")]
     private IBulletSoundProvider bulletSoundProvider;
     private IMaterialInfoProvider materialInfoProvider;
     private ICheckBodyHit bodyHitProvider;
+    private IArmorInfoProviders armorInfoProvider;
 
     [Header("Bullet Value")]
     private Vector3 velocity;
@@ -63,7 +65,7 @@ public class BallisticProjectile : MonoBehaviour
         }
 
      
-        layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default");
+        layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default", "Armor");
 
     }
     public void Initialize(Vector3 position, Vector3 direction)
@@ -120,20 +122,21 @@ public class BallisticProjectile : MonoBehaviour
             Vector3 segDir = seg / segLen;
             if (Physics.Raycast(prevPos, segDir, out var hit, segLen, layerMask, QueryTriggerInteraction.Ignore))
             {
-                
+
                 //피탄 지점과 탄 방향을 내적
                 float cosToNormal = Mathf.Clamp(Vector3.Dot(-segDir, hit.normal.normalized), -1.0f, 1.0f);
                 // 90도에서 내적을 빼면 입사각도
                 float incAngleToPlane = 90.0f - Mathf.Acos(cosToNormal) * Mathf.Rad2Deg;
 
+                //각 재질에 따른 보정각
+                float compensateAngle = ammo.baseRicochetAngleDeg * GetMaterialRicochetFactor(hit.collider);
+
                 //일단 기본레이어 벽같은 거에 닿았을 때 처리
-                if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default") 
+                if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default")
                 {
-                    //각 재질에 따른 보정각
-                    float compensateAngle= ammo.baseRicochetAngleDeg*GetMaterialRicochetFactor(hit.collider);
 
                     //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
-                    if (compensateAngle >= incAngleToPlane && ricochetChance < 1) 
+                    if (compensateAngle >= incAngleToPlane && ricochetChance < 1)
                     {
                         HandleRicochet(hit, segDir);
                         bulletSoundProvider.PlayRicochetSound();
@@ -141,19 +144,30 @@ public class BallisticProjectile : MonoBehaviour
                     }
                     else
                     {
-                        if (GetMaterialName(hit.collider) == "Metal")
-                        {
-                            bulletSoundController.PlayMetalImpactSound(hit.point);
-                        }
-                        if(GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete")
-                        {
-                            bulletSoundController.PlayDefaultImpactSound(hit.point);
-                        }
+
+                        PlaySoundByMaterialName(hit);
 
                         Destroy(gameObject);
                         return;
                     }
-                   
+
+                }
+                if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Armor")
+                {
+                  
+                    if (compensateAngle >= incAngleToPlane && ricochetChance < 1)
+                    {
+                        HandleRicochet(hit, segDir);
+                        bulletSoundProvider.PlayRicochetSound();
+                        return;
+                    }
+                    else
+                    {
+
+                        PlaySoundByMaterialName(hit);
+                        HandlePenetration(hit.collider);
+                        return;
+                    }
                 }
                 //그외 사람한테 닿았을 경우
                 else
@@ -171,6 +185,47 @@ public class BallisticProjectile : MonoBehaviour
             }
         }
         
+    }
+
+    private void PlaySoundByMaterialName(RaycastHit h)
+    {
+        if (GetMaterialName(h.collider) == "Metal")
+        {
+            bulletSoundController.PlayMetalImpactSound(h.point);
+        }
+        if (GetMaterialName(h.collider) == "Floor" || GetMaterialName(h.collider) == "Concrete")
+        {
+            bulletSoundController.PlayDefaultImpactSound(h.point);
+        }
+    }
+    private void HandlePenetration(Collider col)
+    {
+        armorManager = col.GetComponent<ArmorManager>();
+        if (armorManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] armorManager is NULL");
+        }
+
+        armorInfoProvider = armorManager as IArmorInfoProviders;
+        if (armorInfoProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] armorInfoProvider is NULL");
+        }
+
+        float remainingPenPower = ammo.penetrationPower - armorInfoProvider.GetArmorClass();
+        Debug.Log(remainingPenPower);
+        //관통 실패
+        if (remainingPenPower <= 0.0f)
+        {        
+            Destroy(gameObject);
+            return;
+        }
+        //10이상 차이나면 확정 관통
+        if(remainingPenPower >= 10.0f)
+        {           
+            return;
+        }
+
     }
     private void HandleRicochet(RaycastHit hit, Vector3 vDir)
     {

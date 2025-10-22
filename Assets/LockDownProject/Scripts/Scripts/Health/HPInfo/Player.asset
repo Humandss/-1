@@ -50,7 +50,7 @@ MonoBehaviour:
     allowed: -1
     damageDistributeMul: 0.8
     startLight: 0
-    startHeavy: 1
+    startHeavy: 0
     startFrac: 0
     startBlackout: 0
   - parts: 5
@@ -58,7 +58,7 @@ MonoBehaviour:
     allowed: -1
     damageDistributeMul: 0.8
     startLight: 0
-    startHeavy: 1
+    startHeavy: 0
     startFrac: 0
     startBlackout: 0
   - parts: 6

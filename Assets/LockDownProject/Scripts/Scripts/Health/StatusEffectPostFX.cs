@@ -22,9 +22,8 @@ public class StatusEffectPostFX : MonoBehaviour
 
     [Header("TunnelVisionBlend")]
     [SerializeField] float weightLerpSpeed = 4.0f;
-    [SerializeField]
+    float totalWeight;
     float valueLerpSpeed = 10.0f;
-    float targetWeight;
     float curVig;
     static readonly Color TunnelBaseColor = Color.black;
 
@@ -32,7 +31,7 @@ public class StatusEffectPostFX : MonoBehaviour
     [SerializeField] float half = 0.5f, low = 0.2f, eps = 0.05f;
 
 
-    [Header("출혈 비전(외부에서 강도 0~1 세팅)")]
+    [Header("Bleeding Effect Options)")]
     [SerializeField, Range(0f, 1f)] float bleed;         
     [SerializeField] Color bleedColor = new(0.45f, 0.05f, 0.05f, 1f);
     [SerializeField] bool bleedAffectsColor = true;   
@@ -40,10 +39,10 @@ public class StatusEffectPostFX : MonoBehaviour
     [SerializeField] float bleedSatMin = 0f, bleedSatMax = -0.12f; 
     [SerializeField] float bleedExpMin = 0f, bleedExpMax = -0.10f;
 
-    float iTunnel;   // 0~1 (HP 기반 계산 결과)
-    float iBleed;    // 0~1 (SetBleed로 들어오는 값)
-    float wCur;      // 현재 weight
-    float vigCur;    // 현재 비넷 적용값
+    float iTunnel;  
+    float iBleed;   
+
+
 
     public static AnimationCurve MakeHpCurve(float half = 0.5f, float low = 0.2f, float eps = 0.05f)
     {
@@ -90,28 +89,63 @@ public class StatusEffectPostFX : MonoBehaviour
     }
     private void LateUpdate()
     {
-       PlayTunnelVisionEffect();
-     
+       PlayVisionEffect();
+      
     }
-    private void PlayTunnelVisionEffect()
+    private float CheckBleedingCount()
+    {
+        //과다 출혈이 2개일 경우 최대값 발행
+        if (healthStateProvider.GetNumberHeavyBleeding() >= 2) 
+            return 0.75f;
+
+        if (healthStateProvider.GetNumberHeavyBleeding() == 1) 
+            return  0.6f;
+
+        if (healthStateProvider.GetNumberLightBleeding() >= 2)
+            return 0.5f;
+
+        return 0.0f;
+    }
+    private void PlayVisionEffect()
     {
         if (vig == null) return;
 
         float hp01 = healthStateProvider.GetTotalHP() / maxHP;
 
-        float fxTarget = Mathf.Clamp01(hpCurve.Evaluate(hp01));
+        iTunnel = Mathf.Clamp01(hpCurve.Evaluate(hp01));
 
-        targetWeight = fxTarget;
-        volume.weight=  Mathf.MoveTowards(volume.weight, targetWeight, weightLerpSpeed*Time.deltaTime);
+        iBleed = CheckBleedingCount();
+        
+        totalWeight = 1.0f - (1.0f - iTunnel) * (1.0f - iBleed);
+
+        volume.weight=  Mathf.MoveTowards(volume.weight, totalWeight, weightLerpSpeed*Time.deltaTime);
 
         float baseVig = Mathf.Lerp(min, max, volume.weight);
 
-        if (speed > 0.0f)
+        if (speed > 0.0f && iTunnel > 0.0f)
         {
             float pulse = 0.5f * (Mathf.Sin(Time.time * speed * Mathf.PI * 2f) + 1f);
             baseVig = Mathf.Lerp(baseVig * 0.9f, baseVig * 1.1f, pulse);
         }
         curVig = Mathf.Lerp(curVig, baseVig, 1.0f - Mathf.Exp(-valueLerpSpeed * Time.deltaTime));
         vig.intensity.Override(curVig);
+        vig.smoothness.Override(0.95f);
+
+        if (bleedAffectsColor)
+        {
+            Color finalColor = Color.Lerp(TunnelBaseColor, bleedColor, iBleed);
+            vig.color.Override(finalColor);
+        }
+        else
+        {
+            vig.color.Override(TunnelBaseColor);
+        }
+
+        
+        if (colorAdj && bleedAffectsColorAdjust)
+        {
+            colorAdj.saturation.Override(Mathf.Lerp(bleedSatMin, bleedSatMax, iBleed));
+            colorAdj.postExposure.Override(Mathf.Lerp(bleedExpMin, bleedExpMax, iBleed));
+        }
     }
 }
