@@ -28,7 +28,7 @@ MonoBehaviour:
   damage: 57
   criticalChance: 0.035
   criticalDamMultiplier: 0.25
-  bluntDamage: 3
+  bluntDamage: 20
   lightBleedingChance: 0.015
   heavyBleedingChance: 0.02
   fractureChance: 0.015

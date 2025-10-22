@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 
 public interface IHealthStateProvider
 {
+    void GetBluntDamage(float bluntDam);
     int GetNumberHeavyBleeding();
     int GetNumberLightBleeding();
 
@@ -467,7 +469,7 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     {
        
         float remaining = damage;
-        Debug.Log(damage);
+       // Debug.Log(damage);
         int maxRound = 0;
         //잔여 피해 x, 최대 5번까지만 진행
         while (remaining > 1.0f && maxRound < 5) 
@@ -545,6 +547,18 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
         }
         
     }
+    public void GetBluntDamage(float bluntDam)
+    {
+        
+        float distributeDam = bluntDam / (float)GetAllParts().Count;
+
+        var parts = GetAllParts();
+        Debug.Log(distributeDam);
+        foreach (var part in parts)
+        {
+            hp[part] -= distributeDam;
+        }
+     }
     public float GetTotalHP()
     {
         float totalHP = 0.0f;
@@ -574,10 +588,7 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
 
     }
     
-    private void GetBluntDamager()
-    {
-
-    }
+  
     public bool GetIsLeftArmFracture()
     {
         return status[BodyParts.LeftArm].fracture;

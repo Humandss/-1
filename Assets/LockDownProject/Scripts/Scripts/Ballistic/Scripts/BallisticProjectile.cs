@@ -1,4 +1,5 @@
 
+using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -16,6 +17,7 @@ public class BallisticProjectile : MonoBehaviour
     private IBulletSoundProvider bulletSoundProvider;
     private IMaterialInfoProvider materialInfoProvider;
     private ICheckBodyHit bodyHitProvider;
+    private IHealthStateProvider healthStateProvider;
     private IArmorInfoProviders armorInfoProvider;
 
     [Header("Bullet Value")]
@@ -28,6 +30,7 @@ public class BallisticProjectile : MonoBehaviour
     private float k; // 공기저항
     private int ricochetChance=0;
     float speed;
+    float pen;
 
    [Header("World")]
     private float airDensity = 1.225f;
@@ -71,8 +74,8 @@ public class BallisticProjectile : MonoBehaviour
     public void Initialize(Vector3 position, Vector3 direction)
     {
         pos=position;
-        dir=direction; 
-
+        dir=direction;
+        pen = ammo.penetrationPower;
         velocity = dir.normalized * ammo.muzzleVelocity;   // 초기 속도 
 
         float invMass = 1.0f / Mathf.Max(1e-6f, ammo.mass); // 1/중량
@@ -152,6 +155,7 @@ public class BallisticProjectile : MonoBehaviour
                     }
 
                 }
+                //사람이 착용한 방탄판에 닿았을경우
                 if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Armor")
                 {
                   
@@ -163,9 +167,8 @@ public class BallisticProjectile : MonoBehaviour
                     }
                     else
                     {
-
                         PlaySoundByMaterialName(hit);
-                        HandlePenetration(hit.collider);
+                        HandlePenetration(hit);
                         return;
                     }
                 }
@@ -187,20 +190,20 @@ public class BallisticProjectile : MonoBehaviour
         
     }
 
-    private void PlaySoundByMaterialName(RaycastHit h)
+    private void PlaySoundByMaterialName(RaycastHit hit)
     {
-        if (GetMaterialName(h.collider) == "Metal")
+        if (GetMaterialName(hit.collider) == "Metal")
         {
-            bulletSoundController.PlayMetalImpactSound(h.point);
+            bulletSoundController.PlayMetalImpactSound(hit.point);
         }
-        if (GetMaterialName(h.collider) == "Floor" || GetMaterialName(h.collider) == "Concrete")
+        if (GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete")
         {
-            bulletSoundController.PlayDefaultImpactSound(h.point);
+            bulletSoundController.PlayDefaultImpactSound(hit.point);
         }
     }
-    private void HandlePenetration(Collider col)
+    private void HandlePenetration(RaycastHit hit)
     {
-        armorManager = col.GetComponent<ArmorManager>();
+        armorManager = hit.collider.GetComponent<ArmorManager>();
         if (armorManager == null)
         {
             Debug.LogWarning("[BallisticProjectile] armorManager is NULL");
@@ -212,19 +215,50 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile] armorInfoProvider is NULL");
         }
 
-        float remainingPenPower = ammo.penetrationPower - armorInfoProvider.GetArmorClass();
-        Debug.Log(remainingPenPower);
+        healthManager = hit.collider.GetComponentInParent<HealthManager>();
+        if (healthManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile]  healthManager is NULL");
+        }
+
+        healthStateProvider = healthManager as IHealthStateProvider;
+        if  ( healthStateProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] healthStateProvider is NULL");
+        }
+
+        float remainingPenPower = pen - armorInfoProvider.GetArmorClass();
+        float penPower01 = 1.0f;
+
         //관통 실패
         if (remainingPenPower <= 0.0f)
-        {        
+        {
+            healthStateProvider.GetBluntDamage(ammo.bluntDamage);
             Destroy(gameObject);
             return;
         }
-        //10이상 차이나면 확정 관통
-        if(remainingPenPower >= 10.0f)
-        {           
-            return;
+        //부분 관통
+        if (remainingPenPower < 10.0f && remainingPenPower > 0.0f) 
+        {
+            penPower01 = Mathf.Clamp01(remainingPenPower / 10.0f);
+
+            if (Random.value > penPower01)
+            {
+                healthStateProvider.GetBluntDamage(ammo.bluntDamage);
+                Destroy(gameObject);
+                return;
+            }
+             
         }
+
+        //완전 관통후 처리
+        pen *= penPower01;
+        speed *= penPower01;
+        Debug.Log($"speed={speed}, pen={pen}");
+
+        const float exitBias = 0.004f;
+        pos = hit.point + dir * exitBias;
+        transform.position = pos;
 
     }
     private void HandleRicochet(RaycastHit hit, Vector3 vDir)
@@ -284,6 +318,7 @@ public class BallisticProjectile : MonoBehaviour
         return materialInfoProvider.GetMaterialFactor();
 
     }
+
 
     string GetMaterialName(Collider col)
     {
