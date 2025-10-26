@@ -27,6 +27,7 @@ public struct BodyPartsDefault
     public float maxHP;
     public InjuryMask allowed;
     public float damageDistributeMul;
+    public float penetrationEnergyDecreaseMul;
     public bool startLight, startHeavy, startFrac, startBlackout;
 };
 
@@ -81,15 +82,15 @@ public class HealthProfile : ScriptableObject
 
     void InitializeBodyPartsDefault()
     {
-        
+
         parts = new[]{
-            new BodyPartsDefault{ parts=BodyParts.Head,    maxHP=35, damageDistributeMul=0.3f, allowed=InjuryMask.Blackout, startBlackout=false },
-            new BodyPartsDefault{ parts=BodyParts.Thorax,  maxHP=85, damageDistributeMul=1.0f, allowed=InjuryMask.Blackout,startBlackout=false},
-            new BodyPartsDefault{ parts=BodyParts.Stomach, maxHP=70, damageDistributeMul=0.8f, allowed=InjuryMask.Blackout,startBlackout=false },
-            new BodyPartsDefault{ parts=BodyParts.LeftArm, maxHP=60, damageDistributeMul=0.8f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture,startBlackout=false },
-            new BodyPartsDefault{ parts=BodyParts.RightArm,maxHP=60, damageDistributeMul=0.8f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture,startBlackout=false },
-            new BodyPartsDefault{ parts=BodyParts.LeftLeg, maxHP=65, damageDistributeMul=0.8f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture ,startBlackout=false},
-            new BodyPartsDefault{ parts=BodyParts.RightLeg,maxHP=65, damageDistributeMul=0.8f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture ,startBlackout=false},
+            new BodyPartsDefault{ parts=BodyParts.Head,    maxHP=35, damageDistributeMul=0.3f, penetrationEnergyDecreaseMul=0.3f, allowed=InjuryMask.Blackout, startBlackout=false },
+            new BodyPartsDefault{ parts=BodyParts.Thorax,  maxHP=85, damageDistributeMul=1.0f, penetrationEnergyDecreaseMul=0.6f, allowed=InjuryMask.Blackout,startBlackout=false},
+            new BodyPartsDefault{ parts=BodyParts.Stomach, maxHP=70, damageDistributeMul=0.8f, penetrationEnergyDecreaseMul=0.5f, allowed=InjuryMask.Blackout,startBlackout=false },
+            new BodyPartsDefault{ parts=BodyParts.LeftArm, maxHP=60, damageDistributeMul=0.8f, penetrationEnergyDecreaseMul=0.2f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture,startBlackout=false },
+            new BodyPartsDefault{ parts=BodyParts.RightArm,maxHP=60, damageDistributeMul=0.8f, penetrationEnergyDecreaseMul=0.2f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture,startBlackout=false },
+            new BodyPartsDefault{ parts=BodyParts.LeftLeg, maxHP=65, damageDistributeMul=0.8f, penetrationEnergyDecreaseMul=0.3f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture ,startBlackout=false},
+            new BodyPartsDefault{ parts=BodyParts.RightLeg,maxHP=65, damageDistributeMul=0.8f, penetrationEnergyDecreaseMul=0.3f, allowed=InjuryMask.LightBleed|InjuryMask.HeavyBleed|InjuryMask.Fracture ,startBlackout=false},
         };
     }
 

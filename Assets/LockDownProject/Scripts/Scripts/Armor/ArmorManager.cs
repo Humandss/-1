@@ -12,6 +12,18 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
   
     public float GetArmorClass()
     {
-        return armorInfo.armorClass;
+        if (armorInfo.armorClass == ArmorClass.Level1) return 10.0f;
+
+        if (armorInfo.armorClass == ArmorClass.Level2A) return 20.0f;
+
+        if (armorInfo.armorClass == ArmorClass.Level2) return 30.0f;
+
+        if (armorInfo.armorClass == ArmorClass.Level3A) return 35.0f;
+
+        if (armorInfo.armorClass == ArmorClass.Level3) return 45.0f;
+
+        if (armorInfo.armorClass == ArmorClass.Level4) return 55.0f;
+
+        return 20.0f;
     }
 }

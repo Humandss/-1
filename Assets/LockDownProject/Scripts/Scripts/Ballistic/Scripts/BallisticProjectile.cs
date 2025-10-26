@@ -16,7 +16,6 @@ public class BallisticProjectile : MonoBehaviour
     [Header("Providers")]
     private IBulletSoundProvider bulletSoundProvider;
     private IMaterialInfoProvider materialInfoProvider;
-    private ICheckBodyHit bodyHitProvider;
     private IHealthStateProvider healthStateProvider;
     private IArmorInfoProviders armorInfoProvider;
 
@@ -134,7 +133,7 @@ public class BallisticProjectile : MonoBehaviour
                 //각 재질에 따른 보정각
                 float compensateAngle = ammo.baseRicochetAngleDeg * GetMaterialRicochetFactor(hit.collider);
 
-                //일단 기본레이어 벽같은 거에 닿았을 때 처리
+                //기본레이어 벽같은 거에 닿았을 때 처리
                 if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default")
                 {
 
@@ -149,7 +148,6 @@ public class BallisticProjectile : MonoBehaviour
                     {
 
                         PlaySoundByMaterialName(hit);
-
                         Destroy(gameObject);
                         return;
                     }
@@ -168,7 +166,7 @@ public class BallisticProjectile : MonoBehaviour
                     else
                     {
                         PlaySoundByMaterialName(hit);
-                        HandlePenetration(hit);
+                        HandleArmorPenetration(hit);
                         return;
                     }
                 }
@@ -176,7 +174,7 @@ public class BallisticProjectile : MonoBehaviour
                 else
                 {
                     //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
-                    CheckBulletHitBody(hit.collider);
+                    CheckBulletHitBody(hit);
                     Destroy(gameObject);
                     return;
                 }
@@ -192,7 +190,7 @@ public class BallisticProjectile : MonoBehaviour
 
     private void PlaySoundByMaterialName(RaycastHit hit)
     {
-        if (GetMaterialName(hit.collider) == "Metal")
+        if (GetMaterialName(hit.collider) == "Metal" || GetMaterialName(hit.collider) == "Steel_Plate")
         {
             bulletSoundController.PlayMetalImpactSound(hit.point);
         }
@@ -200,8 +198,13 @@ public class BallisticProjectile : MonoBehaviour
         {
             bulletSoundController.PlayDefaultImpactSound(hit.point);
         }
+        else bulletSoundController.PlayDefaultImpactSound(hit.point);
     }
-    private void HandlePenetration(RaycastHit hit)
+    private void HandleBodyPentration(RaycastHit hit)
+    {
+        GetHealthManager(hit);
+    }
+    private void HandleArmorPenetration(RaycastHit hit)
     {
         armorManager = hit.collider.GetComponent<ArmorManager>();
         if (armorManager == null)
@@ -215,17 +218,7 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile] armorInfoProvider is NULL");
         }
 
-        healthManager = hit.collider.GetComponentInParent<HealthManager>();
-        if (healthManager == null)
-        {
-            Debug.LogWarning("[BallisticProjectile]  healthManager is NULL");
-        }
-
-        healthStateProvider = healthManager as IHealthStateProvider;
-        if  ( healthStateProvider == null)
-        {
-            Debug.LogWarning("[BallisticProjectile] healthStateProvider is NULL");
-        }
+        GetHealthManager(hit);
 
         float remainingPenPower = pen - armorInfoProvider.GetArmorClass();
         float penPower01 = 1.0f;
@@ -256,8 +249,8 @@ public class BallisticProjectile : MonoBehaviour
         speed *= penPower01;
         Debug.Log($"speed={speed}, pen={pen}");
 
-        const float exitBias = 0.004f;
-        pos = hit.point + dir * exitBias;
+        const float exit = 0.004f;
+        pos = hit.point + dir * exit;
         transform.position = pos;
 
     }
@@ -282,22 +275,12 @@ public class BallisticProjectile : MonoBehaviour
             
     }
  
-    private void CheckBulletHitBody(Collider col)
+    private void CheckBulletHitBody(RaycastHit hit)
     {
-        healthManager = col.GetComponentInParent<HealthManager>();
-        if (healthManager == null)
-        {
-            Debug.LogWarning("[BallisticProjectile]  healthManager is NULL");
-        }
+        GetHealthManager(hit);
 
-        bodyHitProvider = healthManager as ICheckBodyHit;
-        if (bodyHitProvider == null)
-        {
-            Debug.LogWarning("[BallisticProjectile]  bodyHitProvider is NULL");
-
-        }
-        bodyHitProvider.CheckBodyHit(col, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier);
-        bodyHitProvider.CheckEffectTrigger(col, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
+        healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier);
+        healthStateProvider.CheckEffectTrigger(hit.collider, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
     }
     float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
     {
@@ -319,24 +302,38 @@ public class BallisticProjectile : MonoBehaviour
 
     }
 
-
     string GetMaterialName(Collider col)
+    {
+        GetMaterialManager(col);
+        return materialInfoProvider.GetMaterialName();
+    }
+
+    private void GetMaterialManager(Collider col)
     {
         materialManager = col.GetComponent<MaterialManager>();
         if (materialManager == null)
         {
             Debug.LogWarning("[BallisticProjectile] materialManager is NULL");
-          
         }
 
         materialInfoProvider = materialManager as IMaterialInfoProvider;
         if (materialInfoProvider == null)
         {
             Debug.LogWarning("[BallisticProjectile] materialFactorProvider is NULL");
-            
+        }
+    }
+    private void GetHealthManager(RaycastHit hit)
+    {
+        healthManager = hit.collider.GetComponentInParent<HealthManager>();
+        if (healthManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile]  healthManager is NULL");
         }
 
-        return materialInfoProvider.GetMaterialName();
-
+        healthStateProvider = healthManager as IHealthStateProvider;
+        if (healthStateProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] healthStateProvider is NULL");
+        }
     }
 }

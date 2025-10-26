@@ -15,5 +15,5 @@ MonoBehaviour:
   armorName: 
   description: 
   material: 3
+  armorClass: 3
   durability: 65
-  armorClass: 20

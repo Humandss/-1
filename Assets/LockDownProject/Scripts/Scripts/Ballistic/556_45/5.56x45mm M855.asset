@@ -20,7 +20,7 @@ MonoBehaviour:
   muzzleVelocity: 920
   dragCoeff: 0.3
   refAreaScale: 1
-  penetrationPower: 23
+  penetrationPower: 31
   tracer: 0
   baseRicochetAngleDeg: 20
   afterRicochetEnergyPercent: 0.75

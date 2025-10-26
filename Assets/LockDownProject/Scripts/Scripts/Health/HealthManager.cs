@@ -7,7 +7,6 @@ public interface IHealthStateProvider
     void GetBluntDamage(float bluntDam);
     int GetNumberHeavyBleeding();
     int GetNumberLightBleeding();
-
     float GetMaxHP();
     float GetTotalHP();
     bool GetIsLeftArmFracture();
@@ -19,13 +18,11 @@ public interface IHealthStateProvider
     bool GetIsRightArmBlackout();
     bool GetIsLeftLegBlackout();
     bool GetIsRightLegBlackout();
-}
-public interface ICheckBodyHit
-{
-    void CheckBodyHit(Collider col,float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul);
+    void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul);
     void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance);
 }
-public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
+
+public class HealthManager : MonoBehaviour,IHealthStateProvider
 {
     [Header("Refs")]
     [SerializeField] private HealthProfile health;
@@ -34,6 +31,7 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
     private float totalHP = 0.0f;
     private Dictionary<BodyParts, float> hp = new();
     private Dictionary<BodyParts, float> damMul = new();
+    private Dictionary<BodyParts, float> penDamDecreaseMul = new();
     private Dictionary<BodyParts, InjuryMask> allowedInjury = new();
     private struct LimbStatus { public bool light, heavy, fracture, blackout; }
     private Dictionary<BodyParts, LimbStatus> status = new();
@@ -64,7 +62,8 @@ public class HealthManager : MonoBehaviour, ICheckBodyHit, IHealthStateProvider
         foreach (var p in health.parts)
         {
             hp[p.parts] = Mathf.Max(0, p.maxHP);
-            damMul[p.parts] = (p.damageDistributeMul <= 0f) ? 1f : p.damageDistributeMul;
+            damMul[p.parts] = (p.damageDistributeMul <= 0.0f) ? 1.0f : p.damageDistributeMul;
+            penDamDecreaseMul[p.parts] = (p.penetrationEnergyDecreaseMul <= 0.0f) ? 1.0f : p.penetrationEnergyDecreaseMul;
             allowedInjury[p.parts] = p.allowed;
             status[p.parts] = new LimbStatus
             {
