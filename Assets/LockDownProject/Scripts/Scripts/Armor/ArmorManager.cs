@@ -8,8 +8,14 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
 {
     [SerializeField] private ArmorInfo armorInfo;
 
- 
-  
+    private float durability = 0.0f;
+
+    private void Awake()
+    {
+        durability = armorInfo.durability;
+
+    }
+
     public float GetArmorClass()
     {
         if (armorInfo.armorClass == ArmorClass.Level1) return 10.0f;
@@ -25,5 +31,9 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
         if (armorInfo.armorClass == ArmorClass.Level4) return 55.0f;
 
         return 20.0f;
+    }
+    public float GetArmorDurability()
+    {
+        return durability;
     }
 }

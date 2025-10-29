@@ -17,6 +17,8 @@ MonoBehaviour:
     maxHP: 35
     allowed: 8
     damageDistributeMul: 0.3
+    penetrationEnergyDecreaseMul: 0.3
+    armorForBody: 25
     startLight: 0
     startHeavy: 0
     startFrac: 0
@@ -25,6 +27,8 @@ MonoBehaviour:
     maxHP: 85
     allowed: 8
     damageDistributeMul: 1
+    penetrationEnergyDecreaseMul: 0.6
+    armorForBody: 45
     startLight: 0
     startHeavy: 0
     startFrac: 0
@@ -33,6 +37,8 @@ MonoBehaviour:
     maxHP: 70
     allowed: 8
     damageDistributeMul: 0.8
+    penetrationEnergyDecreaseMul: 0.5
+    armorForBody: 35
     startLight: 0
     startHeavy: 0
     startFrac: 0
@@ -41,6 +47,8 @@ MonoBehaviour:
     maxHP: 60
     allowed: -1
     damageDistributeMul: 0.8
+    penetrationEnergyDecreaseMul: 0.2
+    armorForBody: 15
     startLight: 0
     startHeavy: 0
     startFrac: 0
@@ -49,6 +57,8 @@ MonoBehaviour:
     maxHP: 60
     allowed: -1
     damageDistributeMul: 0.8
+    penetrationEnergyDecreaseMul: 0.2
+    armorForBody: 15
     startLight: 0
     startHeavy: 0
     startFrac: 0
@@ -57,6 +67,8 @@ MonoBehaviour:
     maxHP: 65
     allowed: -1
     damageDistributeMul: 0.8
+    penetrationEnergyDecreaseMul: 0.3
+    armorForBody: 25
     startLight: 0
     startHeavy: 0
     startFrac: 0
@@ -65,6 +77,8 @@ MonoBehaviour:
     maxHP: 65
     allowed: -1
     damageDistributeMul: 0.8
+    penetrationEnergyDecreaseMul: 0.3
+    armorForBody: 25
     startLight: 0
     startHeavy: 0
     startFrac: 0

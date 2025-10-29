@@ -18,11 +18,18 @@ public interface IHealthStateProvider
     bool GetIsRightArmBlackout();
     bool GetIsLeftLegBlackout();
     bool GetIsRightLegBlackout();
-    void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul);
+    void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen);
     void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance);
+
+
 }
 
-public class HealthManager : MonoBehaviour,IHealthStateProvider
+public interface IGetFactorAfterPentrateBodyProvider
+{
+    float GetSpeedAfterPenBody();
+    float GetPenetrationAfterPenBody();
+}
+public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfterPentrateBodyProvider
 {
     [Header("Refs")]
     [SerializeField] private HealthProfile health;
@@ -31,24 +38,18 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
     private float totalHP = 0.0f;
     private Dictionary<BodyParts, float> hp = new();
     private Dictionary<BodyParts, float> damMul = new();
-    private Dictionary<BodyParts, float> penDamDecreaseMul = new();
+    private Dictionary<BodyParts, float> penSpeedDecreaseMul = new();
+    private Dictionary<BodyParts, float> armorFactorForBody = new();
     private Dictionary<BodyParts, InjuryMask> allowedInjury = new();
     private struct LimbStatus { public bool light, heavy, fracture, blackout; }
     private Dictionary<BodyParts, LimbStatus> status = new();
 
-    /*
-    private float headHP;
-    private float thoraxHP;
-    private float stomachHP;
-    private float leftArmHP;
-    private float rightArmHP;
-    private float leftLegHP;
-    private float rightLegHP;
-    */
-
     [Header("Time")]
     [SerializeField] float tickInterval =2.5f;
     float nextTick;
+
+    float afterPen = 0.0f;
+    float afterSpeed = 0.0f;
 
     private void Awake()
     {
@@ -57,13 +58,15 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
      }
     private void InitializeHealthProfile()
     {
-        hp.Clear(); damMul.Clear(); allowedInjury.Clear(); status.Clear();
+        hp.Clear(); damMul.Clear(); penSpeedDecreaseMul.Clear();
+        armorFactorForBody.Clear(); allowedInjury.Clear(); status.Clear();
 
         foreach (var p in health.parts)
         {
             hp[p.parts] = Mathf.Max(0, p.maxHP);
-            damMul[p.parts] = (p.damageDistributeMul <= 0.0f) ? 1.0f : p.damageDistributeMul;
-            penDamDecreaseMul[p.parts] = (p.penetrationEnergyDecreaseMul <= 0.0f) ? 1.0f : p.penetrationEnergyDecreaseMul;
+            damMul[p.parts] = p.damageDistributeMul;
+            penSpeedDecreaseMul[p.parts] =p.penetrationEnergyDecreaseMul;
+            armorFactorForBody[p.parts] = p.armorForBody;
             allowedInjury[p.parts] = p.allowed;
             status[p.parts] = new LimbStatus
             {
@@ -103,7 +106,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
             nextTick = Time.time + tickInterval;
             CheckBleedingEffects();
             CheckBlackoutEffects();
-            Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}");
+            Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
 
         }
         
@@ -161,7 +164,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
            
         }
     }
-    public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul)
+    public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen)
     {
         Debug.Log($"[HIT] {col.name} layer={LayerMask.LayerToName(col.gameObject.layer)}");
 
@@ -172,7 +175,8 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
         {
             Debug.Log("머리에 맞음!");       
             hp[BodyParts.Head] -= totalDamage;
-            
+            speed *= penSpeedDecreaseMul[BodyParts.Head];
+            pen -= armorFactorForBody[BodyParts.Head];
          
         }
 
@@ -180,7 +184,8 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
         {
             Debug.Log("흉부에 맞음!");
             hp[BodyParts.Thorax] -= totalDamage;
-  
+            speed *= penSpeedDecreaseMul[BodyParts.Thorax];
+            pen -= armorFactorForBody[BodyParts.Thorax];
         }
 
         if (col.name == "stomach")
@@ -195,7 +200,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
             }
             else hp[BodyParts.Stomach] -= totalDamage;
 
-           
+            Debug.Log($"decreasuMul = {penSpeedDecreaseMul[BodyParts.Stomach]}, armorFactor = {armorFactorForBody[BodyParts.Stomach]}");
+            speed *= penSpeedDecreaseMul[BodyParts.Stomach];
+            pen -= armorFactorForBody[BodyParts.Stomach];
         }
 
         if (col.name == "left_arm" || col.name == "left_forearm" || col.name == "left_hand")
@@ -209,6 +216,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
 
             }
             else hp[BodyParts.LeftArm] -= totalDamage;
+
+            speed *= penSpeedDecreaseMul[BodyParts.LeftArm];
+            pen -= armorFactorForBody[BodyParts.LeftArm];
         }
 
         if (col.name == "right_arm" || col.name == "right_forearm" || col.name == "right_hand")
@@ -222,6 +232,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
 
             }
             else hp[BodyParts.RightArm] -= totalDamage;
+
+            speed *= penSpeedDecreaseMul[BodyParts.RightArm];
+            pen -= armorFactorForBody[BodyParts.RightArm];
         }
 
         if (col.name == "left_thigh" || col.name == "left_shin" || col.name == "left_foot")
@@ -235,6 +248,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
 
             }
             else hp[BodyParts.LeftLeg] -= totalDamage;
+
+            speed *= penSpeedDecreaseMul[BodyParts.LeftLeg];
+            pen -= armorFactorForBody[BodyParts.LeftLeg];
         }
 
         if (col.name == "right_thigh" || col.name == "right_shin" || col.name == "right_foot")
@@ -248,10 +264,26 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
 
             }
             else hp[BodyParts.LeftLeg] -= totalDamage;
+
+            speed *= penSpeedDecreaseMul[BodyParts.RightLeg];
+            pen -= armorFactorForBody[BodyParts.RightLeg];
         }
+
+        afterPen = pen;
+        afterSpeed = speed;
     }
 
- 
+    public float GetSpeedAfterPenBody()
+    {
+        Debug.Log(afterSpeed);
+        return afterSpeed;
+    }
+
+    public float GetPenetrationAfterPenBody()
+    {
+        Debug.Log(afterPen);
+        return afterPen;
+    }
     public void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance)
     {
         if (col.name == "Head") return;
@@ -470,12 +502,13 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
         float remaining = damage;
        // Debug.Log(damage);
         int maxRound = 0;
+
+        var allParts = GetAllParts();
+        if (allParts.Count == 0) return;
+
         //잔여 피해 x, 최대 5번까지만 진행
         while (remaining > 1.0f && maxRound < 5) 
         {
-
-            var allParts = GetAllParts();
-            if (allParts.Count == 0) return;
 
             float distributeDamage = remaining / allParts.Count;
             //너무 낮은 분산 대미지는 패스
@@ -519,7 +552,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
                     }
                        
                 }
-                Debug.Log($"현재 부위 ={parts}, 체력 ={hp[parts]} 받은 대미지 ={distributeDamage}");
+               // Debug.Log($"현재 부위 ={parts}, 체력 ={hp[parts]} 받은 대미지 ={distributeDamage}");
 
             }
             /*//테스트문
@@ -555,7 +588,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider
         Debug.Log(distributeDam);
         foreach (var part in parts)
         {
-            hp[part] -= distributeDam;
+            hp[part] = Mathf.Max(0, hp[part] - distributeDam);
         }
      }
     public float GetTotalHP()

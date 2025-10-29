@@ -17,7 +17,9 @@ public class BallisticProjectile : MonoBehaviour
     private IBulletSoundProvider bulletSoundProvider;
     private IMaterialInfoProvider materialInfoProvider;
     private IHealthStateProvider healthStateProvider;
+    private IGetFactorAfterPentrateBodyProvider factorAfterPentrateBodyProvider;
     private IArmorInfoProviders armorInfoProvider;
+
 
     [Header("Bullet Value")]
     private Vector3 velocity;
@@ -175,7 +177,7 @@ public class BallisticProjectile : MonoBehaviour
                 {
                     //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
                     CheckBulletHitBody(hit);
-                    Destroy(gameObject);
+                    HandleBodyPentration(hit);
                     return;
                 }
                 
@@ -194,15 +196,41 @@ public class BallisticProjectile : MonoBehaviour
         {
             bulletSoundController.PlayMetalImpactSound(hit.point);
         }
-        if (GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete")
+        if (GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete" || GetMaterialName(hit.collider) == "Kevlar")
         {
             bulletSoundController.PlayDefaultImpactSound(hit.point);
         }
-        else bulletSoundController.PlayDefaultImpactSound(hit.point);
+       
     }
     private void HandleBodyPentration(RaycastHit hit)
     {
-        GetHealthManager(hit);
+        healthManager = hit.collider.GetComponentInParent<HealthManager>();
+        if (healthManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile]  healthManager is NULL");
+        }
+
+        factorAfterPentrateBodyProvider = healthManager as IGetFactorAfterPentrateBodyProvider;
+        if (factorAfterPentrateBodyProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile]factorAfterPentrateBodyProviderr is NULL");
+        }
+
+        pen = factorAfterPentrateBodyProvider.GetPenetrationAfterPenBody();
+        speed = factorAfterPentrateBodyProvider.GetSpeedAfterPenBody();
+
+        if (pen <= 0 || speed <= 0)
+        {
+            Destroy(gameObject);
+        }
+
+        const float exit = 0.004f;
+        pos = hit.point + dir * exit;
+        transform.position = pos;
+
+
+        Debug.Log($"pen={pen} speed={speed}");
+
     }
     private void HandleArmorPenetration(RaycastHit hit)
     {
@@ -247,7 +275,7 @@ public class BallisticProjectile : MonoBehaviour
         //완전 관통후 처리
         pen *= penPower01;
         speed *= penPower01;
-        Debug.Log($"speed={speed}, pen={pen}");
+        //Debug.Log($"speed={speed}, pen={pen}");
 
         const float exit = 0.004f;
         pos = hit.point + dir * exit;
@@ -269,7 +297,7 @@ public class BallisticProjectile : MonoBehaviour
         float aterRicochetSpeed = speed * ammo.afterRicochetEnergyPercent;
         //최종 계산
         velocity = recochetAngle * aterRicochetSpeed;
-        pos = hit.point+hit.normal * 0.002f;
+        pos = hit.point + hit.normal * 0.002f;
         transform.position = pos;
         ricochetChance++;
             
@@ -279,7 +307,7 @@ public class BallisticProjectile : MonoBehaviour
     {
         GetHealthManager(hit);
 
-        healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier);
+        healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier, speed, pen);
         healthStateProvider.CheckEffectTrigger(hit.collider, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
     }
     float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
