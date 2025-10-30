@@ -18,7 +18,7 @@ public interface IHealthStateProvider
     bool GetIsRightArmBlackout();
     bool GetIsLeftLegBlackout();
     bool GetIsRightLegBlackout();
-    void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen);
+    void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen, int bulletId);
     void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance);
 
 
@@ -50,6 +50,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
 
     float afterPen = 0.0f;
     float afterSpeed = 0.0f;
+
+    //같은 콜라이더 중첩으로 때리는거(관통 했을 경우) 방지하는 헤쉬셋
+    private readonly HashSet<int> isHitOnce = new HashSet<int>();
 
     private void Awake()
     {
@@ -164,9 +167,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
            
         }
     }
-    public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen)
+    public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen, int bulletId)
     {
         Debug.Log($"[HIT] {col.name} layer={LayerMask.LayerToName(col.gameObject.layer)}");
+        //한번 맞은 총알은 대미지X
+        if (!isHitOnce.Add(bulletId)) return;
 
         float totalDamage = CalculateDamage(ammoDamage, ammoCriticalChance, ammoCriticalDamMul);
        
@@ -177,7 +182,6 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             hp[BodyParts.Head] -= totalDamage;
             speed *= penSpeedDecreaseMul[BodyParts.Head];
             pen -= armorFactorForBody[BodyParts.Head];
-         
         }
 
         if(col.name == "thorax" || col.name == "thorax_back"|| col.name == "thorax_back_neck")
@@ -200,7 +204,6 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             }
             else hp[BodyParts.Stomach] -= totalDamage;
 
-            Debug.Log($"decreasuMul = {penSpeedDecreaseMul[BodyParts.Stomach]}, armorFactor = {armorFactorForBody[BodyParts.Stomach]}");
             speed *= penSpeedDecreaseMul[BodyParts.Stomach];
             pen -= armorFactorForBody[BodyParts.Stomach];
         }
@@ -275,12 +278,14 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
 
     public float GetSpeedAfterPenBody()
     {
+
         Debug.Log(afterSpeed);
         return afterSpeed;
     }
 
     public float GetPenetrationAfterPenBody()
     {
+
         Debug.Log(afterPen);
         return afterPen;
     }

@@ -10,6 +10,7 @@ public enum BodyParts
     RightArm,
     LeftLeg,
     RightLeg,
+    None=99,
 }
 [System.Flags]
 public enum InjuryMask

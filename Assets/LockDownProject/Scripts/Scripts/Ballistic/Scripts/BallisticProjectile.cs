@@ -1,5 +1,7 @@
 
+using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -22,6 +24,8 @@ public class BallisticProjectile : MonoBehaviour
 
 
     [Header("Bullet Value")]
+    private int id = 0;
+    private static int idSeq = 0;
     private Vector3 velocity;
     private float refArea;
     private Vector3 pos;
@@ -29,14 +33,13 @@ public class BallisticProjectile : MonoBehaviour
     private Vector3 dir;
     private float flightTime;
     private float k; // 공기저항
-    private int ricochetChance=0;
+    private int ricochetChance = 0;
     float speed;
     float pen;
 
    [Header("World")]
     private float airDensity = 1.225f;
     private Vector3 windWorld = Vector3.zero;
-
 
 #if true // 탄 트레일 남기는 로직
     TrailRenderer trailRenderer;
@@ -68,12 +71,14 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile]  bulletSoundProvide is NULL");
         }
 
-     
+        id = System.Threading.Interlocked.Increment(ref idSeq);
         layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default", "Armor");
 
     }
     public void Initialize(Vector3 position, Vector3 direction)
     {
+        //isHitOnce.Clear();
+
         pos=position;
         dir=direction;
         pen = ammo.penetrationPower;
@@ -216,8 +221,11 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile]factorAfterPentrateBodyProviderr is NULL");
         }
 
-        pen = factorAfterPentrateBodyProvider.GetPenetrationAfterPenBody();
-        speed = factorAfterPentrateBodyProvider.GetSpeedAfterPenBody();
+        float newPen = Mathf.Max(0.0f,factorAfterPentrateBodyProvider.GetPenetrationAfterPenBody());
+        float newSpeed = Mathf.Max(0.0f, factorAfterPentrateBodyProvider.GetSpeedAfterPenBody());
+
+        pen = newPen;
+        speed= newSpeed;
 
         if (pen <= 0 || speed <= 0)
         {
@@ -226,10 +234,10 @@ public class BallisticProjectile : MonoBehaviour
 
         const float exit = 0.004f;
         pos = hit.point + dir * exit;
+        velocity = dir * speed;
         transform.position = pos;
 
-
-        Debug.Log($"pen={pen} speed={speed}");
+        //Debug.Log($"pen={pen} speed={speed}");
 
     }
     private void HandleArmorPenetration(RaycastHit hit)
@@ -255,6 +263,7 @@ public class BallisticProjectile : MonoBehaviour
         if (remainingPenPower <= 0.0f)
         {
             healthStateProvider.GetBluntDamage(ammo.bluntDamage);
+            Debug.Log($"speed={speed}, pen={pen}");
             Destroy(gameObject);
             return;
         }
@@ -266,6 +275,7 @@ public class BallisticProjectile : MonoBehaviour
             if (Random.value > penPower01)
             {
                 healthStateProvider.GetBluntDamage(ammo.bluntDamage);
+                Debug.Log($"speed={speed}, pen={pen}");
                 Destroy(gameObject);
                 return;
             }
@@ -275,12 +285,14 @@ public class BallisticProjectile : MonoBehaviour
         //완전 관통후 처리
         pen *= penPower01;
         speed *= penPower01;
-        //Debug.Log($"speed={speed}, pen={pen}");
+        
 
         const float exit = 0.004f;
         pos = hit.point + dir * exit;
+        velocity = dir * speed;
         transform.position = pos;
-
+        Debug.Log("관통성공!");
+        Debug.Log($"speed={speed}, pen={pen}");
     }
     private void HandleRicochet(RaycastHit hit, Vector3 vDir)
     {
@@ -307,8 +319,9 @@ public class BallisticProjectile : MonoBehaviour
     {
         GetHealthManager(hit);
 
-        healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier, speed, pen);
+        healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier, speed, pen, id);
         healthStateProvider.CheckEffectTrigger(hit.collider, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
+       
     }
     float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
     {
