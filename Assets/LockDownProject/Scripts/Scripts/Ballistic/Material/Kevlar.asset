@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb0ea987b2d73b4419e10fc582a7fd3e, type: 3}
   m_Name: Kevlar
   m_EditorClassIdentifier: 
-  MaterialName: Kevlar
-  materialFactor: 0.3
+  materialName: Kevlar
+  materialType: 3
+  materialRicochetFactor: 0.2
+  materialThickness: 0

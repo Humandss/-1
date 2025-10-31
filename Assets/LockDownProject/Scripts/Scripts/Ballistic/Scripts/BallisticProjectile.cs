@@ -1,8 +1,7 @@
 
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor;
+using System;
 using UnityEngine;
+
 
 
 public class BallisticProjectile : MonoBehaviour
@@ -34,10 +33,13 @@ public class BallisticProjectile : MonoBehaviour
     private float flightTime;
     private float k; // 공기저항
     private int ricochetChance = 0;
-    float speed;
-    float pen;
+    private float speed;
+    private float pen;
+    private const float exit = 0.004f;
+    private const float enterBias = 0.002f;
+    private bool isPenetratingTerrain = false;
 
-   [Header("World")]
+    [Header("World")]
     private float airDensity = 1.225f;
     private Vector3 windWorld = Vector3.zero;
 
@@ -80,9 +82,9 @@ public class BallisticProjectile : MonoBehaviour
         //isHitOnce.Clear();
 
         pos=position;
-        dir=direction;
+        dir=direction.normalized;
         pen = ammo.penetrationPower;
-        velocity = dir.normalized * ammo.muzzleVelocity;   // 초기 속도 
+        velocity = dir * ammo.muzzleVelocity;   // 초기 속도 
 
         float invMass = 1.0f / Mathf.Max(1e-6f, ammo.mass); // 1/중량
 
@@ -136,13 +138,13 @@ public class BallisticProjectile : MonoBehaviour
                 float cosToNormal = Mathf.Clamp(Vector3.Dot(-segDir, hit.normal.normalized), -1.0f, 1.0f);
                 // 90도에서 내적을 빼면 입사각도
                 float incAngleToPlane = 90.0f - Mathf.Acos(cosToNormal) * Mathf.Rad2Deg;
-
                 //각 재질에 따른 보정각
                 float compensateAngle = ammo.baseRicochetAngleDeg * GetMaterialRicochetFactor(hit.collider);
 
                 //기본레이어 벽같은 거에 닿았을 때 처리
                 if (LayerMask.LayerToName(hit.collider.gameObject.layer) == "Default")
                 {
+                    if (isPenetratingTerrain) return;
 
                     //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
                     if (compensateAngle >= incAngleToPlane && ricochetChance < 1)
@@ -153,9 +155,9 @@ public class BallisticProjectile : MonoBehaviour
                     }
                     else
                     {
-
+                        isPenetratingTerrain = true;
                         PlaySoundByMaterialName(hit);
-                        Destroy(gameObject);
+                        HandleTerrainPenetration(hit, segDir);
                         return;
                     }
 
@@ -176,6 +178,7 @@ public class BallisticProjectile : MonoBehaviour
                         HandleArmorPenetration(hit);
                         return;
                     }
+                    
                 }
                 //그외 사람한테 닿았을 경우
                 else
@@ -232,13 +235,69 @@ public class BallisticProjectile : MonoBehaviour
             Destroy(gameObject);
         }
 
-        const float exit = 0.004f;
         pos = hit.point + dir * exit;
         velocity = dir * speed;
         transform.position = pos;
 
         //Debug.Log($"pen={pen} speed={speed}");
 
+    }
+
+    private void HandleTerrainPenetration(RaycastHit hit, Vector3 dirN)
+    {
+        dirN.Normalize();
+
+        GetMaterialManager(hit.collider);
+        // 바닥은 관통 x
+        if (materialInfoProvider.GetMaterialType() == MaterialType.Floor) { Destroy(gameObject); return; }
+        //관통 불가능한 오브젝트라면 파괴
+        if(!materialInfoProvider.GetIsPentrable()) { Destroy(gameObject); return; }
+
+        RaycastHit exitHit;
+        bool found = false;
+
+        if (hit.collider.Raycast(new Ray(hit.point + dirN * enterBias, dirN), out exitHit, 20f))
+        {
+            found = true;
+        }
+        // 2) 역방향 보완
+        else if (hit.collider.Raycast(new Ray(hit.point + dirN * 8f, -dirN), out exitHit, 8f * 1.5f))
+        {
+            found = true;
+        }
+
+        if (!found)
+        {
+            Debug.Log("관통 실패! (출구 없음)");
+            isPenetratingTerrain = false;
+            return;
+        }
+
+        // 내부 이동 거리(두께)
+        float thicknessM = (exitHit.point - hit.point).magnitude; // meters
+        float matMul = Mathf.Max(0.01f, materialInfoProvider.GetMaterialPenetrationFactor());
+        float cost = thicknessM * 50f * matMul;
+
+        pen-= cost;
+        //관통실패
+        if (pen <= 0.0f)
+        {
+            Destroy(gameObject);
+            isPenetratingTerrain = false;
+            return;
+        }
+
+        //완전 관통후 처리
+        float speedLoss = Mathf.Clamp01(cost * 0.002f);
+        speed *= (1f - speedLoss);
+        velocity = dirN * speed;
+
+        pos = exitHit.point + dirN * exit;
+        transform.position = pos;
+        isPenetratingTerrain = false;
+  
+
+        Debug.Log($"목표 관통! thickness={thicknessM:F3}, cost={cost:F1}, pen={pen:F1}");
     }
     private void HandleArmorPenetration(RaycastHit hit)
     {
@@ -272,7 +331,7 @@ public class BallisticProjectile : MonoBehaviour
         {
             penPower01 = Mathf.Clamp01(remainingPenPower / 10.0f);
 
-            if (Random.value > penPower01)
+            if (UnityEngine.Random.value > penPower01)
             {
                 healthStateProvider.GetBluntDamage(ammo.bluntDamage);
                 Debug.Log($"speed={speed}, pen={pen}");
@@ -286,13 +345,11 @@ public class BallisticProjectile : MonoBehaviour
         pen *= penPower01;
         speed *= penPower01;
         
-
-        const float exit = 0.004f;
         pos = hit.point + dir * exit;
         velocity = dir * speed;
         transform.position = pos;
-        Debug.Log("관통성공!");
-        Debug.Log($"speed={speed}, pen={pen}");
+       // Debug.Log("관통성공!");
+        //Debug.Log($"speed={speed}, pen={pen}");
     }
     private void HandleRicochet(RaycastHit hit, Vector3 vDir)
     {
@@ -339,7 +396,7 @@ public class BallisticProjectile : MonoBehaviour
             return defaultFactor;
         }
 
-        return materialInfoProvider.GetMaterialFactor();
+        return materialInfoProvider.GetMaterialRicochetFactor();
 
     }
 

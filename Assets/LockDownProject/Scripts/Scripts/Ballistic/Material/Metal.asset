@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb0ea987b2d73b4419e10fc582a7fd3e, type: 3}
   m_Name: Metal
   m_EditorClassIdentifier: 
-  MaterialName: Metal
-  materialFactor: 1.85
+  materialName: Metal
+  materialType: 2
+  materialRicochetFactor: 1.2
+  materialThickness: 0
