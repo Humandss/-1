@@ -3,21 +3,67 @@ using UnityEngine;
 public interface IArmorInfoProviders
 {
     float GetArmorClass();
+    void HandleArmorDurabilityAfterHit(float ammoArmorDamage, bool isPen);
+
+    void HandleArmorDurablityAfterRicochet(float ammoArmorDamage);
 }
 public class ArmorManager : MonoBehaviour,IArmorInfoProviders
 {
     [SerializeField] private ArmorInfo armorInfo;
 
     private float durability = 0.0f;
+    private static float penArmorDamFactor = 0.5f;
+    private static float nonPenArmorDamFactor = 0.25f;
+    private static float ricochetArmorDamFactor = 0.1f;
 
     private void Awake()
     {
         durability = armorInfo.durability;
-
     }
 
+    private float GetArmorDurabilityDecreasMulByMaterial()
+    {
+        if (armorInfo.material == ArmorMaterial.Titanium) return 0.15f;
+
+        if (armorInfo.material == ArmorMaterial.Ceramic) return 0.6f;
+
+        if (armorInfo.material == ArmorMaterial.Compsite) return 0.25f;
+
+        if (armorInfo.material == ArmorMaterial.Steel) return 0.2f;
+
+        if (armorInfo.material == ArmorMaterial.Kevlar) return 0.1f;
+
+        return 0.3f;
+
+    }
+    public void HandleArmorDurabilityAfterHit(float ammoArmorDamage, bool isPen)
+    {
+        if (durability <= 0.0f) return;
+
+        float decreasMul = GetArmorDurabilityDecreasMulByMaterial();
+        float totalCosst = decreasMul * ammoArmorDamage * (isPen ? penArmorDamFactor : nonPenArmorDamFactor);
+
+        durability = Mathf.Max(0.0f, durability - totalCosst);
+
+        Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
+    }
+
+    public void HandleArmorDurablityAfterRicochet(float ammoArmorDamage)
+    {
+        if (durability <= 0.0f) return;
+
+        float decreasMul = GetArmorDurabilityDecreasMulByMaterial();
+        float totalCosst = decreasMul * ammoArmorDamage * ricochetArmorDamFactor;
+
+        durability = Mathf.Max(0.0f, durability - totalCosst);
+
+        Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
+    }
     public float GetArmorClass()
     {
+        //내구도가 0이하라면 보호 기능 x
+        if(durability <= 0.0f) return 0.0f;
+
         if (armorInfo.armorClass == ArmorClass.Level1) return 10.0f;
 
         if (armorInfo.armorClass == ArmorClass.Level2A) return 20.0f;
@@ -32,8 +78,5 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
 
         return 20.0f;
     }
-    public float GetArmorDurability()
-    {
-        return durability;
-    }
+   
 }

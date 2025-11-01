@@ -23,25 +23,29 @@ public class BallisticProjectile : MonoBehaviour
 
 
     [Header("Bullet Value")]
-    private int id = 0;
+    private int id = 0; // 총알 아이디
     private static int idSeq = 0;
-    private Vector3 velocity;
-    private float refArea;
-    private Vector3 pos;
-    private Vector3 prevPos;
-    private Vector3 dir;
+    private Vector3 velocity; //벡터 속력
+    private Vector3 pos; //현 위치
+    private Vector3 prevPos; // 이전 위치
+    private Vector3 dir; //총알 방향
+    private float refArea; //총알 면적
     private float flightTime;
-    private float k; // 공기저항
     private int ricochetChance = 0;
-    private float speed;
-    private float pen;
-    private const float exit = 0.004f;
-    private const float enterBias = 0.002f;
+    private float speed; //총알 속도
+    private float pen; //총알 관통력
     private bool isPenetratingTerrain = false;
+    private float armorDam;
 
     [Header("World")]
     private float airDensity = 1.225f;
     private Vector3 windWorld = Vector3.zero;
+    private float k; // 공기저항
+    private float energyLostPerM = 100.0f; // Terrain 관통했을 경우 에너지 감소율
+    private const float exit = 0.004f;
+    private const float enter = 0.002f;
+    private float probeDist = 8.0f;// 역방향 탐침 거리
+    private float maxDist = 20.0f; //최대 관통 거리
 
 #if true // 탄 트레일 남기는 로직
     TrailRenderer trailRenderer;
@@ -84,6 +88,8 @@ public class BallisticProjectile : MonoBehaviour
         pos=position;
         dir=direction.normalized;
         pen = ammo.penetrationPower;
+        armorDam = ammo.armorDamage;
+
         velocity = dir * ammo.muzzleVelocity;   // 초기 속도 
 
         float invMass = 1.0f / Mathf.Max(1e-6f, ammo.mass); // 1/중량
@@ -124,6 +130,7 @@ public class BallisticProjectile : MonoBehaviour
 
     private void HandleImpact(Vector3 prevPos)
     {
+
         //seg가 갱신될때마다 Layer체크
         Vector3 seg = pos - prevPos;
         float segLen = seg.magnitude;
@@ -170,6 +177,7 @@ public class BallisticProjectile : MonoBehaviour
                     {
                         HandleRicochet(hit, segDir);
                         bulletSoundProvider.PlayRicochetSound();
+                        HandleArmorDamageAfterRicochet(hit);
                         return;
                     }
                     else
@@ -204,7 +212,7 @@ public class BallisticProjectile : MonoBehaviour
         {
             bulletSoundController.PlayMetalImpactSound(hit.point);
         }
-        if (GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete" || GetMaterialName(hit.collider) == "Kevlar")
+        if (GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete" || GetMaterialName(hit.collider) == "Kevlar" || GetMaterialName(hit.collider) == "Compsite_Armor")
         {
             bulletSoundController.PlayDefaultImpactSound(hit.point);
         }
@@ -255,64 +263,54 @@ public class BallisticProjectile : MonoBehaviour
 
         RaycastHit exitHit;
         bool found = false;
-
-        if (hit.collider.Raycast(new Ray(hit.point + dirN * enterBias, dirN), out exitHit, 20f))
+        //정방향
+        if (hit.collider.Raycast(new Ray(hit.point + dirN * enter, dirN), out exitHit, maxDist))
         {
             found = true;
         }
-        // 2) 역방향 보완
-        else if (hit.collider.Raycast(new Ray(hit.point + dirN * 8f, -dirN), out exitHit, 8f * 1.5f))
+        //역방향 보완
+        else if (hit.collider.Raycast(new Ray(hit.point + dirN * probeDist, -dirN), out exitHit, probeDist * 1.5f))
         {
             found = true;
         }
-
+        //역방향 정방향일 때도 못찾을 경우 출구 없다고 판단
         if (!found)
         {
             Debug.Log("관통 실패! (출구 없음)");
-            isPenetratingTerrain = false;
+            Destroy(gameObject);
             return;
         }
 
         // 내부 이동 거리(두께)
-        float thicknessM = (exitHit.point - hit.point).magnitude; // meters
-        float matMul = Mathf.Max(0.01f, materialInfoProvider.GetMaterialPenetrationFactor());
-        float cost = thicknessM * 50f * matMul;
+        float thicknessM = (exitHit.point - hit.point).magnitude; // m
+        float materialMul = Mathf.Max(0.01f, materialInfoProvider.GetMaterialPenetrationFactor());
+        float totalCost = thicknessM * energyLostPerM * materialMul;
 
-        pen-= cost;
+        pen -= totalCost;
+
         //관통실패
         if (pen <= 0.0f)
         {
             Destroy(gameObject);
-            isPenetratingTerrain = false;
             return;
         }
 
         //완전 관통후 처리
-        float speedLoss = Mathf.Clamp01(cost * 0.002f);
-        speed *= (1f - speedLoss);
-        velocity = dirN * speed;
+        float speedLoss = Mathf.Clamp01(totalCost * 0.002f);
 
+        speed *= (1.0f - speedLoss);
+        velocity = dirN * speed;
         pos = exitHit.point + dirN * exit;
+
         transform.position = pos;
         isPenetratingTerrain = false;
   
 
-        Debug.Log($"목표 관통! thickness={thicknessM:F3}, cost={cost:F1}, pen={pen:F1}");
+        Debug.Log($"목표 관통! thickness={thicknessM:F3}, cost={totalCost:F1}, pen={pen:F1}");
     }
     private void HandleArmorPenetration(RaycastHit hit)
     {
-        armorManager = hit.collider.GetComponent<ArmorManager>();
-        if (armorManager == null)
-        {
-            Debug.LogWarning("[BallisticProjectile] armorManager is NULL");
-        }
-
-        armorInfoProvider = armorManager as IArmorInfoProviders;
-        if (armorInfoProvider == null)
-        {
-            Debug.LogWarning("[BallisticProjectile] armorInfoProvider is NULL");
-        }
-
+        GetArmorManager(hit);
         GetHealthManager(hit);
 
         float remainingPenPower = pen - armorInfoProvider.GetArmorClass();
@@ -322,7 +320,7 @@ public class BallisticProjectile : MonoBehaviour
         if (remainingPenPower <= 0.0f)
         {
             healthStateProvider.GetBluntDamage(ammo.bluntDamage);
-            Debug.Log($"speed={speed}, pen={pen}");
+            armorInfoProvider.HandleArmorDurabilityAfterHit(armorDam, false);
             Destroy(gameObject);
             return;
         }
@@ -334,12 +332,14 @@ public class BallisticProjectile : MonoBehaviour
             if (UnityEngine.Random.value > penPower01)
             {
                 healthStateProvider.GetBluntDamage(ammo.bluntDamage);
-                Debug.Log($"speed={speed}, pen={pen}");
+                armorInfoProvider.HandleArmorDurabilityAfterHit(armorDam, false);
                 Destroy(gameObject);
                 return;
             }
              
         }
+
+        armorInfoProvider.HandleArmorDurabilityAfterHit(armorDam, true);
 
         //완전 관통후 처리
         pen *= penPower01;
@@ -351,9 +351,10 @@ public class BallisticProjectile : MonoBehaviour
        // Debug.Log("관통성공!");
         //Debug.Log($"speed={speed}, pen={pen}");
     }
-    private void HandleRicochet(RaycastHit hit, Vector3 vDir)
+    private void HandleRicochet(RaycastHit hit, Vector3 dirN)
     {
-        Vector3 recochetAngle = Vector3.Reflect(vDir, hit.normal).normalized;
+   
+        Vector3 recochetAngle = Vector3.Reflect(dirN, hit.normal).normalized;
         //도탄후 랜덤으로 도탄될 각 기준 정하기
         Vector3 axis = Vector3.Cross(hit.normal, recochetAngle);
         axis.Normalize();
@@ -366,12 +367,19 @@ public class BallisticProjectile : MonoBehaviour
         float aterRicochetSpeed = speed * ammo.afterRicochetEnergyPercent;
         //최종 계산
         velocity = recochetAngle * aterRicochetSpeed;
-        pos = hit.point + hit.normal * 0.002f;
+        pos = hit.point + hit.normal * exit;
+
         transform.position = pos;
         ricochetChance++;
+   
             
     }
  
+    private void HandleArmorDamageAfterRicochet(RaycastHit hit)
+    {
+        GetArmorManager(hit);
+        armorInfoProvider.HandleArmorDurablityAfterRicochet(armorDam);
+    }
     private void CheckBulletHitBody(RaycastHit hit)
     {
         GetHealthManager(hit);
@@ -380,7 +388,7 @@ public class BallisticProjectile : MonoBehaviour
         healthStateProvider.CheckEffectTrigger(hit.collider, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
        
     }
-    float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
+    private float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
     {
         materialManager = col.GetComponent<MaterialManager>();
         if(materialManager == null)
@@ -400,7 +408,7 @@ public class BallisticProjectile : MonoBehaviour
 
     }
 
-    string GetMaterialName(Collider col)
+    private string GetMaterialName(Collider col)
     {
         GetMaterialManager(col);
         return materialInfoProvider.GetMaterialName();
@@ -432,6 +440,21 @@ public class BallisticProjectile : MonoBehaviour
         if (healthStateProvider == null)
         {
             Debug.LogWarning("[BallisticProjectile] healthStateProvider is NULL");
+        }
+    }
+
+    private void GetArmorManager(RaycastHit hit)
+    {
+        armorManager = hit.collider.GetComponent<ArmorManager>();
+        if (armorManager == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] armorManager is NULL");
+        }
+
+        armorInfoProvider = armorManager as IArmorInfoProviders;
+        if (armorInfoProvider == null)
+        {
+            Debug.LogWarning("[BallisticProjectile] armorInfoProvider is NULL");
         }
     }
 }

@@ -18,11 +18,11 @@ public class MaterialManager : MonoBehaviour, IMaterialInfoProvider
     {
         if (profile.materialType == MaterialType.Metal) return 0.8f;
 
-        if (profile.materialType == MaterialType.Concrete) return 0.5f;
+        if (profile.materialType == MaterialType.Concrete) return 0.6f;
 
-        if (profile.materialType == MaterialType.Wood) return 0.1f;
+        if (profile.materialType == MaterialType.Wood) return 0.3f;
 
-        return 1.0f;
+        return 0.5f;
     }
 
     public bool GetIsPentrable()

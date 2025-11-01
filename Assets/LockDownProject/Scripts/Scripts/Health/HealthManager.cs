@@ -169,7 +169,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     }
     public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen, int bulletId)
     {
-        Debug.Log($"[HIT] {col.name} layer={LayerMask.LayerToName(col.gameObject.layer)}");
+       // Debug.Log($"[HIT] {col.name} layer={LayerMask.LayerToName(col.gameObject.layer)}");
         //한번 맞은 총알은 대미지X
         if (!isHitOnce.Add(bulletId)) return;
 
@@ -279,14 +279,14 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     public float GetSpeedAfterPenBody()
     {
 
-        Debug.Log(afterSpeed);
+        //Debug.Log(afterSpeed);
         return afterSpeed;
     }
 
     public float GetPenetrationAfterPenBody()
     {
 
-        Debug.Log(afterPen);
+        //Debug.Log(afterPen);
         return afterPen;
     }
     public void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance)
@@ -590,7 +590,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         float distributeDam = bluntDam / (float)GetAllParts().Count;
 
         var parts = GetAllParts();
-        Debug.Log(distributeDam);
+        //Debug.Log(distributeDam);
         foreach (var part in parts)
         {
             hp[part] = Mathf.Max(0, hp[part] - distributeDam);

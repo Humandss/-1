@@ -20,5 +20,5 @@ public class MaterialProfile : ScriptableObject
    
     [Header("Material Factor")]
     [Range(0f, 3.0f)] public float materialRicochetFactor = 0.2f;
-    [Range(0f, 400.0f)] public float materialThickness = 0.0f;
+   
 }
