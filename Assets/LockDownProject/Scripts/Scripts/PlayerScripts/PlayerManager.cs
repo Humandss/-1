@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
 public interface IPlayerCanFireCheckProvider
@@ -15,12 +14,12 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     private MovementSettings movementSettings;
     private LookSettings lookSettings;
     private Player player;
-
+    [SerializeField] private UIManager uiManager;
 
     [Header("Providers")]
     private IStateProvider stateProvider;
     private ICameraAnimation camSettings;
-  
+    private IUIStateProvider uIStateProvider;
 
     [Header("StateBools")]
     bool isForward;
@@ -30,6 +29,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     bool canJump;
     bool canChangeFireMode;
     bool canChangeWeapon;
+    bool isUIOn;
 
     private void Awake()
     {
@@ -69,6 +69,11 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             Debug.LogWarning("[PlayerController]  player is NULL");
         }
 
+        uiManager = GetComponent<UIManager>();
+        if (uiManager == null)
+        {
+            Debug.LogWarning("[PlayerController] uiManager is NULL");
+        }
 
         stateProvider = player as IStateProvider;
         if (stateProvider == null)
@@ -81,7 +86,11 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             Debug.LogWarning("[PlayerController]  camSettings is NULL");
         }
 
-         
+        uIStateProvider = uiManager as IUIStateProvider;
+        if (uIStateProvider == null)
+        {
+            Debug.LogWarning("[PlayerController] uIStateProvider is NULL");
+        }
     }
 
     private void Update()
@@ -94,6 +103,12 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             tacticalSprint = inputController.TacSprint,
 
         };
+        //ui 활성화시 움직임 제한
+        isUIOn = inputController.UIClick;
+        uIStateProvider.CheckUIPanelOn(isUIOn);
+        if (isUIOn) return;
+    
+
         //플레이어 부상 상태 확인
         movementSettings.CheckPlayerHealthState();
         lookSettings.CheckPlayerHealthState();
@@ -127,7 +142,6 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         PlayJump(canJump);
         ChangeWeaponFireMode(canChangeFireMode);
         ChangeWeapon(canChangeWeapon);
-
 
         movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
 

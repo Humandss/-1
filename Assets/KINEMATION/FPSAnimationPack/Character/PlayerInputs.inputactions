@@ -46,7 +46,7 @@
                     "name": "ThrowGrenade",
                     "type": "Button",
                     "id": "166554c4-50d1-49f5-a954-ed16a44b5305",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -64,7 +64,7 @@
                     "name": "Sprint",
                     "type": "Value",
                     "id": "10ddf3be-1522-4804-91f8-e456c8082f7a",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -139,6 +139,15 @@
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "Press(behavior=2)",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "UIClick",
+                    "type": "Button",
+                    "id": "1d0a7505-151e-43df-8b39-7698cf91f4b8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
                     "initialStateCheck": false
                 }
             ],
@@ -371,6 +380,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Prone",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "acecfbfa-d9e2-4836-b2cc-6b243bd8aee6",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UIClick",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

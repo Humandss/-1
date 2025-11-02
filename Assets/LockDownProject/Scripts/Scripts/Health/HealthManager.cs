@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public interface IHealthStateProvider
@@ -23,26 +25,62 @@ public interface IHealthStateProvider
 
 
 }
-
 public interface IGetFactorAfterPentrateBodyProvider
 {
     float GetSpeedAfterPenBody();
     float GetPenetrationAfterPenBody();
 }
+[System.Serializable]
+public readonly struct PartSnapshot
+{
+    public readonly BodyParts part;
+    public readonly float hp;
+    public readonly float maxHp;
+    public readonly bool light, heavy, fracture, blackout;
+
+    public PartSnapshot(BodyParts part, float hp, float maxHp, bool light, bool heavy, bool fracture, bool blackout)
+    {
+        this.part = part;
+        this.hp = hp;
+        this.maxHp = maxHp;
+        this.light = light;
+        this.heavy = heavy;
+        this.fracture = fracture;
+        this.blackout = blackout;
+    }
+}
+[System.Serializable]
+public readonly struct OverallSnapshot
+{
+    public readonly float totalHp;
+    public readonly float totalMaxHp;
+
+    public OverallSnapshot(float totalHp, float totalMaxHp)
+    {
+        this.totalHp = totalHp;
+        this.totalMaxHp = totalMaxHp;
+    }
+}
 public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfterPentrateBodyProvider
 {
+    [SerializeField] private bool areYouPlayer = false;
     [Header("Refs")]
     [SerializeField] private HealthProfile health;
 
     [Header("Health Component")]
     private float totalHP = 0.0f;
     private Dictionary<BodyParts, float> hp = new();
+    private Dictionary<BodyParts, float> maxHp = new();
     private Dictionary<BodyParts, float> damMul = new();
     private Dictionary<BodyParts, float> penSpeedDecreaseMul = new();
     private Dictionary<BodyParts, float> armorFactorForBody = new();
     private Dictionary<BodyParts, InjuryMask> allowedInjury = new();
     private struct LimbStatus { public bool light, heavy, fracture, blackout; }
     private Dictionary<BodyParts, LimbStatus> status = new();
+
+    //스냅샷 전용 딕셔너리
+    private readonly List<BodyParts> changedParts = new(8);       
+    private readonly List<PartSnapshot> tmpSnapshots = new(8);    
 
     [Header("Time")]
     [SerializeField] float tickInterval =2.5f;
@@ -54,6 +92,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     //같은 콜라이더 중첩으로 때리는거(관통 했을 경우) 방지하는 헤쉬셋
     private readonly HashSet<int> isHitOnce = new HashSet<int>();
 
+    //public event System.Action<PartSnapshot> OnPartChanged;                 
+    public event System.Action<IReadOnlyList<PartSnapshot>> OnBatchChanged; // 한 틱에 여러 부위 갱신
+    public event System.Action<OverallSnapshot> OnOverallChanged;           // 전체 합계 갱신
+
+
     private void Awake()
     {
         InitializeHealthProfile();
@@ -61,12 +104,13 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
      }
     private void InitializeHealthProfile()
     {
-        hp.Clear(); damMul.Clear(); penSpeedDecreaseMul.Clear();
+        hp.Clear(); maxHp.Clear(); damMul.Clear(); penSpeedDecreaseMul.Clear();
         armorFactorForBody.Clear(); allowedInjury.Clear(); status.Clear();
 
         foreach (var p in health.parts)
         {
             hp[p.parts] = Mathf.Max(0, p.maxHP);
+            maxHp[p.parts] = Mathf.Max(0, p.maxHP);
             damMul[p.parts] = p.damageDistributeMul;
             penSpeedDecreaseMul[p.parts] =p.penetrationEnergyDecreaseMul;
             armorFactorForBody[p.parts] = p.armorForBody;
@@ -100,6 +144,23 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
 
         };*/
     }
+    private PartSnapshot MakeSnapshot(BodyParts p)
+    {
+        var s = status[p];
+        return new PartSnapshot(
+            p,
+            hp[p],
+            maxHp[p],
+            s.light, s.heavy, s.fracture, s.blackout
+        );
+    }
+    public PartSnapshot GetSnapshot(BodyParts p) => MakeSnapshot(p);
+    public OverallSnapshot GetOverallSnapshot()
+    {
+        float totalHP = 0.0f, totalMaxHP = 0.0f;
+        foreach (var part in hp.Keys) { totalHP += hp[part]; totalMaxHP += maxHp[part]; }
+        return new OverallSnapshot(totalHP, totalMaxHP);
+    }
     private void FixedUpdate()
     {
         CheckHP();
@@ -112,13 +173,19 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
 
         }
-        
-   
+        NotifyDirty();
+
     }
     private void CheckBlackoutEffects()
     {
         foreach(var parts in hp)
         {
+            if (parts.Value > 0.0f) continue;
+
+            var s = status[parts.Key];
+            s.blackout = true;
+            status[parts.Key] = s;
+            /*
             if (parts.Value <= 0)
             {
                 if (parts.Key == BodyParts.Head)
@@ -164,7 +231,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     status[BodyParts.RightLeg] = s;
                 }
             }       
-           
+           */
         }
     }
     public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen, int bulletId)
@@ -182,6 +249,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             hp[BodyParts.Head] -= totalDamage;
             speed *= penSpeedDecreaseMul[BodyParts.Head];
             pen -= armorFactorForBody[BodyParts.Head];
+            MarkDirty(BodyParts.Head);
         }
 
         if(col.name == "thorax" || col.name == "thorax_back"|| col.name == "thorax_back_neck")
@@ -190,6 +258,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             hp[BodyParts.Thorax] -= totalDamage;
             speed *= penSpeedDecreaseMul[BodyParts.Thorax];
             pen -= armorFactorForBody[BodyParts.Thorax];
+            MarkDirty(BodyParts.Thorax);
         }
 
         if (col.name == "stomach")
@@ -202,10 +271,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                 DistributeDamageToOtherParts(restDamage);
                 
             }
-            else hp[BodyParts.Stomach] -= totalDamage;
+            else hp[BodyParts.Stomach] -= totalDamage; 
 
             speed *= penSpeedDecreaseMul[BodyParts.Stomach];
             pen -= armorFactorForBody[BodyParts.Stomach];
+            MarkDirty(BodyParts.Stomach);
         }
 
         if (col.name == "left_arm" || col.name == "left_forearm" || col.name == "left_hand")
@@ -222,6 +292,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
 
             speed *= penSpeedDecreaseMul[BodyParts.LeftArm];
             pen -= armorFactorForBody[BodyParts.LeftArm];
+            MarkDirty(BodyParts.LeftArm);
         }
 
         if (col.name == "right_arm" || col.name == "right_forearm" || col.name == "right_hand")
@@ -238,6 +309,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
 
             speed *= penSpeedDecreaseMul[BodyParts.RightArm];
             pen -= armorFactorForBody[BodyParts.RightArm];
+            MarkDirty(BodyParts.RightArm);
         }
 
         if (col.name == "left_thigh" || col.name == "left_shin" || col.name == "left_foot")
@@ -254,6 +326,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
 
             speed *= penSpeedDecreaseMul[BodyParts.LeftLeg];
             pen -= armorFactorForBody[BodyParts.LeftLeg];
+            MarkDirty(BodyParts.LeftLeg);
         }
 
         if (col.name == "right_thigh" || col.name == "right_shin" || col.name == "right_foot")
@@ -266,10 +339,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                 DistributeDamageToOtherParts(restDamage);
 
             }
-            else hp[BodyParts.LeftLeg] -= totalDamage;
+            else hp[BodyParts.RightLeg] -= totalDamage;
 
             speed *= penSpeedDecreaseMul[BodyParts.RightLeg];
             pen -= armorFactorForBody[BodyParts.RightLeg];
+            MarkDirty(BodyParts.RightLeg);
         }
 
         afterPen = pen;
@@ -316,7 +390,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             if(isFracture) s.fracture = true;
 
             status[BodyParts.LeftArm] = s;
-
+            MarkDirty(BodyParts.LeftArm);
             return;
         }
 
@@ -331,7 +405,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             if (isFracture) s.fracture = true;
 
             status[BodyParts.RightArm] = s;
-
+            MarkDirty(BodyParts.RightArm);
             return;
         }
 
@@ -346,7 +420,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             if (isFracture) s.fracture = true;
 
             status[BodyParts.LeftLeg] = s;
-
+            MarkDirty(BodyParts.LeftLeg);
             return;
         }
 
@@ -361,7 +435,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             if (isFracture) s.fracture = true;
 
             status[BodyParts.RightLeg] = s;
-
+            MarkDirty(BodyParts.RightLeg);
             return;
         }
     
@@ -380,6 +454,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                 foreach (var part in aliveParts)
                 {
                     hp[part] = Mathf.Max(0, hp[part]-(tickDam + health.tickPenaltyMul));
+                    MarkDirty(part);
                 }
             }
             else
@@ -390,8 +465,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     if (part == BodyParts.LeftArm)
                     {
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                        MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); 
+                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); MarkDirty(part);
                 }
             }
           
@@ -407,6 +483,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                 foreach (var part in aliveParts)
                 {
                     hp[part] = Mathf.Max(0, hp[part] - (tickDam + health.tickPenaltyMul));
+                    MarkDirty(part);
                 }
             }
             else
@@ -416,8 +493,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     if (part == BodyParts.RightArm)
                     {
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                        MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, (hp[part] - tickDam));
+                    else hp[part] = Mathf.Max(0, (hp[part] - tickDam)); MarkDirty(part);
                 }
             }
         }
@@ -432,6 +510,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                 foreach (var part in aliveParts)
                 {
                     hp[part] = Mathf.Max(0, hp[part] - (tickDam + health.tickPenaltyMul));
+                    MarkDirty(part);
                 }
             }
             else
@@ -441,8 +520,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     if (part == BodyParts.LeftLeg)
                     {
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                        MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, hp[part] - tickDam);
+                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); MarkDirty(part);
                 }
             }
         }
@@ -457,6 +537,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                 foreach (var part in aliveParts)
                 {
                     hp[part] = Mathf.Max(0, hp[part] - (tickDam + health.tickPenaltyMul));
+                    MarkDirty(part);
                 }
             }
             else
@@ -466,8 +547,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     if (part == BodyParts.RightLeg)
                     {
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
+                        MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, hp[part] - tickDam);
+                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); MarkDirty(part);
                 }
             }
         }
@@ -530,13 +612,15 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     if (parts == BodyParts.Head)
                     {
                         hp[parts] -= 1.0f;
+                        MarkDirty(parts);
 
                     }
                     else if (parts == BodyParts.Thorax)
                     {
                         hp[parts] -= 1.0f;
+                        MarkDirty(parts);
                     }
-                    else hp[parts] = 0.0f;
+                    else hp[parts] = 0.0f; MarkDirty(parts);
 
                 }
                 else
@@ -545,15 +629,19 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     if (parts == BodyParts.Head)
                     {                      
                         hp[parts] -= distributeDamage * damMul[BodyParts.Head];
-                                               
+                        MarkDirty(parts);
+
+
                     }
                     else if(parts == BodyParts.Thorax)
                     {
                         hp[parts] -= distributeDamage * damMul[BodyParts.Thorax];
+                        MarkDirty(parts);
                     }
                     else
                     {                     
-                        hp[parts] -= distributeDamage * health.defaultDamageDistributeMul;  
+                        hp[parts] -= distributeDamage * health.defaultDamageDistributeMul;
+                        MarkDirty(parts);
                     }
                        
                 }
@@ -593,7 +681,8 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         //Debug.Log(distributeDam);
         foreach (var part in parts)
         {
-            hp[part] = Mathf.Max(0, hp[part] - distributeDam);
+            hp[part] = Mathf.Max(0, hp[part] - distributeDam); 
+            MarkDirty(part);
         }
      }
     public float GetTotalHP()
@@ -624,8 +713,34 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         return ammoDamage + (isCritical ? ammoDamage * ammoCriticalDamMul : 0.0f);
 
     }
-    
-  
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void MarkDirty(BodyParts p)
+    {
+        if (!areYouPlayer) return;
+        // 중복 삽입 방지
+        if (!changedParts.Contains(p)) changedParts.Add(p);
+    }
+
+    private void NotifyDirty()
+    {
+        if (changedParts.Count == 0 || !areYouPlayer) return;
+
+        tmpSnapshots.Clear();
+        //변경된 부분이 있다면 해당 부분을 리스트에 넣고 이벤트 호출
+        for (int i = 0; i < changedParts.Count; i++)
+        {
+            var p = changedParts[i];
+            var snap = MakeSnapshot(p);
+            tmpSnapshots.Add(snap);
+            //OnPartChanged?.Invoke(snap); 
+        }
+        //전체으로 바뀐 목록 반환
+        OnBatchChanged?.Invoke(tmpSnapshots);
+        OnOverallChanged?.Invoke(GetOverallSnapshot());
+
+        changedParts.Clear();
+    }
+
     public bool GetIsLeftArmFracture()
     {
         return status[BodyParts.LeftArm].fracture;

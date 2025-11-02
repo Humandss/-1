@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerInputController : MonoBehaviour
@@ -25,42 +22,42 @@ public class PlayerInputController : MonoBehaviour
         }
     }
 
-    public Vector2 Move { get; private set; }
-    public Vector2 Look { get; private set; }
-    public bool Jump { get; private set; }
-    public bool Sprint { get; private set; }
-    public bool TacSprint { get; private set; }
-    public bool Crouch { get; private set; }
-    public bool Prone { get; private set; }
-    public bool FreeLook { get; private set; }
-    public bool Fire { get; private set; }
-    public bool Aim { get; private set; }
-    public bool Reload { get; private set; }
-    public bool ChangeFireMode { get; private set; }
-    public bool ChangeWeapon { get; private set; }
+    public Vector2 Move;
+    public Vector2 Look;
+    public bool Jump;
+    public bool Sprint; 
+    public bool TacSprint;
+    public bool Crouch;
+    public bool Prone;
+    public bool FreeLook;
+    public bool Fire;
+    public bool Aim;
+    public bool Reload;
+    public bool ChangeFireMode;
+    public bool ChangeWeapon;
+    public bool UIClick;
 
+    private void OnMove(InputValue value) => Move = value.Get<Vector2>();
+    private void OnLook(InputValue value)=> Look = value.Get<Vector2>();
 
-    public void OnMove(InputValue value) => Move = value.Get<Vector2>();
-    public void OnLook(InputValue value)=> Look = value.Get<Vector2>();
- 
-    public void OnJump(InputValue value)
+    private void OnJump(InputValue value)
     {
         if (value.isPressed)
         {
             Jump = true;
         }
     }
-    
-    public void OnSprint(InputValue value) => Sprint=value.isPressed;
 
-    public void OnTacSprint(InputValue value) => TacSprint = value.isPressed;
+    private void OnSprint(InputValue value) => Sprint=value.isPressed;
 
-    public void OnCrouch(InputValue value)
+    private void OnTacSprint(InputValue value) => TacSprint = value.isPressed;
+
+    private void OnCrouch(InputValue value)
     {
         Crouch = value.isPressed;
         Prone = false;
     }
-    public void OnProne(InputValue value)
+    private void OnProne(InputValue value)
     {
         if (value.isPressed)
         {
@@ -69,7 +66,7 @@ public class PlayerInputController : MonoBehaviour
         }
 
     }
-    public void OnFreeLook(InputValue value)
+    private void OnFreeLook(InputValue value)
     {
         if(value.isPressed)
         {
@@ -78,10 +75,10 @@ public class PlayerInputController : MonoBehaviour
         
     }
 
-    public void OnFire(InputValue value)
+    private void OnFire(InputValue value)
     {
  
-        if (value.isPressed)
+        if (value.isPressed && !UIClick)
         {
             stateProvider.OnFire(true);
             return;
@@ -90,9 +87,9 @@ public class PlayerInputController : MonoBehaviour
         else stateProvider.OnFire(false);
 
     }
-   
-    public void OnAim(InputValue value)=>Aim = value.isPressed;
-    public void OnReload(InputValue value)
+
+    private void OnAim(InputValue value)=>Aim = value.isPressed;
+    private void OnReload(InputValue value)
     {
         if (value.isPressed)
         {
@@ -100,7 +97,7 @@ public class PlayerInputController : MonoBehaviour
         }
     }
 
-    public void OnChangeFireMode(InputValue value)
+    private void OnChangeFireMode(InputValue value)
     {
         if (value.isPressed)
         {
@@ -108,17 +105,24 @@ public class PlayerInputController : MonoBehaviour
         }
     }
 
-    public void OnChangeWeapon(InputValue value)
+    private void OnChangeWeapon(InputValue value)
     {
         if (value.isPressed)
         {
             ChangeWeapon = true;
         }
     }
+    private void OnUIClick(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            UIClick = !UIClick;
+        }
+        
+    }
     private void LateUpdate()
     {
         Jump = false;
-        //Fire = false;
         Reload = false;
         ChangeFireMode = false;
         ChangeWeapon = false;
