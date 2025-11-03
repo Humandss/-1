@@ -50,7 +50,7 @@ MonoBehaviour:
     penetrationEnergyDecreaseMul: 0.2
     armorForBody: 15
     startLight: 0
-    startHeavy: 1
+    startHeavy: 0
     startFrac: 0
     startBlackout: 0
   - parts: 4
@@ -60,7 +60,7 @@ MonoBehaviour:
     penetrationEnergyDecreaseMul: 0.2
     armorForBody: 15
     startLight: 0
-    startHeavy: 1
+    startHeavy: 0
     startFrac: 0
     startBlackout: 0
   - parts: 5

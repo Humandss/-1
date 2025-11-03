@@ -185,6 +185,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             var s = status[parts.Key];
             s.blackout = true;
             status[parts.Key] = s;
+            MarkDirty(parts.Key);
             /*
             if (parts.Value <= 0)
             {
