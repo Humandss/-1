@@ -714,6 +714,67 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         return ammoDamage + (isCritical ? ammoDamage * ammoCriticalDamMul : 0.0f);
 
     }
+
+    public BodyParts GetUrgentBodyPartsForHealing()
+    {
+        float minimumHP = 100.0f;
+        BodyParts urgentParts=BodyParts.None;
+
+        //출혈부위 먼저
+        foreach(var part in status)
+        {
+            if (part.Value.light) return part.Key;
+        }
+
+        // 다음에 피가 가장적은 부위 먼저 치료
+        foreach (var part in hp)
+        {
+            if (part.Value < minimumHP && part.Value > 0.0f)  minimumHP = part.Value; urgentParts = part.Key;
+        }
+
+        return urgentParts;
+    }
+    public bool GetHealEffects(BodyParts bodyParts, float healAmounts)
+    {
+        if (!hp.ContainsKey(bodyParts) || healAmounts <= 0.0f) return false;
+
+        var parts = bodyParts;
+
+        //치료양이 전체보다 많으면 꽉 채우고 아니면 힐량만큼 채우기
+        if (hp[parts] + healAmounts > maxHp[parts])
+        {
+            hp[parts] = maxHp[parts];
+        }
+        else hp[parts] += healAmounts;
+
+        MarkDirty(parts);
+
+        return true;
+
+    }
+    public bool StopBleedingEffects(BodyParts bodyParts, bool lightB, bool heavyB)
+    {
+        if (!hp.ContainsKey(bodyParts)) return false;
+
+        var parts = bodyParts;
+
+        if (lightB)
+        {
+            var s = status[parts];
+            s.light=false;
+            status[parts] = s;
+        }
+        if (heavyB)
+        {
+            var s = status[parts];
+            s.heavy = false;
+            status[parts] = s;
+        }
+
+        MarkDirty(parts);
+        return true;
+
+    }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void MarkDirty(BodyParts p)
     {

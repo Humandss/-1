@@ -36,6 +36,13 @@ public class PlayerInputController : MonoBehaviour
     public bool ChangeFireMode;
     public bool ChangeWeapon;
     public bool UIClick;
+    public bool EquipMainWeapon;
+    public bool EquipSubWeapon;
+    public bool UseIFAK;
+    public bool UseTourniquet;
+    public bool UseSplint;
+    public bool UseSurgeryKit;
+
 
     private void OnMove(InputValue value) => Move = value.Get<Vector2>();
     private void OnLook(InputValue value)=> Look = value.Get<Vector2>();
@@ -104,14 +111,14 @@ public class PlayerInputController : MonoBehaviour
             ChangeFireMode = true;
         }
     }
-
+    /*
     private void OnChangeWeapon(InputValue value)
     {
         if (value.isPressed)
         {
             ChangeWeapon = true;
         }
-    }
+    }*/
     private void OnUIClick(InputValue value)
     {
         if (value.isPressed)
@@ -119,6 +126,25 @@ public class PlayerInputController : MonoBehaviour
             UIClick = !UIClick;
         }
         
+    }
+    private void OnEquipMainWeapon(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            ChangeWeapon = true;
+            EquipMainWeapon = true;
+            EquipSubWeapon = false;
+
+        }
+    }
+    private void OnEquipSubWeapon(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            ChangeWeapon = true;
+            EquipMainWeapon = false;
+            EquipSubWeapon = true;
+        }
     }
     private void LateUpdate()
     {

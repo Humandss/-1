@@ -30,6 +30,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     bool canChangeFireMode;
     bool canChangeWeapon;
     bool isUIOn;
+    bool isMainWeapon;
 
     private void Awake()
     {
@@ -136,12 +137,14 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         canReload = movementSettings.CanReload(movementInfo, inputController.Reload);
         canChangeFireMode = movementSettings.CanChangeFireMode(movementInfo, inputController.ChangeFireMode);
         canChangeWeapon = movementSettings.CanChangeWeapon(movementInfo, inputController.ChangeWeapon);
+        isMainWeapon = inputController.EquipMainWeapon ? true : false;
 
         PlayReload(canReload);
         PlayAim(canAim);
         PlayJump(canJump);
         ChangeWeaponFireMode(canChangeFireMode);
-        ChangeWeapon(canChangeWeapon);
+        //ChangeWeapon(canChangeWeapon);
+        ChangeWeaponByNumKey(canChangeWeapon, isMainWeapon);
 
         movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
 
@@ -189,6 +192,15 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         else return;
    
     }
+    private void ChangeWeaponByNumKey(bool canChangeWeapon, bool isMain)
+    {
+        if (canChangeWeapon)
+        {
+            stateProvider.OnEquipWeaponByNumberKey(isMain);
+        }
+        else return;
+    }
+    /*
     private void ChangeWeapon(bool canChangeWeapon)
     {
         if(canChangeWeapon)
@@ -196,7 +208,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             stateProvider.OnChangeWeapon();
         }
         else return;
-    }
+    }*/
     public bool CanPlayerFire()
     {
         return canFire;

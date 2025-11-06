@@ -149,6 +149,60 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "EquipMainWeapon",
+                    "type": "Button",
+                    "id": "bcdba748-999d-49e5-bc0d-3784606f0b27",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "EquipSubWeapon",
+                    "type": "Button",
+                    "id": "4b699daf-5e83-4e26-8291-73462771079b",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "UseIFAK",
+                    "type": "Button",
+                    "id": "62ca8723-1ed3-4e05-b89a-90407ff18b19",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "UseTourniquet",
+                    "type": "Button",
+                    "id": "18e7269a-84db-42ba-8a5d-3f3c7957e9d7",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "UseSplint",
+                    "type": "Button",
+                    "id": "7fbb90f7-f967-4f0f-9d1a-af4de8202e75",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "UseSurgeryKit",
+                    "type": "Button",
+                    "id": "48790b93-9a02-4172-ba17-7f91a38afad7",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -391,6 +445,72 @@
                     "processors": "",
                     "groups": "",
                     "action": "UIClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0d781d13-aa13-4f1e-be3f-f66f7a6c7a02",
+                    "path": "<Keyboard>/2",
+                    "interactions": "Press(behavior=2)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "EquipMainWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6745ae26-56be-4ee3-98de-ab5c3446cc4a",
+                    "path": "<Keyboard>/1",
+                    "interactions": "Press(behavior=2)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "EquipSubWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3a001ed1-0653-498d-8a4f-2784d96805bb",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UseIFAK",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cabf9678-9e8b-4d3e-b81f-147f48e0d6f1",
+                    "path": "<Keyboard>/4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UseTourniquet",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fc1e8225-b75f-4a73-ba5c-334713010307",
+                    "path": "<Keyboard>/5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UseSplint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e1caba80-c9fa-4144-9bda-2e42208d1885",
+                    "path": "<Keyboard>/6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UseSurgeryKit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

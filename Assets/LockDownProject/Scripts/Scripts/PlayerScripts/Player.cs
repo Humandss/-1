@@ -5,6 +5,7 @@ using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 
 public interface IStateProvider
@@ -15,6 +16,7 @@ public interface IStateProvider
     void OnAim(bool value);
     void OnChangeFireMode();
     void OnChangeWeapon();
+    void OnEquipWeaponByNumberKey(bool value);
 
 }
 public interface IGetActiveWeaponProvider
@@ -376,7 +378,22 @@ public class Player : MonoBehaviour, IStateProvider
         float delay = GetActiveWeapon().OnUnEquipped();
         Invoke(nameof(EquipWeapon_Incremental), delay);
     }
+    private void EquipWeapon_IncrementalByNumberKey(bool value)
+    {
+        GetActiveWeapon().gameObject.SetActive(false);
+        activeWeaponIndex = value ? 0 : 1;
+        GetActiveWeapon().OnEquipped();
+        Invoke(nameof(SetWeaponVisible), 0.05f);
+    }
+    public void OnEquipWeaponByNumberKey(bool value)
+    {
+        if (weapons.Count <= 1) return;
+        float delay = GetActiveWeapon().OnUnEquipped();
+        Invoke(nameof(EquipWeapon_Incremental), delay);
 
+        EquipWeapon_IncrementalByNumberKey(value);
+
+    }
     public void OnChangeFireMode()
     {
         var prevFireMode = GetActiveWeapon().ActiveFireMode;
