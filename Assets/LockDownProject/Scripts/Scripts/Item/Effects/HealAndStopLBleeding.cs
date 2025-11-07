@@ -7,7 +7,10 @@ public class HealAndStopLBleeding : ItemEffects
 
     public override bool ApplyHealthEffects(HealthManager healthManager, BodyParts? target = null)
     {
-        var part = target ?? healthManager.GetUrgentBodyPartsForHealing();
+        var part = target ?? healthManager.GetUrgentBodyPartForHealing();
+
+        if (part == BodyParts.None) return false;
+
         bool changed = false;
         
         changed |= healthManager.GetHealEffects(part, healingAmounts);
@@ -15,4 +18,17 @@ public class HealAndStopLBleeding : ItemEffects
 
         return changed;
     }
+    public override bool CanApply(HealthManager healthManager, BodyParts? target = null)
+    {
+        var part = target ?? healthManager.GetUrgentBodyPartForHealing();
+
+        if (part == BodyParts.None) return false;
+
+        // 해당 부위가 풀피면 힐 불가, 라이트 출혈 있으면 OK
+        bool canHeal = healthManager.GetPartHP(part) < healthManager.GetPartMaxHP(part);
+        bool hasLight = healthManager.GetHasLightBleed(part);
+
+        return canHeal || hasLight;
+    }
+
 }

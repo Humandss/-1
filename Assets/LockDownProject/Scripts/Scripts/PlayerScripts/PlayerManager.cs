@@ -14,7 +14,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     private MovementSettings movementSettings;
     private LookSettings lookSettings;
     private Player player;
-    [SerializeField] private UIManager uiManager;
+    private UIManager uiManager;
 
     [Header("Providers")]
     private IStateProvider stateProvider;
@@ -146,6 +146,8 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         //ChangeWeapon(canChangeWeapon);
         ChangeWeaponByNumKey(canChangeWeapon, isMainWeapon);
 
+        GetItemSlotIndex(inputController.UseIFAK, inputController.UseTourniquet, inputController.UseSplint, inputController.UseSurgeryKit);
+
         movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
 
         movementController.UpdateMovement(inputController.Move, speed, canJump, h);
@@ -154,6 +156,18 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
 
 
         camSettings.UpdateFOVandCameraShake();
+
+    }
+    private void GetItemSlotIndex(bool useIFAK, bool useTour, bool useSplint, bool useSurKit)
+    {
+        if (useIFAK) uIStateProvider.UseItem(1);
+       
+        else if (useTour) uIStateProvider.UseItem(2);
+
+        else if (useSplint) uIStateProvider.UseItem(3);
+      
+        else if(useSurKit) uIStateProvider.UseItem(4);
+
 
     }
     private void PlayJump(bool canJump)

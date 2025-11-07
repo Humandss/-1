@@ -1,12 +1,16 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem.XInput;
 using UnityEngine.UI;
-using static UnityEngine.Rendering.DebugUI.Table;
+
 
 public interface IUIStateProvider
 {
     void CheckUIPanelOn(bool value);
+    void UseItem(int index, BodyParts? target = null);
 }
 [System.Serializable]
 public class PartRowRefs
@@ -27,14 +31,27 @@ public class BodyImageRef
     public BodyParts part;
     public List<Image> images; 
 }
+
+[System.Serializable]
+public struct HotbarSlotInit
+{
+    public ConsumableItems def;   // SO
+    public int startRemaining;
+}
 public class UIManager : MonoBehaviour, IUIStateProvider
 {
+
+    [Header("Hotbar Init")]
+    public HotbarSlotInit slot1Init, slot2Init, slot3Init, slot4Init;
 
     [Header("Refs")]
     [SerializeField] private GameObject panel;
     [SerializeField] private TextMeshProUGUI totalHP;
-    private HealthManager healthManager;
     [SerializeField] private List<PartRowRefs> rows;
+    private HealthManager healthManager;
+    private PlayerInputController inputController;
+    private MovementSettings movementSettings;
+    private IPlayerMoveInfoProvider playerMoveInfoProvider;
 
     [Header("Panel UI")]
     private Dictionary<BodyParts, PartRowRefs> map;
@@ -53,6 +70,19 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     [SerializeField] private List<BodyImageRef> bodyImages = new();
     private Dictionary<BodyParts, BodyImageRef> bodyMap;
 
+    [Header("Item UI")]
+    [SerializeField] private GameObject itemPanel;
+    [SerializeField] private GameObject useUIRoot;     
+    [SerializeField] private Image radial;             
+    [SerializeField] private TextMeshProUGUI itemName; 
+    [SerializeField] private TextMeshProUGUI itemRemaining;
+    [SerializeField] private ConsumableItemManager slot1;
+    [SerializeField] private ConsumableItemManager slot2;
+    [SerializeField] private ConsumableItemManager slot3;
+    [SerializeField] private ConsumableItemManager slot4;
+    private bool isUsing;
+    private float lastUseStartTime;
+
     private void Awake()
     {
              
@@ -61,6 +91,21 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         {
             Debug.LogWarning("[UIManager] healthManager is NULL");
         }
+        inputController = GetComponent<PlayerInputController>();
+        if (inputController == null)
+        {
+            Debug.LogWarning("[UIManager] inputController is NULL");
+        }
+        movementSettings = GetComponent<MovementSettings>();
+        if (movementSettings == null)
+        {
+            Debug.LogWarning("[UIManager]  movementSettings is NULL");
+        }
+        playerMoveInfoProvider = movementSettings as IPlayerMoveInfoProvider;
+        if (playerMoveInfoProvider == null)
+        {
+            Debug.LogWarning("[UIManager] playerMoveInfoProvider is NULL");
+        }
 
         map = new Dictionary<BodyParts, PartRowRefs>();
         foreach (var r in rows) map[r.part] = r;
@@ -68,25 +113,48 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         bodyMap = new();
         foreach (var b in bodyImages) bodyMap[b.part] = b;
 
+        InitializeItems();
         InitializeUI();
-       
+
+       // Debug.Log($"[Hotbar] slot1 after init  remaining={slot1?.remaining}  so={slot1Init.def?.remaining}  startField={slot1Init.startRemaining}");
+
+
     }
     private void OnEnable()
     {
-       // healthManager.OnPartChanged += UpdateRow;              
+             
         healthManager.OnBatchChanged += UpdateBatch;           
         healthManager.OnOverallChanged += UpdateOverall;  
        
     }
     private void OnDisable()
     {
-       // healthManager.OnPartChanged -= UpdateRow;
+  
         healthManager.OnBatchChanged -= UpdateBatch;
         healthManager.OnOverallChanged -= UpdateOverall;
     }
     private void Start()
     {
         RefreshAll();
+    }
+    private void InitializeItems()
+    {
+        slot1 = MakeRuntime(slot1Init);
+        slot2 = MakeRuntime(slot2Init);
+        slot3 = MakeRuntime(slot3Init);
+        slot4 = MakeRuntime(slot4Init);
+    }
+    private ConsumableItemManager MakeRuntime(HotbarSlotInit init)
+    {
+        if (!init.def) return null;
+
+        int charges = (init.startRemaining > 0)
+       ? init.startRemaining
+       : Mathf.Max(0, init.def.remaining);
+
+        var result = new ConsumableItemManager(init.def, charges);
+        //Debug.Log($"[Hotbar] make {init.def.name}  charges={charges}  so={init.def.remaining}  startField={init.startRemaining}");
+        return result;
     }
     private void InitializeUI()
     {
@@ -96,6 +164,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         inGameIconHeavy.SetActive(false);
         inGameIconFracture.SetActive(false);
         inGameIconBlackout.SetActive(false);
+        itemPanel.SetActive(false);
     }
     private void RefreshAll()
     {
@@ -143,6 +212,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         Toggle(row.iconBlackout, snap.blackout);
 
         SetBarColorSmooth(row.bar, snap.maxHp <= 0.0f ? 0.0f : snap.hp / snap.maxHp, snap.blackout);
+        Debug.Log($"hp = {snap.hp}, maxhp ={snap.maxHp}, ratio = {snap.hp / snap.maxHp}");
         UpdateBodyColor(snap);
         
         
@@ -209,7 +279,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         if (!fill) return;
 
         //블랙 아웃일 경우
-        if (blackout || ratio <= 0f)
+        if (blackout || ratio <= 0.0f)
         {
             fill.color = zeroOrBlackoutColor;
             return;
@@ -219,15 +289,15 @@ public class UIManager : MonoBehaviour, IUIStateProvider
             fill.color = hpGradient.Evaluate(Mathf.Clamp01(ratio)); 
         }
     }
-    private void UpdateBodyColor(PartSnapshot s)
+    private void UpdateBodyColor(PartSnapshot snap)
     {
-        if (!bodyMap.TryGetValue(s.part, out var refset)) return;
+        if (!bodyMap.TryGetValue(snap.part, out var refset)) return;
 
-        if (!map.TryGetValue(s.part, out var refset2)) return;
+        if (!map.TryGetValue(snap.part, out var refset2)) return;
 
-        float ratio = s.maxHp <= 0.0f ? 0.0f : Mathf.Clamp01(s.hp / s.maxHp);
+        float ratio = snap.maxHp <= 0.0f ? 0.0f : Mathf.Clamp01(snap.hp / snap.maxHp);
         
-        if (s.blackout || ratio <= 0f)
+        if (snap.blackout || ratio <= 0f)
         {
             foreach (var img in refset.images)
                 if (img) img.color = zeroOrBlackoutColor;  // 완전 검정
@@ -244,5 +314,94 @@ public class UIManager : MonoBehaviour, IUIStateProvider
 
         foreach (var img2 in refset2.images)
             if (img2) img2.color = Color.Lerp(img2.color, target, 0.35f);
+    }
+
+    public void UseItem(int index, BodyParts? target = null)
+    {
+        if (isUsing) return;
+        var item = GetSlot(index); 
+
+        if (item == null || item.remaining <= 0) { Debug.Log("아이템 없음/충전 0"); return; }
+        //적용할 대상 없으면 return
+        if (!item.CanApplyAll(healthManager, target)) return;
+       
+        StartCoroutine(CoUseItem(item, target));
+    }
+    private ConsumableItemManager GetSlot(int idx)
+    {
+        switch (idx)
+        {
+            case 1: return slot1;
+            case 2: return slot2;
+            case 3: return slot3;
+            case 4: return slot4;
+            default: return null;
+        }
+    }
+
+    private IEnumerator CoUseItem(ConsumableItemManager item, BodyParts? target)
+    {
+        isUsing = true;
+        lastUseStartTime = Time.time;
+
+        float dur = Mathf.Max(0.05f, item.def.useTime);
+
+        // UI 세팅
+        if (itemPanel) itemPanel.SetActive(true);
+        if (useUIRoot) useUIRoot.SetActive(true);
+        if (itemName) itemName.text = item.def.displayName;
+        if (itemRemaining) itemRemaining.text = item.remaining.ToString();
+        if (radial)
+        {
+            radial.type = Image.Type.Filled;
+            radial.fillMethod = Image.FillMethod.Radial360;
+            radial.fillOrigin = (int)Image.Origin360.Top;  // Origin 설정
+            radial.fillClockwise = true;
+            radial.fillAmount = 0.0f;
+        }
+
+       
+        float time = 0.0f;
+        while (time < dur)
+        {
+            if (WasInterrupted()) { CancelUseUI(); isUsing = false; yield break; } // 취소
+            time += Time.deltaTime;
+            if (radial) radial.fillAmount = Mathf.Clamp01(time / dur);
+            yield return null;
+        }
+        if (radial) radial.fillAmount = 1.0f;
+        // 완료 시 효과 '한 번' 적용
+        bool ok = item.ApplyAll(healthManager, target);
+
+        // UI 마무리
+        FinishUseUI(ok);
+
+        // 헬스 패널 새로고침
+        RefreshAll();
+        //Debug.Log($"[{item.def.displayName}] remain={item.remaining}");
+        isUsing = false;
+    }
+    private void CancelUseUI()
+    {
+        if (radial) radial.fillAmount = 0.0f;
+        if (itemPanel) itemPanel.SetActive(false);
+        if (useUIRoot) useUIRoot.SetActive(false);
+
+        //Debug.Log("사용 취소");
+    }
+
+    private void FinishUseUI(bool ok)
+    {
+        if (itemPanel) itemPanel.SetActive(false);
+        if (useUIRoot) useUIRoot.SetActive(false);
+       // if (!ok) Debug.Log("적용할 상태 없음");
+    }
+    private bool WasInterrupted()
+    {
+        if (inputController.Fire || inputController.Aim || inputController.Reload || inputController.Jump) return true;
+
+        if (playerMoveInfoProvider.GetDesiredGait() >= 2.0f) return true;
+
+        return false;
     }
 }

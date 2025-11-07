@@ -72,7 +72,7 @@ MonoBehaviour:
     startLight: 0
     startHeavy: 0
     startFrac: 0
-    startBlackout: 0
+    startBlackout: 1
   - parts: 6
     maxHP: 65
     allowed: -1

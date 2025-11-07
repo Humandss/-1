@@ -84,14 +84,19 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnFire(InputValue value)
     {
- 
+
         if (value.isPressed && !UIClick)
         {
             stateProvider.OnFire(true);
+            Fire = true;
             return;
-            
+
         }
-        else stateProvider.OnFire(false);
+        else
+        {
+            stateProvider.OnFire(false);
+            Fire = false;
+        } 
 
     }
 
@@ -129,7 +134,7 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnEquipMainWeapon(InputValue value)
     {
-        if (value.isPressed)
+        if (value.isPressed && !EquipMainWeapon) 
         {
             ChangeWeapon = true;
             EquipMainWeapon = true;
@@ -139,12 +144,56 @@ public class PlayerInputController : MonoBehaviour
     }
     private void OnEquipSubWeapon(InputValue value)
     {
-        if (value.isPressed)
+        if (value.isPressed && !EquipSubWeapon)
         {
             ChangeWeapon = true;
             EquipMainWeapon = false;
             EquipSubWeapon = true;
         }
+    }
+    private void OnUseIFAK(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            UseIFAK = true;
+            UseTourniquet = false;
+            UseSplint = false;
+            UseSurgeryKit = false;
+        } 
+
+    }
+    private void OnUseTourniquet(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            UseIFAK = false;
+            UseTourniquet = true;
+            UseSplint = false;
+            UseSurgeryKit = false;
+        }
+
+    }
+    private void OnUseSplint(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            UseIFAK = false;
+            UseTourniquet = false;
+            UseSplint = true;
+            UseSurgeryKit = false;
+        }
+
+    }
+    private void OnUseSurgeryKit(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            UseIFAK = false;
+            UseTourniquet = false;
+            UseSplint = false;
+            UseSurgeryKit = true;
+        }
+
     }
     private void LateUpdate()
     {
@@ -152,5 +201,9 @@ public class PlayerInputController : MonoBehaviour
         Reload = false;
         ChangeFireMode = false;
         ChangeWeapon = false;
+        UseIFAK = false;
+        UseTourniquet = false;
+        UseSplint = false;
+        UseSurgeryKit = false;
     }
 }

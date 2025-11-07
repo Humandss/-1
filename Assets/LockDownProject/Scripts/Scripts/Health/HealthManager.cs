@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public interface IHealthStateProvider
@@ -122,6 +120,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                 fracture = p.startFrac,
                 blackout = p.startBlackout
             };
+            MarkDirty(p.parts);
         }
         /*
         headHP = health.headHP;
@@ -714,11 +713,39 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         return ammoDamage + (isCritical ? ammoDamage * ammoCriticalDamMul : 0.0f);
 
     }
-
-    public BodyParts GetUrgentBodyPartsForHealing()
+    public BodyParts GetUrgentPartForFixBlackout()
     {
-        float minimumHP = 100.0f;
-        BodyParts urgentParts=BodyParts.None;
+        foreach (var part in status)
+        {
+            if (part.Key == BodyParts.Head || part.Key == BodyParts.Thorax) continue;
+
+            if (part.Value.blackout) return part.Key;
+        }
+
+        return BodyParts.None;
+    }
+    public BodyParts GetUrgentBodyPartForStopHBleeding()
+    {
+        foreach (var part in status)
+        {
+            if (part.Value.heavy) return part.Key;
+        }
+
+        return BodyParts.None;
+    }
+    public BodyParts GetUrgentBodyPartForFixFracture()
+    {
+        foreach (var part in status)
+        {
+            if (part.Value.fracture) return part.Key;
+        }
+
+        return BodyParts.None;
+    }
+    public BodyParts GetUrgentBodyPartForHealing()
+    {
+        float minHP = float.PositiveInfinity;
+        BodyParts urgentParts = BodyParts.None;
 
         //출혈부위 먼저
         foreach(var part in status)
@@ -729,49 +756,99 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         // 다음에 피가 가장적은 부위 먼저 치료
         foreach (var part in hp)
         {
-            if (part.Value < minimumHP && part.Value > 0.0f)  minimumHP = part.Value; urgentParts = part.Key;
-        }
+            //체력 맥스는 제외
+            if (maxHp[part.Key] == part.Value) continue;
+            //블랙 아웃도 제외
+            if (part.Value <= 0.0f) continue;
 
+            if (part.Value < minHP && part.Value > 0.0f) 
+            {   
+                minHP = part.Value; 
+                urgentParts = part.Key; 
+            }
+        }
+        //Debug.Log(urgentParts);
         return urgentParts;
     }
     public bool GetHealEffects(BodyParts bodyParts, float healAmounts)
     {
         if (!hp.ContainsKey(bodyParts) || healAmounts <= 0.0f) return false;
 
-        var parts = bodyParts;
+        if (hp[bodyParts] == maxHp[bodyParts]) return false;
 
+        var parts = bodyParts;
+        //Debug.Log($"before hp = {hp[parts]}, before max hp = {maxHp[parts]}, parts ={parts}");
         //치료양이 전체보다 많으면 꽉 채우고 아니면 힐량만큼 채우기
         if (hp[parts] + healAmounts > maxHp[parts])
         {
-            hp[parts] = maxHp[parts];
+            hp[parts] += maxHp[parts] - hp[parts];
         }
         else hp[parts] += healAmounts;
 
+        //Debug.Log($"after hp = {hp[parts]}, after max hp = {maxHp[parts]}");
         MarkDirty(parts);
 
         return true;
 
     }
+
+    public bool FixBlackoutEffects(BodyParts bodyParts)
+    {
+        if (!status.ContainsKey(bodyParts)) return false;
+
+        if (!status[bodyParts].blackout) return false;
+
+        var part = bodyParts;
+        var s = status[part];
+        
+        hp[part] = 1.0f;
+        s.blackout = false;
+        maxHp[part] *= 0.8f;
+
+        status[part] = s;
+
+        MarkDirty(part);
+        return true;
+    }
+    public bool FixFractureEffects(BodyParts bodyParts)
+    {
+        if (!status.ContainsKey(bodyParts)) return false;
+
+        if (!status[bodyParts].fracture) return false;
+
+        var part = bodyParts;
+        var s = status[part];
+
+        s.fracture = false;
+        
+        status[part] = s;
+      
+        MarkDirty(part);
+        return true;
+        
+    }
     public bool StopBleedingEffects(BodyParts bodyParts, bool lightB, bool heavyB)
     {
-        if (!hp.ContainsKey(bodyParts)) return false;
+        if (!status.ContainsKey(bodyParts)) return false;
 
-        var parts = bodyParts;
+        if (!status[bodyParts].light && !status[bodyParts].heavy) return false;
+
+        var part = bodyParts;
 
         if (lightB)
         {
-            var s = status[parts];
+            var s = status[part];
             s.light=false;
-            status[parts] = s;
+            status[part] = s;
         }
         if (heavyB)
         {
-            var s = status[parts];
+            var s = status[part];
             s.heavy = false;
-            status[parts] = s;
+            status[part] = s;
         }
 
-        MarkDirty(parts);
+        MarkDirty(part);
         return true;
 
     }
@@ -854,5 +931,29 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         }
 
         return count;
+    }
+    public float GetPartHP(BodyParts part)
+    {
+        return hp[part];
+    }
+    public float GetPartMaxHP(BodyParts part)
+    {
+        return maxHp[part];
+    }
+    public bool GetHasLightBleed(BodyParts part)
+    {
+        return status[part].light;
+    }
+    public bool GetHasHeavyBleed(BodyParts part)
+    {
+        return status[part].heavy;
+    }
+    public bool GetHasFracture(BodyParts part)
+    {
+        return status[part].fracture;
+    }
+    public bool GetHasBlackout(BodyParts part)
+    {
+        return status[part].blackout;
     }
 }
