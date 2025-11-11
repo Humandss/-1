@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Surgery Kit
   useTime: 8
+  icon: {fileID: 21300000, guid: 935858054156827409927ea63d5bb6ce, type: 3}
   remaining: 8
   effects:
   - {fileID: 11400000, guid: 649bf88dff7c3004895d3617e4ef211f, type: 2}

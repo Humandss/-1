@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: IFAK
   m_EditorClassIdentifier: 
   displayName: IFAK
-  useTime: 3
+  useTime: 4
+  icon: {fileID: 21300000, guid: ff073776e63c9d74c9469c280169769e, type: 3}
   remaining: 25
   effects:
   - {fileID: 11400000, guid: 1c55091f922a3f941ba62dd1e9c75f6d, type: 2}
