@@ -22,6 +22,9 @@ public interface IStateProvider
 public interface IGetActiveWeaponProvider
 {
     Weapon GetActiveWeapon();
+
+    Weapon GetWeaponList(int index);
+
 }
 [Serializable]
 public struct IKTransforms
@@ -30,7 +33,7 @@ public struct IKTransforms
     public Transform mid;
     public Transform root;
 }
-public class Player : MonoBehaviour, IStateProvider
+public class Player : MonoBehaviour, IStateProvider, IGetActiveWeaponProvider
 {
 
     [Header("Refs")]
@@ -86,6 +89,8 @@ public class Player : MonoBehaviour, IStateProvider
     private bool isAiming;
     private float smoothGait;
     private static Quaternion ANIMATED_OFFSET = Quaternion.Euler(90f, 0f, 0f);
+
+    public event System.Action OnWeaponChanged;
 
     private void Awake()
     {
@@ -145,6 +150,7 @@ public class Player : MonoBehaviour, IStateProvider
 
         GetActiveWeapon().gameObject.SetActive(true);
         GetActiveWeapon().OnEquipped();
+        OnWeaponChanged?.Invoke();
     }
 
     private void Update()
@@ -454,7 +460,12 @@ public class Player : MonoBehaviour, IStateProvider
     {
         return weapons[activeWeaponIndex];
     }
+    public Weapon GetWeaponList(int index)
+    {
+        if (index < 0 || index >= weapons.Count) return null;
 
+        return weapons[index];
+    }
     public Weapon GetActivePrefab()
     {
         return prefabComponents[activeWeaponIndex];

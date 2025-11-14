@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public interface IFireBulletProvider
@@ -13,7 +14,6 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
     [SerializeField] private Transform muzzle;
     [SerializeField] private BallisticProjectile projectile;
 
-    
     private void Initialize()
     {
         if(muzzle == null)
@@ -40,4 +40,6 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
     {
         if (muzzle) { Gizmos.color = Color.yellow; Gizmos.DrawRay(muzzle.position, muzzle.forward * 0.5f); }
     }
+
+   
 }

@@ -42,7 +42,7 @@ public class PlayerInputController : MonoBehaviour
     public bool UseTourniquet;
     public bool UseSplint;
     public bool UseSurgeryKit;
-
+    public bool CheckAmmo;
 
     private void OnMove(InputValue value) => Move = value.Get<Vector2>();
     private void OnLook(InputValue value)=> Look = value.Get<Vector2>();
@@ -195,6 +195,10 @@ public class PlayerInputController : MonoBehaviour
         }
 
     }
+    private void OnCheckLeftAmmo(InputValue value)
+    {
+        if (value.isPressed) CheckAmmo = true;
+    }
     private void LateUpdate()
     {
         Jump = false;
@@ -205,5 +209,6 @@ public class PlayerInputController : MonoBehaviour
         UseTourniquet = false;
         UseSplint = false;
         UseSurgeryKit = false;
+        CheckAmmo = false;
     }
 }

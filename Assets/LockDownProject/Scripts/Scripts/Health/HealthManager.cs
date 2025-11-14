@@ -162,18 +162,17 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     }
     private void FixedUpdate()
     {
+        NotifyDirty();
         CheckHP();
         if (Time.time >= nextTick)
         {
-            
             nextTick = Time.time + tickInterval;
             CheckBleedingEffects();
             CheckBlackoutEffects();
             Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
-
+            
         }
-        NotifyDirty();
-
+       
     }
     private void CheckBlackoutEffects()
     {
@@ -461,13 +460,17 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             {
                 foreach (var part in aliveParts)
                 {
-                    
+
                     if (part == BodyParts.LeftArm)
                     {
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
                         MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); MarkDirty(part);
+                    else
+                    {
+                       hp[part] = Mathf.Max(0, hp[part] - tickDam); 
+                       MarkDirty(part); 
+                    }
                 }
             }
           
@@ -495,7 +498,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
                         MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, (hp[part] - tickDam)); MarkDirty(part);
+                    else
+                    {
+                        hp[part] = Mathf.Max(0, (hp[part] - tickDam)); 
+                        MarkDirty(part);
+                    } 
                 }
             }
         }
@@ -522,7 +529,12 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
                         MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); MarkDirty(part);
+                    else
+                    {
+                        hp[part] = Mathf.Max(0, hp[part] - tickDam);
+                        MarkDirty(part);
+                    }
+                    
                 }
             }
         }
@@ -549,7 +561,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                         hp[part] = Mathf.Max(0, hp[part] - (tickDam + 1.0f));
                         MarkDirty(part);
                     }
-                    else hp[part] = Mathf.Max(0, hp[part] - tickDam); MarkDirty(part);
+                    else
+                    {
+                        hp[part] = Mathf.Max(0, hp[part] - tickDam); 
+                        MarkDirty(part);
+                    }
                 }
             }
         }

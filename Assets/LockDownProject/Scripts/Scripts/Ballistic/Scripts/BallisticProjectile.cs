@@ -2,8 +2,6 @@
 using System;
 using UnityEngine;
 
-
-
 public class BallisticProjectile : MonoBehaviour
 {
     [Header("Refs")]

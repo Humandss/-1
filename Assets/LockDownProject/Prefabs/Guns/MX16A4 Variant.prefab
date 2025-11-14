@@ -135,6 +135,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d51d503971324ff4bbdc50db9fe5217a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  icon_gun: {fileID: 21300046, guid: 5acb27b603af6d44ea6113c4b7b15385, type: 3}
   weaponSettings: {fileID: 11400000, guid: b04eccb126612c64f801778e9f9b5c5c, type: 2}
   aimPoint: {fileID: 4143703703342717276}
   fireMode: 0

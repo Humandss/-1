@@ -4,11 +4,13 @@ using KINEMATION.FPSAnimationPack.Scripts.Weapon;
 using KINEMATION.KAnimationCore.Runtime.Core;
 using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Weapon : MonoBehaviour
 {
     public float UnEquipDelay => unEquipDelay;
     public FireMode ActiveFireMode => fireMode;
+    public Sprite icon_gun;
 
     [Header("Refs")]
     public FPSWeaponSettings weaponSettings;

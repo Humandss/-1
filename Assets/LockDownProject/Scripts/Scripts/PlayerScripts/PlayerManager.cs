@@ -160,13 +160,13 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     }
     private void GetItemSlotIndex(bool useIFAK, bool useTour, bool useSplint, bool useSurKit)
     {
-        if (useIFAK) uIStateProvider.UseItem(1);
+        if (useIFAK) uIStateProvider.UseItem(4);
        
-        else if (useTour) uIStateProvider.UseItem(2);
+        else if (useTour) uIStateProvider.UseItem(5);
 
-        else if (useSplint) uIStateProvider.UseItem(3);
+        else if (useSplint) uIStateProvider.UseItem(6);
       
-        else if(useSurKit) uIStateProvider.UseItem(4);
+        else if(useSurKit) uIStateProvider.UseItem(7);
 
 
     }
