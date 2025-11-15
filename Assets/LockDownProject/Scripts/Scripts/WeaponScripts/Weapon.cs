@@ -6,7 +6,13 @@ using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Weapon : MonoBehaviour
+public interface IGetWeaponAmmoInfoProvider
+{
+    int GetActiveAmmo();
+    int GetMaxAmmo();
+    string GetAmmoName();
+}
+public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
 {
     public float UnEquipDelay => unEquipDelay;
     public FireMode ActiveFireMode => fireMode;
@@ -23,6 +29,7 @@ public class Weapon : MonoBehaviour
     private PlayerLookController playerLookController;
     private WeaponFireController weaponFireController;
     private PlayerManager playerManager;
+    private WeaponFireController fireController;
 
     [Header("Providers")]
     private ICameraAnimation cameraAnimation;
@@ -270,5 +277,9 @@ public class Weapon : MonoBehaviour
     public int GetMaxAmmo()
     {
         return weaponSettings.ammo;
+    }
+    public string GetAmmoName()
+    {
+        return weaponFireController.GetAmmoName();
     }
 }

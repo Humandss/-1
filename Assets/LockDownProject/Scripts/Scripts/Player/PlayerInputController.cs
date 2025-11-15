@@ -198,6 +198,7 @@ public class PlayerInputController : MonoBehaviour
     private void OnCheckLeftAmmo(InputValue value)
     {
         if (value.isPressed) CheckAmmo = true;
+       
     }
     private void LateUpdate()
     {

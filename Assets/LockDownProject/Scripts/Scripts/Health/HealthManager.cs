@@ -28,6 +28,7 @@ public interface IGetFactorAfterPentrateBodyProvider
     float GetSpeedAfterPenBody();
     float GetPenetrationAfterPenBody();
 }
+//부위당 상태 집계
 [System.Serializable]
 public readonly struct PartSnapshot
 {
@@ -47,16 +48,21 @@ public readonly struct PartSnapshot
         this.blackout = blackout;
     }
 }
+//전체 상태 집계
 [System.Serializable]
 public readonly struct OverallSnapshot
 {
     public readonly float totalHp;
     public readonly float totalMaxHp;
-
-    public OverallSnapshot(float totalHp, float totalMaxHp)
+    public readonly bool anyLight, anyHeavy, anyFracture, anyBlackout; // 한군대로 이상상태 발견하면 true반환
+    public OverallSnapshot(float totalHp, float totalMaxHp, bool anyLight, bool anyHeavy, bool anyFracture, bool anyBlackout)
     {
         this.totalHp = totalHp;
         this.totalMaxHp = totalMaxHp;
+        this.anyLight = anyLight;
+        this.anyHeavy = anyHeavy;
+        this.anyFracture = anyFracture;
+        this.anyBlackout = anyBlackout;
     }
 }
 public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfterPentrateBodyProvider
@@ -156,9 +162,22 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     public PartSnapshot GetSnapshot(BodyParts p) => MakeSnapshot(p);
     public OverallSnapshot GetOverallSnapshot()
     {
+        bool anyLight = false;
+        bool anyHeavy = false;
+        bool anyFrac = false;
+        bool anyBlackout = false;
+
         float totalHP = 0.0f, totalMaxHP = 0.0f;
         foreach (var part in hp.Keys) { totalHP += hp[part]; totalMaxHP += maxHp[part]; }
-        return new OverallSnapshot(totalHP, totalMaxHP);
+
+        foreach (var part in status)
+        {
+            anyLight |= part.Value.light;
+            anyHeavy |= part.Value.heavy;
+            anyFrac |= part.Value.fracture;
+            anyBlackout |= part.Value.blackout;
+        }
+        return new OverallSnapshot(totalHP, totalMaxHP, anyLight, anyHeavy, anyFrac, anyBlackout);
     }
     private void FixedUpdate()
     {
@@ -169,7 +188,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             nextTick = Time.time + tickInterval;
             CheckBleedingEffects();
             CheckBlackoutEffects();
-            Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
+           // Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
             
         }
        

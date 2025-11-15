@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -6432620419059714216}
   - component: {fileID: -8377756622574580646}
   m_Layer: 6
-  m_Name: _45ACP_FMJ
+  m_Name: 45ACP FMJ
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -31,6 +31,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     bool canChangeWeapon;
     bool isUIOn;
     bool isMainWeapon;
+    bool isCheckLeftAmmo;
 
     private void Awake()
     {
@@ -138,15 +139,17 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         canChangeFireMode = movementSettings.CanChangeFireMode(movementInfo, inputController.ChangeFireMode);
         canChangeWeapon = movementSettings.CanChangeWeapon(movementInfo, inputController.ChangeWeapon);
         isMainWeapon = inputController.EquipMainWeapon ? true : false;
+        isCheckLeftAmmo = inputController.CheckAmmo;
+        
 
         PlayReload(canReload);
         PlayAim(canAim);
         PlayJump(canJump);
         ChangeWeaponFireMode(canChangeFireMode);
-        //ChangeWeapon(canChangeWeapon);
         ChangeWeaponByNumKey(canChangeWeapon, isMainWeapon);
-
+      
         GetItemSlotIndex(inputController.UseIFAK, inputController.UseTourniquet, inputController.UseSplint, inputController.UseSurgeryKit);
+        CheckLeftAmmo(isCheckLeftAmmo, speed);
 
         movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
 
@@ -157,6 +160,15 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
 
         camSettings.UpdateFOVandCameraShake();
 
+    }
+    private void CheckLeftAmmo(bool isCheck, float speed)
+    {
+        
+        if (isCheck && speed <= 5.0f) 
+        {
+            uIStateProvider.CheckLeftAmmo();
+        }
+        else return;
     }
     private void GetItemSlotIndex(bool useIFAK, bool useTour, bool useSplint, bool useSurKit)
     {

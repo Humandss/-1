@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -9,6 +10,7 @@ public interface IUIStateProvider
 {
     void CheckUIPanelOn(bool value);
     void UseItem(int index, BodyParts? target = null);
+    void CheckLeftAmmo();
 }
 [System.Serializable]
 public class PartRowRefs
@@ -59,10 +61,11 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     [SerializeField] private GameObject panel;
     [SerializeField] private TextMeshProUGUI totalHP;
     [SerializeField] private List<PartRowRefs> rows;
-    private HealthManager healthManager;
+    public HealthManager healthManager;
     private PlayerInputController inputController;
     private MovementSettings movementSettings;
     private Player player;
+    private Weapon weapon;
 
     private IPlayerMoveInfoProvider playerMoveInfoProvider;
     private IGetActiveWeaponProvider activeWeaponProvider;
@@ -80,7 +83,9 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     [SerializeField] private GameObject inGameIconHeavy;
     [SerializeField] private GameObject inGameIconFracture;
     [SerializeField] private GameObject inGameIconBlackout;
-    [SerializeField] private GameObject InGamepanel;
+    [SerializeField] private GameObject inGamepanel;
+
+
     [SerializeField] private List<BodyImageRef> bodyImages = new();
     private Dictionary<BodyParts, BodyImageRef> bodyMap;
 
@@ -101,7 +106,17 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     [SerializeField] private HotbarSlotViewForWeapon[] hotbarViewsForWeapon = new HotbarSlotViewForWeapon[3];
     [SerializeField] private HotbarSlotViewForItem[] hotbarViewsForItem = new HotbarSlotViewForItem[7];
     [SerializeField] private Sprite emptyIcon;
-    
+
+    [Header("LeftAmmo UI")]
+    [SerializeField] private GameObject checkAmmoPanel;
+    [SerializeField] private TextMeshProUGUI leftAmmo;
+    [SerializeField] private TextMeshProUGUI ammoType;
+
+    [Header("Time")]
+    [SerializeField] float tickInterval = 5.0f;
+    float nextTick;
+
+    public bool IsHealthPanelOpen => panel && panel.activeSelf;
 
     private void Awake()
     {
@@ -175,7 +190,15 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         UpdateHotbarForWeapon();
    
     }
- 
+
+    private void Update()
+    {
+        if (Time.time >= nextTick)
+        {
+            nextTick = Time.time + tickInterval;
+            checkAmmoPanel.SetActive(false);
+        }
+    }
     private void InitializeItemsSlot()
     {
         slot4 = InitializeItems(slot1Init);
@@ -199,15 +222,17 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     private void InitializeUI()
     {
         panel.SetActive(false);
-        InGamepanel.SetActive(true);
+        inGamepanel.SetActive(true);
         inGameIconLight.SetActive(false);
         inGameIconHeavy.SetActive(false);
         inGameIconFracture.SetActive(false);
         inGameIconBlackout.SetActive(false);
         itemPanel.SetActive(false);
-     
+        checkAmmoPanel.SetActive(false);
+
     }
-    private void RefreshAll()
+ 
+    public void RefreshAll()
     {
         //각 파트마다 갱신
         foreach (var r in rows) UpdateRow(healthManager.GetSnapshot(r.part));
@@ -218,7 +243,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     private void UpdateBatch(IReadOnlyList<PartSnapshot> snaps)
     {
         for (int i = 0; i < snaps.Count; i++) UpdateRow(snaps[i]);
-
+        /*
         bool anyLight = false;
         bool anyHeavy = false;
         bool anyFrac = false;
@@ -231,9 +256,11 @@ public class UIManager : MonoBehaviour, IUIStateProvider
             anyFrac |= snaps[i].fracture;
             anyBlackout |= snaps[i].blackout;
         }
+        
         UpdateInGameEffectIcons(anyLight, anyHeavy, anyFrac, anyBlackout);
+        */
     }
-
+    
     private void UpdateRow(PartSnapshot snap)
     {
         if (!map.TryGetValue(snap.part, out var row)) return;
@@ -267,7 +294,15 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         Toggle(inGameIconBlackout, anyBlack);
 
     }
+    private void UpdateInGameEffectIcon(OverallSnapshot overall)
+    {
 
+        Toggle(inGameIconLight, overall.anyLight);
+        Toggle(inGameIconHeavy, overall.anyHeavy);
+        Toggle(inGameIconFracture, overall.anyFracture);
+        Toggle(inGameIconBlackout, overall.anyBlackout);
+
+    }
     private void UpdateOverallHPBar(OverallSnapshot overall)
     {
         inGameTotalHPBar.maxValue = 0.0f;
@@ -277,7 +312,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         SetInGameTotalHPColorSmooth(inGameTotalHPBar, overall.totalHp <= 0.0f ? 0.0f : overall.totalHp / overall.totalMaxHp);
     }
 
-    private void UpdateHotbarForItem()
+    public void UpdateHotbarForItem()
     {
         if (hotbarViewsForItem == null || hotbarViewsForItem.Length == 0) return;
 
@@ -308,7 +343,6 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     private void UpdateHotbarForWeapon()
     {
         
-
         if (hotbarViewsForWeapon == null || hotbarViewsForWeapon.Length ==0) return;
      
         for (int i = 0; i < hotbarViewsForWeapon.Length; i++)
@@ -328,16 +362,44 @@ public class UIManager : MonoBehaviour, IUIStateProvider
 
         }
     }
+    public void CheckLeftAmmo()
+    {
+        checkAmmoPanel.SetActive(true);
+  
+        int curAmmo = activeWeaponProvider.GetActiveWeapon().GetActiveAmmo();
+        int maxAmmo = activeWeaponProvider.GetActiveWeapon().GetMaxAmmo();
+
+        float ammoRation01 = Mathf.Clamp01(((float)curAmmo / (float)maxAmmo));
+
+        if (ammoRation01 == 1.0f) leftAmmo.text = "Full";
+
+        else if (ammoRation01 >= 0.8f && ammoRation01 < 1.0f) leftAmmo.text = "Almost full";
+
+        else if (ammoRation01 >= 0.6f && ammoRation01 < 0.8f) leftAmmo.text = "More than half";
+
+        else if (ammoRation01 >= 0.4f && ammoRation01 < 0.6f) leftAmmo.text = "About half";
+
+        else if (ammoRation01 >= 0.2f && ammoRation01 < 0.4f) leftAmmo.text = "Less than half";
+
+        else if (ammoRation01 > 0.0f && ammoRation01 < 0.2f) leftAmmo.text = "Almost Empty";
+
+        if (ammoRation01 == 0.0f) leftAmmo.text = "Empty";
+
+        ammoType.text= activeWeaponProvider.GetActiveWeapon().GetAmmoName();
+    }
+   
     public void CheckUIPanelOn(bool value)
     {
        panel.SetActive(value);
-       InGamepanel.SetActive(!value);
+       inGamepanel.SetActive(!value);
     }
+   
     private void UpdateOverall(OverallSnapshot overall)
     {
         totalHP.text = $"{Mathf.RoundToInt(overall.totalHp)} / {Mathf.RoundToInt(overall.totalMaxHp)}";
 
         UpdateOverallHPBar(overall);
+        UpdateInGameEffectIcon(overall);
     }
     private void Toggle(GameObject obj, bool value) 
     { 
@@ -421,7 +483,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         StartCoroutine(CoUseItem(item, target));
     
     }
-    private ConsumableItemManager GetSlot(int idx)
+    public ConsumableItemManager GetSlot(int idx)
     {
         switch (idx)
         {
@@ -475,6 +537,13 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         UpdateHotbarForItem();
         //Debug.Log($"[{item.def.displayName}] remain={item.remaining}");
         isUsing = false;
+    }
+    public void UseItemOnTarget(ConsumableItemManager item, BodyParts target)
+    {
+        if (isUsing) return;
+        if (item == null || item.remaining <= 0) return;
+
+        StartCoroutine(CoUseItem(item, target));
     }
     private void CancelUseUI()
     {

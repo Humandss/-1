@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -680484886503574195}
   - component: {fileID: 370691792379888124}
   m_Layer: 6
-  m_Name: 5.56x45mm_M855
+  m_Name: 5.56x45mm M855
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

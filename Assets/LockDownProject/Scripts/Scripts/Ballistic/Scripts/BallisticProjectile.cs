@@ -101,6 +101,7 @@ public class BallisticProjectile : MonoBehaviour
         gameObject.SetActive(true);
 
     }
+   
     private void FixedUpdate()
     {
         float dt = Time.fixedDeltaTime;
@@ -455,4 +456,6 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile] armorInfoProvider is NULL");
         }
     }
+
+
 }

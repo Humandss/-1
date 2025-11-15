@@ -60,7 +60,7 @@ MonoBehaviour:
     penetrationEnergyDecreaseMul: 0.2
     armorForBody: 15
     startLight: 1
-    startHeavy: 0
+    startHeavy: 1
     startFrac: 0
     startBlackout: 0
   - parts: 5
@@ -70,8 +70,8 @@ MonoBehaviour:
     penetrationEnergyDecreaseMul: 0.3
     armorForBody: 25
     startLight: 0
-    startHeavy: 1
-    startFrac: 0
+    startHeavy: 0
+    startFrac: 1
     startBlackout: 0
   - parts: 6
     maxHP: 65
@@ -80,9 +80,9 @@ MonoBehaviour:
     penetrationEnergyDecreaseMul: 0.3
     armorForBody: 25
     startLight: 0
-    startHeavy: 1
+    startHeavy: 0
     startFrac: 0
-    startBlackout: 0
+    startBlackout: 1
   lightPerTickDam: 0.5
   heavyPerTickDam: 1
   tickPenaltyMul: 2

@@ -41,5 +41,9 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
         if (muzzle) { Gizmos.color = Color.yellow; Gizmos.DrawRay(muzzle.position, muzzle.forward * 0.5f); }
     }
 
+    public string GetAmmoName()
+    {
+        return projectile.name;
+    }
    
 }
