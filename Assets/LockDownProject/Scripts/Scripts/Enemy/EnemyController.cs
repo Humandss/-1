@@ -1,0 +1,157 @@
+using UnityEngine;
+using UnityEngine.AI;
+
+
+public class EnemyController : MonoBehaviour
+{
+    [Header("Refs")]
+    [SerializeField] private Transform playerLocation;
+    [SerializeField] private Transform enemyEyes;
+    private NavMeshAgent agent;
+    private HealthManager healthManager;
+    private EnemyStateMachine fsm;
+
+    [Header("LayerMasks")]
+    private LayerMask layerMask;
+
+    [Header("States")]
+    private IdleState idleState;
+    private PatrolState patrolState;
+    private ChaseState chaseState;
+    private AttackState attackState;
+    private RetreatState retreatState;
+
+    [Header("Stats")]
+    [SerializeField] float walkSpeed = 2.5f;
+    [SerializeField] float chaseSpeed = 5.5f;
+    [SerializeField] float absoluteDetectionRange = 2.0f; // 절대 탐지 거리
+    [SerializeField] float detectionRange = 30.0f;
+    [SerializeField] float detectionAngle = 120.0f; //탐지 각도
+
+    bool isPlayerDetected;
+    private void Awake()
+    {
+        healthManager = GetComponent<HealthManager>();
+        if (healthManager == null)
+        {
+            Debug.LogWarning("[EnemyController] healtManager is NULL");
+        }
+
+        fsm = GetComponent<EnemyStateMachine>();
+        if (fsm == null)
+        {
+            Debug.LogWarning("[EnemyController] fsm is NULL");
+        }
+        // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
+        layerMask = LayerMask.GetMask("Head", "Thorax", "Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg", "Armor");
+    }
+
+    private void Start()
+    {
+        fsm.ChangeState(idleState);
+    }
+
+    private void Update()
+    {
+        fsm.Tick();
+
+
+        bool nowDetected = IsPlayerInSight();
+        bool inAbs = IsPlayerInAbsoluteDetectionRange();
+        // 상태가 바뀔 때만 로그 찍어서 디버그 스팸 방지
+        if (nowDetected != isPlayerDetected)
+        {
+            isPlayerDetected = nowDetected;
+            Debug.Log($"[Enemy] Player Detected: {isPlayerDetected}");
+        }
+        if (inAbs)
+        {
+            Debug.Log($"[Enemy] Player ABS Detected");
+        }
+    }
+
+    //절대 탐지거리
+    private bool IsPlayerInAbsoluteDetectionRange()
+    {
+        if (playerLocation == null || enemyEyes == null) return false;
+
+        Vector3 toPlayer = playerLocation.position - enemyEyes.position;
+        float distanceToPlayer = toPlayer.magnitude;
+
+        if (distanceToPlayer > absoluteDetectionRange)
+        {
+            //Debug.Log("SIGHT FAIL: 각도 범위 밖");
+            return false;
+        }
+        Vector3 dirToPlayer = toPlayer.normalized;
+
+        //레이케스트 쏴서 플레이어 쪽에 장애물 있는지 판단
+        if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
+        {
+
+            if (hit.transform != playerLocation && hit.transform.root != playerLocation)
+            {
+               // Debug.Log($"SIGHT FAIL: {hit.transform.name} 에 막힘");
+                return false;
+            }
+        }
+
+        return true;
+    }
+    private bool IsPlayerInSight()
+    {
+        if (playerLocation == null || enemyEyes == null) return false;
+
+        //거리 판단 -> 탐지 거리보다 크면 false
+        Vector3 toPlayer = playerLocation.position - enemyEyes.position;
+        float distanceToPlayer = toPlayer.magnitude;
+
+        if (distanceToPlayer > detectionRange) return false;
+        
+        //각도 판단 -> 각도는 적 시야 위치(정면)에서 플레이어까지의 거리만큼
+        Vector3 dirToPlayer = toPlayer.normalized;
+        float angle = Vector3.Angle(enemyEyes.forward, dirToPlayer);
+       // Debug.Log($"angle = {angle}");
+        // 탐지 각도보다 크면 false
+        if (angle > detectionAngle * 0.5f)
+        {
+            //Debug.Log("SIGHT FAIL: 각도 범위 밖");
+            return false;
+        }
+        //레이케스트 쏴서 플레이어 쪽에 장애물 있는지 판단
+        if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
+        {
+            Debug.Log($"Raycast hit: {hit.transform.name}");
+            if (hit.transform != playerLocation && hit.transform.root != playerLocation)
+            {
+                //Debug.Log($"SIGHT FAIL: {hit.transform.name} 에 막힘");
+                return false;
+            }
+        }
+        //Debug.Log("SIGHT SUCCESS");
+        return true;
+    }
+
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(enemyEyes.position, absoluteDetectionRange);  // 절대 탐지 거리
+
+
+        Gizmos.color = Color.red;
+
+        Vector3 forward = enemyEyes.forward;
+        forward.y = 0f;
+        forward.Normalize();
+
+        Quaternion leftRot = Quaternion.AngleAxis(-detectionAngle * 0.5f, Vector3.up);
+        Quaternion rightRot = Quaternion.AngleAxis(detectionAngle * 0.5f, Vector3.up);
+
+        Vector3 leftDir = leftRot * forward;
+        Vector3 rightDir = rightRot * forward;
+
+        Gizmos.DrawRay(enemyEyes.position, leftDir * detectionRange);
+        Gizmos.DrawRay(enemyEyes.position, rightDir * detectionRange);
+    }
+}
