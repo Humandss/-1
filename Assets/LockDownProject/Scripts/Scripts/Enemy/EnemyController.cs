@@ -7,7 +7,8 @@ public class EnemyController : MonoBehaviour
     [Header("Refs")]
     [SerializeField] private Transform playerLocation;
     [SerializeField] private Transform enemyEyes;
-    private NavMeshAgent agent;
+    [SerializeField] 
+    public NavMeshAgent agent;
     private HealthManager healthManager;
     private EnemyStateMachine fsm;
 
@@ -15,11 +16,11 @@ public class EnemyController : MonoBehaviour
     private LayerMask layerMask;
 
     [Header("States")]
-    private IdleState idleState;
-    private PatrolState patrolState;
-    private ChaseState chaseState;
-    private AttackState attackState;
-    private RetreatState retreatState;
+    public IdleState idleState;
+    public PatrolState patrolState;
+    public ChaseState chaseState;
+    public AttackState attackState;
+    public RetreatState retreatState;
 
     [Header("Stats")]
     [SerializeField] float walkSpeed = 2.5f;
@@ -28,7 +29,8 @@ public class EnemyController : MonoBehaviour
     [SerializeField] float detectionRange = 30.0f;
     [SerializeField] float detectionAngle = 120.0f; //탐지 각도
 
-    bool isPlayerDetected;
+    private bool isPlayerDetected;
+
     private void Awake()
     {
         healthManager = GetComponent<HealthManager>();
@@ -42,8 +44,16 @@ public class EnemyController : MonoBehaviour
         {
             Debug.LogWarning("[EnemyController] fsm is NULL");
         }
+
+        InitializeStates();
+
         // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
         layerMask = LayerMask.GetMask("Head", "Thorax", "Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg", "Armor");
+    }
+    private void InitializeStates()
+    {
+        idleState = new IdleState(this, fsm);
+        attackState= new AttackState(this, fsm);
     }
 
     private void Start()
@@ -55,19 +65,9 @@ public class EnemyController : MonoBehaviour
     {
         fsm.Tick();
 
-
-        bool nowDetected = IsPlayerInSight();
-        bool inAbs = IsPlayerInAbsoluteDetectionRange();
-        // 상태가 바뀔 때만 로그 찍어서 디버그 스팸 방지
-        if (nowDetected != isPlayerDetected)
-        {
-            isPlayerDetected = nowDetected;
-            Debug.Log($"[Enemy] Player Detected: {isPlayerDetected}");
-        }
-        if (inAbs)
-        {
-            Debug.Log($"[Enemy] Player ABS Detected");
-        }
+        if (IsPlayerInAbsoluteDetectionRange() || IsPlayerInSight()) isPlayerDetected = true;
+        else isPlayerDetected = false;
+        
     }
 
     //절대 탐지거리
@@ -131,7 +131,10 @@ public class EnemyController : MonoBehaviour
         //Debug.Log("SIGHT SUCCESS");
         return true;
     }
-
+    public bool IsPlayerInEnemySight()
+    {
+        return isPlayerDetected;
+    }
 
     void OnDrawGizmosSelected()
     {
