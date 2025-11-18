@@ -165,7 +165,35 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         }
        
     }
+    public void EnemeyWeaponInitialize(GameObject owner)
+    {
+        GameObject ownerEnemy = owner;
 
+        activeAmmo = weaponSettings.ammo;
+
+        if (ownerEnemy == null)
+        {
+            Debug.LogWarning("[Weapon] ownerPlayer not found!");
+        }
+
+        weaponSound = GetComponentInChildren<WeaponSound>();
+        if (weaponSound == null)
+        {
+            Debug.LogWarning("[Weapon] WeaponSound is NULL!");
+        }
+
+        weaponFireController = GetComponent<WeaponFireController>();
+        if (weaponFireController == null)
+        {
+            Debug.LogWarning("[Weapon] weaponFireController is NULL!");
+        }
+
+        fireBulletProvider = weaponFireController as IFireBulletProvider;
+        if (fireBulletProvider == null)
+        {
+            Debug.LogWarning("[Weapon]  fireBulletProvider is NULL!");
+        }
+    }
     public virtual void OnReload()
     {
         if (activeAmmo == weaponSettings.ammo) return;
@@ -281,5 +309,44 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     public string GetAmmoName()
     {
         return weaponFireController.GetAmmoName();
+    }
+
+    public void EnemyFirePressed()
+    {
+        isFiring = true;
+        EnemyFire();
+    }
+    private void EnemyFireReleased()
+    {
+        isFiring = false;
+    }
+    private void EnemyFire()
+    {
+      
+        if (!isFiring || isReloading) return;
+
+        if (activeAmmo == 0)
+        {
+            EnemyFireReleased();
+            return;
+        }
+      
+        if (weaponSound != null) weaponSound.PlayFireSound();
+        fireBulletProvider.FireBullet();
+        activeAmmo--;
+
+        if (fireMode == FireMode.Semi) return;
+        Invoke(nameof(EnemyFire), 60f / weaponSettings.fireRate);
+        
+    }
+
+    public void EnemyReload()
+    {
+        if (activeAmmo == weaponSettings.ammo) return;
+        if (isReloading) return;
+
+        float delay = activeAmmo == 0 ? emptyReloadDelay : tacReloadDelay;
+        Invoke(nameof(ResetActiveAmmo), delay * weaponSettings.ammoResetTimeScale);
+        isReloading = true;
     }
 }

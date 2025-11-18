@@ -190,6 +190,7 @@ public class BallisticProjectile : MonoBehaviour
                 //그외 사람한테 닿았을 경우
                 else
                 {
+                    
                     //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
                     CheckBulletHitBody(hit);
                     HandleBodyPentration(hit);

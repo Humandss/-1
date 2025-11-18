@@ -7,7 +7,7 @@ public class EnemyController : MonoBehaviour
     [Header("Refs")]
     [SerializeField] private Transform playerLocation;
     [SerializeField] private Transform enemyEyes;
-    [SerializeField] 
+    [SerializeField] private Weapon weapon;
     public NavMeshAgent agent;
     private HealthManager healthManager;
     private EnemyStateMachine fsm;
@@ -23,11 +23,11 @@ public class EnemyController : MonoBehaviour
     public RetreatState retreatState;
 
     [Header("Stats")]
-    [SerializeField] float walkSpeed = 2.5f;
-    [SerializeField] float chaseSpeed = 5.5f;
-    [SerializeField] float absoluteDetectionRange = 2.0f; // 절대 탐지 거리
-    [SerializeField] float detectionRange = 30.0f;
-    [SerializeField] float detectionAngle = 120.0f; //탐지 각도
+    [SerializeField] private float walkSpeed = 2.5f;
+    [SerializeField] private float chaseSpeed = 5.5f;
+    [SerializeField] private float absoluteDetectionRange = 2.0f; // 절대 탐지 거리
+    [SerializeField] private float detectionRange = 30.0f;
+    [SerializeField] private float detectionAngle = 120.0f; //탐지 각도
 
     private bool isPlayerDetected;
 
@@ -46,7 +46,7 @@ public class EnemyController : MonoBehaviour
         }
 
         InitializeStates();
-
+        weapon.EnemeyWeaponInitialize(gameObject);
         // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
         layerMask = LayerMask.GetMask("Head", "Thorax", "Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg", "Armor");
     }
@@ -75,7 +75,7 @@ public class EnemyController : MonoBehaviour
     {
         if (playerLocation == null || enemyEyes == null) return false;
 
-        Vector3 toPlayer = playerLocation.position - enemyEyes.position;
+        Vector3 toPlayer = GetVectorBetweenPlayerAndEnemy();
         float distanceToPlayer = toPlayer.magnitude;
 
         if (distanceToPlayer > absoluteDetectionRange)
@@ -103,7 +103,7 @@ public class EnemyController : MonoBehaviour
         if (playerLocation == null || enemyEyes == null) return false;
 
         //거리 판단 -> 탐지 거리보다 크면 false
-        Vector3 toPlayer = playerLocation.position - enemyEyes.position;
+        Vector3 toPlayer = GetVectorBetweenPlayerAndEnemy();
         float distanceToPlayer = toPlayer.magnitude;
 
         if (distanceToPlayer > detectionRange) return false;
@@ -121,7 +121,7 @@ public class EnemyController : MonoBehaviour
         //레이케스트 쏴서 플레이어 쪽에 장애물 있는지 판단
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
-            Debug.Log($"Raycast hit: {hit.transform.name}");
+            //Debug.Log($"Raycast hit: {hit.transform.name}");
             if (hit.transform != playerLocation && hit.transform.root != playerLocation)
             {
                 //Debug.Log($"SIGHT FAIL: {hit.transform.name} 에 막힘");
@@ -131,11 +131,39 @@ public class EnemyController : MonoBehaviour
         //Debug.Log("SIGHT SUCCESS");
         return true;
     }
+    public void Fire()
+    {
+        if(weapon == null) return;
+
+        weapon.EnemyFirePressed();
+
+    }
+    private void ReloadAmmo()
+    {
+        if (weapon == null) return;
+
+        weapon.EnemyReload();
+    }
+    public Vector3 GetVectorBetweenPlayerAndEnemy()
+    {
+        return playerLocation.position - enemyEyes.position;
+    }
     public bool IsPlayerInEnemySight()
     {
         return isPlayerDetected;
     }
-
+    public Transform GetPlayerLocation()
+    {
+        return playerLocation;
+    }
+    public Transform GetEnemyEyeLocation()
+    {
+        return enemyEyes;
+    }
+    public float GetDetectionRange()
+    {
+        return detectionRange;
+    }
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

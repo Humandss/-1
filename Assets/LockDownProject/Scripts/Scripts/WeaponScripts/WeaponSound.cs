@@ -11,12 +11,17 @@ public class WeaponSound : MonoBehaviour
 
     private void Awake()
     {
-        settings = transform.parent.GetComponent<Weapon>().weaponSettings;
-        audioSource = transform.root.GetComponentInChildren<AudioSource>();
+        //settings = transform.parent.GetComponent<Weapon>().weaponSettings;
+        // audioSource = transform.root.GetComponentInChildren<AudioSource>();
+        var weapon = GetComponentInParent<Weapon>();
+        settings = weapon.weaponSettings;
+        audioSource = GetComponent<AudioSource>();
+
     }
 
     public void PlayFireSound()
     {
+        
         if (audioSource == null)
         {
             Debug.LogWarning($"Failed to play weapon sound: invalid Audio Source!");
@@ -25,7 +30,13 @@ public class WeaponSound : MonoBehaviour
 
         audioSource.pitch = Random.Range(settings.firePitchRange.x, settings.firePitchRange.y);
         audioSource.volume = Random.Range(settings.fireVolumeRange.x, settings.fireVolumeRange.y);
-        audioSource.PlayOneShot(FPSPlayerSound.GetRandomAudioClip(settings.fireSounds));
+        //audioSource.PlayOneShot(FPSPlayerSound.GetRandomAudioClip(settings.fireSounds));
+
+        var clip = FPSPlayerSound.GetRandomAudioClip(settings.fireSounds);
+        if (clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 
     public void PlayWeaponSound(int clipIndex)
