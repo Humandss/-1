@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
+using static UnityEngine.GraphicsBuffer;
 
 public class AttackState : IState
 {
@@ -8,12 +10,16 @@ public class AttackState : IState
     private EnemyController enemy;
     private EnemyStateMachine fsm;
 
-    [Header("Attack Stats")]
-    [SerializeField] private float turnSpeed = 3.5f;
-    [SerializeField] private float aimAngleAllow = 5.0f;
+    [Header("Stats")]
+    private float fireRate;
+    private float aimAngle;
+    private float turnSpeed;
+    private float dx, dy;
     bool isAimed = false;
     private Quaternion startRot;
     private Quaternion targetRot;
+
+    private float nextFireTime;
 
     public AttackState(EnemyController enemy, EnemyStateMachine fsm)
     {
@@ -23,7 +29,12 @@ public class AttackState : IState
 
     public void Enter()
     {
-         
+        fireRate = enemy.GetFireInterval();
+        aimAngle = enemy.GetAttackAllowAngle();
+        turnSpeed = enemy.GetAttackTurnSpeed();
+        dx = enemy.GetHoriontalOffset();
+        dy = enemy.GetVerticalOffset();
+
     }
     public void Execute()
     {
@@ -43,34 +54,78 @@ public class AttackState : IState
             return;
         }
 
-        isAimed = RotateToPlayer();
+        isAimed = AimToPlayer();
+       // ChangeFireOptionsByPlayerDistance(distanceToPlayer);
 
-        if(isAimed)
+        if (isAimed && Time.time >= nextFireTime) 
         {
+            nextFireTime = Time.time + fireRate;
             enemy.Fire();
         }
      
 
     }
-  
-    private bool RotateToPlayer()
-    {
-        Transform enemyBody = enemy.transform;
-        Transform target = enemy.GetPlayerLocation();
 
-        //y축만 고정
-        Vector3 dirToPlayer = enemy.GetVectorBetweenPlayerAndEnemy().normalized;
+    private void ChangeFireOptionsByPlayerDistance(float distanceToPlayer)
+    {
+        float distance = distanceToPlayer;
+
+        if (distance <= enemy.GetDetectionRange() && distance > enemy.GetDetectionRange() * 0.8f)
+        {
+            fireRate = 2.5f;
+            dx *= 1.8f; 
+            dy *= 1.8f;
+          
+        }
+
+        else if (distance <= enemy.GetDetectionRange() * 0.8f && distance > enemy.GetDetectionRange() * 0.6f)
+        {
+            fireRate = 1.5f;
+            dx *= 1.5f;
+            dy *= 1.5f;
+          
+        }
+
+        else if (distance <= enemy.GetDetectionRange() * 0.6f && distance > enemy.GetDetectionRange() * 0.3f)
+        {
+            fireRate = 0.8f;
+            dx *= 1.0f;
+            dy *= 1.0f;
+          
+        }
+
+        else if (distance <= enemy.GetDetectionRange() * 0.3f && distance > enemy.GetDetectionRange() * 0.0f)
+        {
+            fireRate = 0.3f;
+            dx *= 0.5f;
+            dy *= 0.5f;
+        }
+    }
+
+    
+    private bool AimToPlayer()
+    {
+        Transform enemyBody = enemy.GetEnemyEyeLocation(); 
+        Vector3 targetPos = enemy.GetPlayerLocation().position; 
+
+        //float hOffset = Random.Range(-dx, dx); 
+        //float vOffset = Random.Range(-dy, dy); 
+
+        //targetPos += (enemyBody.right * hOffset) + (enemyBody.up * vOffset) + (Vector3.down * 0.3f);
+        targetPos += (Vector3.down * 0.3f);
+
+        Vector3 dirToPlayer = (targetPos - enemyBody.position).normalized;
         dirToPlayer.y = 0.0f;
 
         Vector3 forward = enemy.GetEnemyEyeLocation().forward;
         forward.y = 0.0f;
 
-        float angle = Vector3.Angle(forward, dirToPlayer);
-
+        float angle = Vector3.Angle(forward, dirToPlayer); 
         targetRot = Quaternion.LookRotation(dirToPlayer);
-        enemy.transform.rotation = Quaternion.Slerp(startRot, targetRot, turnSpeed);
 
-        return angle <= aimAngleAllow;
+        enemy.transform.rotation = Quaternion.Slerp(startRot, targetRot, turnSpeed); 
+        //Debug.DrawLine(enemyBody.position, targetPos, Color.red);
+        return angle <= aimAngle;
     }
     public void Exit()
     {

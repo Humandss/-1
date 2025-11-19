@@ -29,6 +29,13 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float detectionRange = 30.0f;
     [SerializeField] private float detectionAngle = 120.0f; //탐지 각도
 
+    [Header("Attack Stats")]
+    [SerializeField] private float turnSpeed = 3.5f;
+    [SerializeField] private float aimAngleAllow = 5.0f;
+    [SerializeField] private float fireInterval = 0.8f;
+    [SerializeField] private float horizontalOffset = 0.3f;
+    [SerializeField] private float verticalOffset = 0.3f;
+
     private bool isPlayerDetected;
 
     private void Awake()
@@ -88,12 +95,7 @@ public class EnemyController : MonoBehaviour
         //레이케스트 쏴서 플레이어 쪽에 장애물 있는지 판단
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
-
-            if (hit.transform != playerLocation && hit.transform.root != playerLocation)
-            {
-               // Debug.Log($"SIGHT FAIL: {hit.transform.name} 에 막힘");
-                return false;
-            }
+            if (!hit.transform.CompareTag("Player")) return false;
         }
 
         return true;
@@ -122,11 +124,7 @@ public class EnemyController : MonoBehaviour
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
             //Debug.Log($"Raycast hit: {hit.transform.name}");
-            if (hit.transform != playerLocation && hit.transform.root != playerLocation)
-            {
-                //Debug.Log($"SIGHT FAIL: {hit.transform.name} 에 막힘");
-                return false;
-            }
+            if (!hit.transform.CompareTag("Player")) return false;
         }
         //Debug.Log("SIGHT SUCCESS");
         return true;
@@ -164,6 +162,29 @@ public class EnemyController : MonoBehaviour
     {
         return detectionRange;
     }
+
+    public float GetAttackAllowAngle()
+    {
+        return aimAngleAllow;
+    }
+    public float GetAttackTurnSpeed()
+    {
+        return turnSpeed;
+    }
+    public float GetFireInterval()
+    {
+        return fireInterval;
+    }
+    public float GetHoriontalOffset()
+    {
+        return horizontalOffset;
+    }
+
+    public float GetVerticalOffset()
+    {
+        return verticalOffset;
+    }
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

@@ -6,5 +6,5 @@ public abstract class ItemEffects : ScriptableObject
     public abstract bool ApplyHealthEffects(HealthManager healthManager, BodyParts? target = null);
 
     //효과 적용 가능한지 판단
-    public virtual bool CanApply(HealthManager hm, BodyParts? target = null) => true;
+    public virtual bool CanApply(HealthManager healthManager, BodyParts? target = null) => true;
 }

@@ -187,7 +187,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         {
             Debug.LogWarning("[Weapon] weaponFireController is NULL!");
         }
-
+   
         fireBulletProvider = weaponFireController as IFireBulletProvider;
         if (fireBulletProvider == null)
         {
@@ -330,7 +330,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
             EnemyFireReleased();
             return;
         }
-      
+     
         if (weaponSound != null) weaponSound.PlayFireSound();
         fireBulletProvider.FireBullet();
         activeAmmo--;

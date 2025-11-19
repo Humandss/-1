@@ -383,12 +383,12 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     }
     public void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance)
     {
-        if (col.name == "Head") return;
+        if (col.name == "head") return;
 
-        if (col.name == "Thorax") return;
+        if (col.name == "thorax" || col.name == "thorax_back" || col.name == "thorax_back_neck") return;
 
-        if (col.name == "Stomach") return;
-
+        if (col.name == "stomach") return;
+       // Debug.Log($"Lc = {lightBleedingChance}, hc={heavyBleedingChance},  {fractureChance}, ");
         bool isLightBleeding = (UnityEngine.Random.value <= lightBleedingChance);
         bool isHeavyBleeding = (UnityEngine.Random.value <= heavyBleedingChance);
         bool isFracture = (UnityEngine.Random.value <= fractureChance);
@@ -397,7 +397,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         //상호베타, 과다출혈과 일반 출혈 동시 발생시 과다출혈만 인정
         if (isLightBleeding && isHeavyBleeding) isLightBleeding = false; 
 
-        if (col.name == "LeftArm")
+        if (col.name == "left_arm" || col.name == "left_forearm" || col.name == "left_hand")
         {
             var s = status[BodyParts.LeftArm];
 
@@ -406,13 +406,14 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             if(isHeavyBleeding) s.heavy = true; 
            
             if(isFracture) s.fracture = true;
-
+            
             status[BodyParts.LeftArm] = s;
+           // Debug.Log($"lb = {s.light}, hb={s.heavy},  f{s.fracture}, ");
             MarkDirty(BodyParts.LeftArm);
             return;
         }
 
-        if (col.name == "RightArm")
+        if (col.name == "right_arm" || col.name == "right_forearm" || col.name == "right_hand")
         {
             var s = status[BodyParts.RightArm];
 
@@ -427,7 +428,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             return;
         }
 
-        if (col.name == "LeftLeg")
+        if (col.name == "left_thigh" || col.name == "left_shin" || col.name == "left_foot")
         {
             var s = status[BodyParts.LeftLeg];
 
@@ -442,7 +443,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             return;
         }
 
-        if (col.name == "RightLeg")
+        if (col.name == "right_thigh" || col.name == "right_shin" || col.name == "right_foot")
         {
             var s = status[BodyParts.RightLeg];
 

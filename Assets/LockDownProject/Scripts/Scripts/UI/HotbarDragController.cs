@@ -22,11 +22,11 @@ public class HotbarDragController : MonoBehaviour, IBeginDragHandler, IDragHandl
     }
     public void OnBeginDrag(PointerEventData e)
     {
-        Debug.Log("[Drag] Begin");
+       // Debug.Log("[Drag] Begin");
 
-        Debug.Log($"ui? {uiManager != null}, panelOpen? {uiManager?.IsHealthPanelOpen}");
-        Debug.Log($"item? {item != null}, remaining={(item != null ? item.remaining : -1)}");
-        Debug.Log($"ghost? {dragGhost != null}");
+       // Debug.Log($"ui? {uiManager != null}, panelOpen? {uiManager?.IsHealthPanelOpen}");
+       // Debug.Log($"item? {item != null}, remaining={(item != null ? item.remaining : -1)}");
+       // Debug.Log($"ghost? {dragGhost != null}");
 
         if (!uiManager || !uiManager.IsHealthPanelOpen) return;
         if (item == null || item.remaining <= 0) return;
@@ -52,7 +52,7 @@ public class HotbarDragController : MonoBehaviour, IBeginDragHandler, IDragHandl
     }
     public void OnEndDrag(PointerEventData e)
     {
-        Debug.Log("[Drag] End");
+        //Debug.Log("[Drag] End");
         if (dragGhost) dragGhost.gameObject.SetActive(false);
   
     }

@@ -6,6 +6,8 @@ using UnityEngine;
 public interface IFireBulletProvider
 {
     void FireBullet();
+
+    //void EnemyFireBullet();
 }
 
 public class WeaponFireController : MonoBehaviour, IFireBulletProvider

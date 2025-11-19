@@ -24,7 +24,9 @@ public class HealAndStopLBleeding : ItemEffects
 
         if (part == BodyParts.None) return false;
 
-        // 해당 부위가 풀피면 힐 불가, 라이트 출혈 있으면 OK
+        // 해당 부위가 블랙 아웃 or 풀피면 힐 불가, 라이트 출혈 있으면 OK
+        if(healthManager.GetHasBlackout(part)) return false;
+
         bool canHeal = healthManager.GetPartHP(part) < healthManager.GetPartMaxHP(part);
         bool hasLight = healthManager.GetHasLightBleed(part);
 
