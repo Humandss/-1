@@ -30,11 +30,13 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     private WeaponFireController weaponFireController;
     private PlayerManager playerManager;
     private WeaponFireController fireController;
+    private EnemyController enemyController;
 
     [Header("Providers")]
     private ICameraAnimation cameraAnimation;
     private IFireBulletProvider fireBulletProvider;
     private IPlayerCanFireCheckProvider canFireCheckProvider;
+    private IGetBulletDirection bulletDirection;
 
     [Header("Animator Hash")]
     protected static int RELOAD_EMPTY = Animator.StringToHash("Reload_Empty");
@@ -126,6 +128,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
             Debug.LogWarning("[Weapon] playerManager is NULL");
         }
 
+        
         canFireCheckProvider = playerManager as IPlayerCanFireCheckProvider;
         if (canFireCheckProvider == null)
         {
@@ -187,8 +190,18 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         {
             Debug.LogWarning("[Weapon] weaponFireController is NULL!");
         }
-   
-        fireBulletProvider = weaponFireController as IFireBulletProvider;
+        enemyController = GetComponentInParent<EnemyController>();
+        if (enemyController == null)
+        {
+            Debug.LogWarning("[Weapon] wenemyController is NULL!");
+        }
+
+        bulletDirection = enemyController as IGetBulletDirection;
+        if (bulletDirection == null)
+        {
+            Debug.LogWarning("[Weapon]  bulletDirection is NULL!");
+        }
+            fireBulletProvider = weaponFireController as IFireBulletProvider;
         if (fireBulletProvider == null)
         {
             Debug.LogWarning("[Weapon]  fireBulletProvider is NULL!");
@@ -284,7 +297,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         weaponAnimator.Play(weaponSettings.hasFireOut && activeAmmo == 1
             ? FIREOUT
             : FIRE, -1, 0f);
-        fireBulletProvider.FireBullet();
+        fireBulletProvider.FireBullet(true);
         activeAmmo--;
 
         if (fireMode == FireMode.Semi) return;
@@ -295,6 +308,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     {
         activeAmmo = weaponSettings.ammo;
         isReloading = false;
+        
     }
 
     public int GetActiveAmmo()
@@ -332,21 +346,23 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         }
      
         if (weaponSound != null) weaponSound.PlayFireSound();
-        fireBulletProvider.FireBullet();
+  
+        fireBulletProvider.FireBullet(false);
         activeAmmo--;
 
-        if (fireMode == FireMode.Semi) return;
-        Invoke(nameof(EnemyFire), 60f / weaponSettings.fireRate);
+        //if (fireMode == FireMode.Semi) return;
+       // Invoke(nameof(EnemyFire), 60f / weaponSettings.fireRate);
         
     }
 
     public void EnemyReload()
-    {
+    {      
         if (activeAmmo == weaponSettings.ammo) return;
         if (isReloading) return;
 
         float delay = activeAmmo == 0 ? emptyReloadDelay : tacReloadDelay;
         Invoke(nameof(ResetActiveAmmo), delay * weaponSettings.ammoResetTimeScale);
         isReloading = true;
+      
     }
 }

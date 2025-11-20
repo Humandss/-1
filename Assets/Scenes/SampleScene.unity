@@ -29948,8 +29948,9 @@ MonoBehaviour:
   turnSpeed: 3.5
   aimAngleAllow: 5
   fireInterval: 0.8
-  horizontalOffset: 3
-  verticalOffset: 3
+  horizontalOffset: 1
+  verticalOffset: 1
+  reloadIntrerval: 3
 --- !u!114 &8818747722817984870
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -18,8 +18,9 @@ public class AttackState : IState
     bool isAimed = false;
     private Quaternion startRot;
     private Quaternion targetRot;
-
+    private Vector3 bulletPos;
     private float nextFireTime;
+    private int leftAmmo;
 
     public AttackState(EnemyController enemy, EnemyStateMachine fsm)
     {
@@ -34,6 +35,7 @@ public class AttackState : IState
         turnSpeed = enemy.GetAttackTurnSpeed();
         dx = enemy.GetHoriontalOffset();
         dy = enemy.GetVerticalOffset();
+        leftAmmo = enemy.GetEnemyAmmo();
 
     }
     public void Execute()
@@ -55,54 +57,29 @@ public class AttackState : IState
         }
 
         isAimed = AimToPlayer();
-       // ChangeFireOptionsByPlayerDistance(distanceToPlayer);
+        enemy.ChangeFireOptionsByPlayerDistance();
+        fireRate = enemy.GetFireInterval();
+        leftAmmo = enemy.GetEnemyAmmo();
+        //총알이 없다면 장전
+        if (leftAmmo <= 0)
+        {
+            enemy.ReloadAmmo();
+            return;
+        }
 
         if (isAimed && Time.time >= nextFireTime) 
         {
             nextFireTime = Time.time + fireRate;
-            enemy.Fire();
+           // Debug.Log(bulletPos);
+            enemy.Fire(bulletPos);
+            Debug.Log(leftAmmo);
         }
      
 
     }
 
-    private void ChangeFireOptionsByPlayerDistance(float distanceToPlayer)
-    {
-        float distance = distanceToPlayer;
+   
 
-        if (distance <= enemy.GetDetectionRange() && distance > enemy.GetDetectionRange() * 0.8f)
-        {
-            fireRate = 2.5f;
-            dx *= 1.8f; 
-            dy *= 1.8f;
-          
-        }
-
-        else if (distance <= enemy.GetDetectionRange() * 0.8f && distance > enemy.GetDetectionRange() * 0.6f)
-        {
-            fireRate = 1.5f;
-            dx *= 1.5f;
-            dy *= 1.5f;
-          
-        }
-
-        else if (distance <= enemy.GetDetectionRange() * 0.6f && distance > enemy.GetDetectionRange() * 0.3f)
-        {
-            fireRate = 0.8f;
-            dx *= 1.0f;
-            dy *= 1.0f;
-          
-        }
-
-        else if (distance <= enemy.GetDetectionRange() * 0.3f && distance > enemy.GetDetectionRange() * 0.0f)
-        {
-            fireRate = 0.3f;
-            dx *= 0.5f;
-            dy *= 0.5f;
-        }
-    }
-
-    
     private bool AimToPlayer()
     {
         Transform enemyBody = enemy.GetEnemyEyeLocation(); 
@@ -112,15 +89,28 @@ public class AttackState : IState
         //float vOffset = Random.Range(-dy, dy); 
 
         //targetPos += (enemyBody.right * hOffset) + (enemyBody.up * vOffset) + (Vector3.down * 0.3f);
-        targetPos += (Vector3.down * 0.3f);
+        //targetPos += (Vector3.down * 0.3f);
 
         Vector3 dirToPlayer = (targetPos - enemyBody.position).normalized;
+        bulletPos = dirToPlayer;
         dirToPlayer.y = 0.0f;
+
+        if (dirToPlayer.sqrMagnitude < 0.0001f)
+        {
+            // 너무 가까우면 그냥 현재 보는 방향 유지하고 조준된 걸로 취급
+            bulletPos = enemyBody.forward;
+            return true;
+        }
 
         Vector3 forward = enemy.GetEnemyEyeLocation().forward;
         forward.y = 0.0f;
-
-        float angle = Vector3.Angle(forward, dirToPlayer); 
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            
+            return true;
+        }
+        float angle = Vector3.Angle(forward, dirToPlayer);
+     
         targetRot = Quaternion.LookRotation(dirToPlayer);
 
         enemy.transform.rotation = Quaternion.Slerp(startRot, targetRot, turnSpeed); 

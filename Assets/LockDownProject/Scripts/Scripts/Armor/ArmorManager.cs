@@ -45,7 +45,7 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
 
         durability = Mathf.Max(0.0f, durability - totalCosst);
 
-        Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
+        //Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
     }
 
     public void HandleArmorDurablityAfterRicochet(float ammoArmorDamage)
@@ -57,7 +57,7 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
 
         durability = Mathf.Max(0.0f, durability - totalCosst);
 
-        Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
+        //Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
     }
     public float GetArmorClass()
     {

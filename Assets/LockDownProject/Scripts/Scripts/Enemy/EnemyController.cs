@@ -1,8 +1,18 @@
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
 
+public interface IGetBulletDirection
+{
+    Vector3 GetVectorBetweenPlayerAndEnemy();
 
-public class EnemyController : MonoBehaviour
+    Vector3 GetBulletDirection();
+    float GetVerticalOffset();
+
+    float GetHoriontalOffset();
+
+}
+public class EnemyController : MonoBehaviour, IGetBulletDirection
 {
     [Header("Refs")]
     [SerializeField] private Transform playerLocation;
@@ -35,7 +45,11 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float fireInterval = 0.8f;
     [SerializeField] private float horizontalOffset = 0.3f;
     [SerializeField] private float verticalOffset = 0.3f;
-
+    [SerializeField] private float reloadIntrerval = 3.0f;
+    private float dx,dy;
+    private float fireRate;
+    private Vector3 bulletPos;
+    private int ammo;
     private bool isPlayerDetected;
 
     private void Awake()
@@ -52,26 +66,32 @@ public class EnemyController : MonoBehaviour
             Debug.LogWarning("[EnemyController] fsm is NULL");
         }
 
-        InitializeStates();
+        Initialize();
         weapon.EnemeyWeaponInitialize(gameObject);
         // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
         layerMask = LayerMask.GetMask("Head", "Thorax", "Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg", "Armor");
     }
-    private void InitializeStates()
+    private void Initialize()
     {
         idleState = new IdleState(this, fsm);
         attackState= new AttackState(this, fsm);
-    }
 
+        dx= horizontalOffset;
+        dy= verticalOffset;
+        fireRate =fireInterval;
+        
+    }
+    
     private void Start()
     {
         fsm.ChangeState(idleState);
+        ammo = weapon.GetActiveAmmo();
     }
 
     private void Update()
     {
         fsm.Tick();
-
+        //Debug.Log(ammo);
         if (IsPlayerInAbsoluteDetectionRange() || IsPlayerInSight()) isPlayerDetected = true;
         else isPlayerDetected = false;
         
@@ -129,14 +149,53 @@ public class EnemyController : MonoBehaviour
         //Debug.Log("SIGHT SUCCESS");
         return true;
     }
-    public void Fire()
+    public void Fire(Vector3 bulletPos)
     {
         if(weapon == null) return;
-
+        this.bulletPos = bulletPos;
         weapon.EnemyFirePressed();
-
+      
     }
-    private void ReloadAmmo()
+    public void ChangeFireOptionsByPlayerDistance()
+    {
+        float distance = GetVectorBetweenPlayerAndEnemy().magnitude;
+
+        dx = horizontalOffset;
+        dy = verticalOffset;
+
+        if (distance <= detectionRange && distance > detectionRange * 0.8f)
+        {
+            fireRate = 2.0f;
+            dx *= 1.2f;
+            dy *= 1.2f;
+
+        }
+
+        else if (distance <= detectionRange * 0.8f && distance > detectionRange * 0.6f)
+        {
+            fireRate = 1.0f;
+            dx *= 1.0f;
+            dy *= 1.0f;
+
+        }
+
+        else if (distance <= detectionRange * 0.6f && distance > detectionRange * 0.3f)
+        {
+            fireRate = 0.8f;
+            dx *= 0.8f;
+            dy *= 0.8f;
+
+        }
+
+        else if (distance <= detectionRange * 0.3f && distance > detectionRange * 0.0f)
+        {
+            fireRate = 0.3f;
+            dx *= 0.8f;
+            dy *= 0.8f;
+        }
+    }
+
+    public void ReloadAmmo()
     {
         if (weapon == null) return;
 
@@ -167,24 +226,31 @@ public class EnemyController : MonoBehaviour
     {
         return aimAngleAllow;
     }
+    public int GetEnemyAmmo()
+    {
+        return weapon.GetActiveAmmo();
+    }
     public float GetAttackTurnSpeed()
     {
         return turnSpeed;
     }
     public float GetFireInterval()
     {
-        return fireInterval;
+        return fireRate;
     }
     public float GetHoriontalOffset()
     {
-        return horizontalOffset;
+        return dx;
     }
 
     public float GetVerticalOffset()
     {
-        return verticalOffset;
+        return dy;
     }
-
+    public Vector3 GetBulletDirection()
+    {
+        return bulletPos;
+    }
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
