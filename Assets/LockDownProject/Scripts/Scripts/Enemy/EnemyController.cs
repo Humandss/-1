@@ -1,3 +1,4 @@
+using KINEMATION.FPSAnimationPack.Scripts.Sounds;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
@@ -5,10 +6,8 @@ using UnityEngine.AI;
 public interface IGetBulletDirection
 {
     Vector3 GetVectorBetweenPlayerAndEnemy();
-
     Vector3 GetBulletDirection();
     float GetVerticalOffset();
-
     float GetHoriontalOffset();
 
 }
@@ -21,6 +20,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     public NavMeshAgent agent;
     private HealthManager healthManager;
     private EnemyStateMachine fsm;
+    private EnemySound enemySound;
 
     [Header("LayerMasks")]
     private LayerMask layerMask;
@@ -46,11 +46,26 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     [SerializeField] private float horizontalOffset = 0.3f;
     [SerializeField] private float verticalOffset = 0.3f;
     [SerializeField] private float reloadIntrerval = 3.0f;
+    [SerializeField] private float aimDelay = 1.0f;
+
+    [Header("Chase Stats")]
+    [SerializeField] private float searchTime = 15.0f;
+    [SerializeField] private float reachThreshold = 0.5f;
+
+    [Header("Patrol Stats")]
+    [SerializeField] private float patrolRange = 10.0f;
+    [SerializeField] private float patrolTime = 15.0f;
+    [SerializeField] private float patrolWaitTime = 2.0f;
+    private Vector3 patrolP;
+    private int maxPatrolPointTries = 10;
+
     private float dx,dy;
     private float fireRate;
     private Vector3 bulletPos;
     private int ammo;
     private bool isPlayerDetected;
+ 
+
 
     private void Awake()
     {
@@ -66,6 +81,19 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
             Debug.LogWarning("[EnemyController] fsm is NULL");
         }
 
+        enemySound = GetComponent<EnemySound>();
+        if (enemySound == null)
+        {
+            Debug.LogWarning("[EnemyController] enemySound is NULL");
+        }
+
+        agent = GetComponent<NavMeshAgent>();
+        if (agent == null)
+        {
+            Debug.LogWarning("[EnemyController] agent is NULL");
+        }
+        agent.updateRotation = false;
+
         Initialize();
         weapon.EnemeyWeaponInitialize(gameObject);
         // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
@@ -75,6 +103,8 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     {
         idleState = new IdleState(this, fsm);
         attackState= new AttackState(this, fsm);
+        chaseState = new ChaseState(this, fsm);
+        patrolState = new PatrolState(this, fsm);
 
         dx= horizontalOffset;
         dy= verticalOffset;
@@ -149,12 +179,28 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         //Debug.Log("SIGHT SUCCESS");
         return true;
     }
-    public void Fire(Vector3 bulletPos)
+    public void OnFirePressed(Vector3 bulletPos)
     {
-        if(weapon == null) return;
-        this.bulletPos = bulletPos;
-        weapon.EnemyFirePressed();
       
+        if (weapon == null) return;
+
+        this.bulletPos = bulletPos;
+
+
+        weapon.EnemyFirePressed();
+
+    }
+   
+    public void IsEnemyAim(bool isAiming)
+    {
+        enemySound.PlayAimSound(isAiming);
+    }
+    public void PlayWalkSound(bool isWalk)
+    {
+        if (agent.speed <= 0.0f) return;
+
+        if(isWalk) enemySound.PlayWalkSound();
+        else enemySound.PlaySprintSound();
     }
     public void ChangeFireOptionsByPlayerDistance()
     {
@@ -195,6 +241,88 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         }
     }
 
+    public bool GetNextPatrolPosition(out Vector3 patrolPoint)
+    {
+        patrolPoint = patrolP;
+        if (agent == null) return false;
+        //10번 반복해서 포인트 찾음
+        for (int i = 0; i < maxPatrolPointTries; i++)
+        {
+            //x y축만 범위 내에서 랜덤으로 매핑 -> 그걸 다시 vector3로 전환
+            Vector2 rand2D = UnityEngine.Random.insideUnitSphere * patrolRange;
+            Vector3 candidatePos = patrolPoint + new Vector3(rand2D.x, rand2D.y);
+            if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
+            {
+                patrolPoint = hit.position;
+                return true;
+            }
+        }
+
+        return false;
+    }
+    public void FindCover()
+    {
+        if (playerLocation == null || enemyEyes == null) return;
+
+
+
+    }
+
+    public void SetWalkspeed(bool isWalk)
+    {
+        if (agent == null) return;
+        agent.speed = isWalk? walkSpeed : chaseSpeed;
+    }
+    public bool IsMoving()
+    {
+        if (agent == null && agent.velocity.sqrMagnitude > 0.1f) return true;
+        else return false;
+    }
+    public void StopMove()
+    {
+        if (agent == null) return;
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+    }
+    public void MoveTo(Vector3 pos)
+    {
+        if (agent == null) return;
+        agent.isStopped = false;
+        agent.SetDestination(pos);
+    }
+    public bool ReachedDestination()
+    {
+        //경로 계산중이면 false
+        if (agent == null || agent.pathPending) return false;
+
+        if (agent.remainingDistance <= agent.stoppingDistance + reachThreshold)
+        {
+            //도착해서 경로도 없고 속도도 낮으면 도착한 판정
+            if (!agent.hasPath || agent.velocity.sqrMagnitude <= 0.01f) return true;
+        }
+
+        return false;
+          
+    }
+    public void AlignDirection()
+    {
+        if (agent == null) return; 
+
+       Vector3 dir = agent.desiredVelocity;
+       if (dir.sqrMagnitude < 0.01f) return;
+
+       dir.y = 0.0f;
+       dir.Normalize();
+
+       Quaternion targetRot = Quaternion.LookRotation(dir);
+       transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+    }
+    public void SlowRotateSearch()
+    {
+        Vector3 euler = transform.eulerAngles;
+        euler.y += 40.0f * Time.deltaTime; 
+        transform.rotation = Quaternion.Euler(euler);
+    }
     public void ReloadAmmo()
     {
         if (weapon == null) return;
@@ -230,6 +358,10 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     {
         return weapon.GetActiveAmmo();
     }
+    public int GetEnemyMaxAmmo()
+    {
+        return weapon.GetMaxAmmo();
+    }
     public float GetAttackTurnSpeed()
     {
         return turnSpeed;
@@ -250,6 +382,37 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     public Vector3 GetBulletDirection()
     {
         return bulletPos;
+    }
+    public float GetAimDelay()
+    {
+        return aimDelay;
+    }
+    public float GetChasingTime()
+    {
+        return searchTime;
+    }
+    public float GetChasingSpeed()
+    {
+        return chaseSpeed;
+    }
+    public float GetReachThreshold()
+    {
+        return reachThreshold;
+    }
+
+    public float GetPatrolRange()
+    {
+        return patrolRange;
+    }
+
+    public float GetPatrolTime()
+    {
+        return patrolTime;
+    }
+ 
+    public float GetPatrolWaitTime()
+    {
+        return patrolWaitTime;
     }
     void OnDrawGizmosSelected()
     {

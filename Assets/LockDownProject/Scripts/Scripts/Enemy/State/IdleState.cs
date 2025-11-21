@@ -28,11 +28,6 @@ public class IdleState : IState
     }
     public void Enter()
     {
-        if (enemy.agent != null)
-        {
-            Debug.LogWarning("[IdleState] enemy.agent is NULL");
-        }
-
         isTurning = true;
         lastTurnEndTime = Time.time;
     }
@@ -41,10 +36,15 @@ public class IdleState : IState
         //시야에 발견한다면 바로 공격 모드
         if (enemy.IsPlayerInEnemySight())
         {
-            Debug.Log("플레이어 발견 공격!");
+           // Debug.Log("플레이어 발견 공격!");
             fsm.ChangeState(enemy.attackState); 
             return;
-        
+
+        }
+
+        if (enemy.GetEnemyAmmo() != enemy.GetEnemyMaxAmmo())
+        {
+            enemy.ReloadAmmo();
         }
 
         //회전을 하면서 플레이어 탐색

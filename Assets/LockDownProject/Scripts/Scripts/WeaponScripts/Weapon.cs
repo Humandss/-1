@@ -206,6 +206,16 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         {
             Debug.LogWarning("[Weapon]  fireBulletProvider is NULL!");
         }
+        //장전 모션 길이만 체크-> 장전 시간 구현
+        foreach (var clip in weaponSettings.characterController.animationClips)
+        {
+            if (clip.name.Contains("Reload"))
+            {
+                if (clip.name.Contains("Tac")) tacReloadDelay = clip.length;
+                if (clip.name.Contains("Empty")) emptyReloadDelay = clip.length;
+                continue;
+            }
+        }
     }
     public virtual void OnReload()
     {
@@ -355,12 +365,16 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         
     }
 
-    public void EnemyReload()
+    public virtual void EnemyReload()
     {      
         if (activeAmmo == weaponSettings.ammo) return;
         if (isReloading) return;
 
         float delay = activeAmmo == 0 ? emptyReloadDelay : tacReloadDelay;
+
+        if (activeAmmo == 0) weaponSound.PlayWeaponSound(1);
+        else weaponSound.PlayWeaponSound(0);
+
         Invoke(nameof(ResetActiveAmmo), delay * weaponSettings.ammoResetTimeScale);
         isReloading = true;
       

@@ -11,17 +11,18 @@ public class AttackState : IState
     private EnemyStateMachine fsm;
 
     [Header("Stats")]
-    private float fireRate;
+    private float fireTime;
     private float aimAngle;
     private float turnSpeed;
     private float dx, dy;
-    bool isAimed = false;
+    private bool isAimed = false; // 에너미가 플레이어를 향하고 있는가
+    private bool isAiming = false; // 에너미가 조준을 하고 있는가
     private Quaternion startRot;
     private Quaternion targetRot;
     private Vector3 bulletPos;
     private float nextFireTime;
     private int leftAmmo;
-
+   
     public AttackState(EnemyController enemy, EnemyStateMachine fsm)
     {
         this.enemy = enemy;
@@ -30,13 +31,13 @@ public class AttackState : IState
 
     public void Enter()
     {
-        fireRate = enemy.GetFireInterval();
+        fireTime = enemy.GetFireInterval();
         aimAngle = enemy.GetAttackAllowAngle();
         turnSpeed = enemy.GetAttackTurnSpeed();
         dx = enemy.GetHoriontalOffset();
         dy = enemy.GetVerticalOffset();
         leftAmmo = enemy.GetEnemyAmmo();
-
+  
     }
     public void Execute()
     {
@@ -52,13 +53,13 @@ public class AttackState : IState
         //거리가 멀거나 시야에서 놓칠경우 -> 추격상태
         if (distanceToPlayer > enemy.GetDetectionRange() || !enemy.IsPlayerInEnemySight())
         {
-           //fsm.ChangeState(enemy.idleState);
+            fsm.ChangeState(enemy.chaseState);
             return;
         }
 
         isAimed = AimToPlayer();
         enemy.ChangeFireOptionsByPlayerDistance();
-        fireRate = enemy.GetFireInterval();
+        fireTime = enemy.GetFireInterval();
         leftAmmo = enemy.GetEnemyAmmo();
         //총알이 없다면 장전
         if (leftAmmo <= 0)
@@ -66,19 +67,21 @@ public class AttackState : IState
             enemy.ReloadAmmo();
             return;
         }
-
-        if (isAimed && Time.time >= nextFireTime) 
-        {
-            nextFireTime = Time.time + fireRate;
-           // Debug.Log(bulletPos);
-            enemy.Fire(bulletPos);
-            Debug.Log(leftAmmo);
-        }
      
-
+        if(isAimed && !isAiming)
+        {
+            isAiming = true;
+            enemy.IsEnemyAim(isAiming);
+            nextFireTime = Time.time + enemy.GetAimDelay();
+        }
+        if (isAimed && Time.time >= nextFireTime) 
+        { 
+            nextFireTime = Time.time + fireTime; 
+            enemy.OnFirePressed(bulletPos);
+            //Debug.Log(leftAmmo);
+        }
+  
     }
-
-   
 
     private bool AimToPlayer()
     {
@@ -105,8 +108,7 @@ public class AttackState : IState
         Vector3 forward = enemy.GetEnemyEyeLocation().forward;
         forward.y = 0.0f;
         if (forward.sqrMagnitude < 0.0001f)
-        {
-            
+        {         
             return true;
         }
         float angle = Vector3.Angle(forward, dirToPlayer);
@@ -119,6 +121,7 @@ public class AttackState : IState
     }
     public void Exit()
     {
-
+        isAiming = false;
+        enemy.IsEnemyAim(false);
     }
 }
