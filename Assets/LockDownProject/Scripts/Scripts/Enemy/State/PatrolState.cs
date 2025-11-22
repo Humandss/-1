@@ -21,6 +21,8 @@ public class PatrolState : IState
     }
     public void Enter()
     {
+        enemy.PlayPatrolDialogueSound();
+
         patrolTime = enemy.GetPatrolTime();
         waitTime = enemy.GetPatrolWaitTime();
 
@@ -28,12 +30,6 @@ public class PatrolState : IState
     }
     public void Execute()
     {
-        if (enemy.GetPlayerLocation() == null || enemy.GetEnemyEyeLocation() == null)
-        {
-            fsm.ChangeState(enemy.idleState);
-            return;
-        }
-
         patrolTime -= Time.deltaTime;
         //시간이 지나서까지 찾지 못한다면 idle상태로 전환
         if (patrolTime <= 0)
@@ -48,14 +44,6 @@ public class PatrolState : IState
             enemy.PlayWalkSound(true);
         }
 
-        //시야에 발견한다면 바로 공격 모드
-        if (enemy.IsPlayerInEnemySight())
-        {
-            // Debug.Log("플레이어 발견 공격!");
-            fsm.ChangeState(enemy.attackState);
-            return;
-
-        }
         //이동중일 때 -> 방향 정렬 후 이동
         if (!isWaiting)
         {

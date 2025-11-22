@@ -16,7 +16,7 @@ public class AttackState : IState
     private float turnSpeed;
     private float dx, dy;
     private bool isAimed = false; // 에너미가 플레이어를 향하고 있는가
-    private bool isAiming = false; // 에너미가 조준을 하고 있는가
+    private bool prevAimed; // 에너미가 조준을 하고 있는가
     private Quaternion startRot;
     private Quaternion targetRot;
     private Vector3 bulletPos;
@@ -31,23 +31,24 @@ public class AttackState : IState
 
     public void Enter()
     {
+
+        enemy.PlayAttackDialogueSound();
+
         fireTime = enemy.GetFireInterval();
         aimAngle = enemy.GetAttackAllowAngle();
         turnSpeed = enemy.GetAttackTurnSpeed();
         dx = enemy.GetHoriontalOffset();
         dy = enemy.GetVerticalOffset();
         leftAmmo = enemy.GetEnemyAmmo();
-  
+        prevAimed = false;
+
+        
     }
     public void Execute()
     {
-        if (enemy.GetPlayerLocation() == null || enemy.GetEnemyEyeLocation() == null)
-        {
-            fsm.ChangeState(enemy.idleState); 
-            return;
-        }
-        startRot = enemy.transform.rotation;
 
+        startRot = enemy.transform.rotation;
+        
         Vector3 toPlayer = enemy.GetVectorBetweenPlayerAndEnemy();
         float distanceToPlayer = toPlayer.magnitude;
         //거리가 멀거나 시야에서 놓칠경우 -> 추격상태
@@ -58,6 +59,7 @@ public class AttackState : IState
         }
 
         isAimed = AimToPlayer();
+        bool wantAim = isAimed;
         enemy.ChangeFireOptionsByPlayerDistance();
         fireTime = enemy.GetFireInterval();
         leftAmmo = enemy.GetEnemyAmmo();
@@ -68,12 +70,18 @@ public class AttackState : IState
             return;
         }
      
-        if(isAimed && !isAiming)
+        if(wantAim && !prevAimed)
         {
-            isAiming = true;
-            enemy.IsEnemyAim(isAiming);
+            enemy.IsEnemyAim(true);
             nextFireTime = Time.time + enemy.GetAimDelay();
         }
+        else if (!wantAim && prevAimed)
+        {
+            enemy.IsEnemyAim(false);         
+        }
+
+        prevAimed = wantAim;
+
         if (isAimed && Time.time >= nextFireTime) 
         { 
             nextFireTime = Time.time + fireTime; 
@@ -121,7 +129,6 @@ public class AttackState : IState
     }
     public void Exit()
     {
-        isAiming = false;
-        enemy.IsEnemyAim(false);
+        prevAimed = false;
     }
 }

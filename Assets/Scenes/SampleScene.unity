@@ -30273,6 +30273,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83f8c4bb42081374794d188c64423821, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ifakInit:
+    def: {fileID: 11400000, guid: 7e23528034f7dec45b791889b79e0a22, type: 2}
+    startRemaining: 0
+  torInit:
+    def: {fileID: 11400000, guid: 6e7dc9d67c23eb34193af5ab91b513d4, type: 2}
+    startRemaining: 0
+  splintInit:
+    def: {fileID: 11400000, guid: 2dad20bc8007e3c46b0de4890b75ad9b, type: 2}
+    startRemaining: 0
+  cmsInit:
+    def: {fileID: 11400000, guid: 031d2e53b11f44d4b81aad05924e6831, type: 2}
+    startRemaining: 0
   playerLocation: {fileID: 731441118}
   enemyEyes: {fileID: 417739375}
   weapon: {fileID: 1840929457}
@@ -30294,6 +30306,11 @@ MonoBehaviour:
   patrolRange: 10
   patrolTime: 60
   patrolWaitTime: 5
+  retreatAllowRange: 15
+  retreatEnterRatio: 0.4
+  retreatExitRatio: 0.7
+  maxRetreatCount: 2
+  retreatEnterInterval: 5
 --- !u!114 &8818747722817984870
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30362,7 +30379,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
+      value: 0.75
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -30431,6 +30448,34 @@ MonoBehaviour:
   tacSprintDelay: 0.4
   aimInSound: {fileID: 8300000, guid: b7f063ad1558c924c9d335aa79dbc8cb, type: 3}
   aimOutSound: {fileID: 8300000, guid: a0aa5ddeec187eb4a8b26271ce7f9a68, type: 3}
+  attackDialogue:
+  - {fileID: 8300000, guid: 934ae3a32e3115540a409b94bbbd0250, type: 3}
+  - {fileID: 8300000, guid: 48080c60bc6d64d4882f819723c5ac59, type: 3}
+  - {fileID: 8300000, guid: 310e2e29131ab8242959b87e671b92b5, type: 3}
+  - {fileID: 8300000, guid: 6417984acdbb9344f87db01451239898, type: 3}
+  - {fileID: 8300000, guid: efec3b413abbc1949b5a89da82aa915c, type: 3}
+  - {fileID: 8300000, guid: 2bb64791a3a02f64b8e8a69d647bb546, type: 3}
+  patrolDialogue:
+  - {fileID: 8300000, guid: 745c101c90dc95c4e93fe80ee99b46b6, type: 3}
+  - {fileID: 8300000, guid: 34df71c84ad0f26419bda02eb7faa040, type: 3}
+  - {fileID: 8300000, guid: 4b43ed45a0c7b9e4eaa4feea370af132, type: 3}
+  - {fileID: 8300000, guid: f924ce8d5cacf604fb1709c20c99d1e7, type: 3}
+  chaseDialogue:
+  - {fileID: 8300000, guid: cb7ba3156c1f8f7428c8de4d8513674a, type: 3}
+  - {fileID: 8300000, guid: 4015e0e2d9733104283d658337f650a5, type: 3}
+  - {fileID: 8300000, guid: a8d9c14b8b5925748b50f19b2683289e, type: 3}
+  - {fileID: 8300000, guid: d0af599a73bb87146b746bf0f8401d7a, type: 3}
+  - {fileID: 8300000, guid: 8fcb962933ca11044bc4e7483058d29d, type: 3}
+  retreatDialogue:
+  - {fileID: 8300000, guid: 355121514e3888d4b91d92ab66fb6d05, type: 3}
+  - {fileID: 8300000, guid: dc5470a3a8368fc4880153a511d7f464, type: 3}
+  - {fileID: 8300000, guid: eae236c847f1bea42b263d1cb468f35d, type: 3}
+  - {fileID: 8300000, guid: 97327059d1b5f1c409990fbfd784c48a, type: 3}
+  globalCooldown: 1.5
+  attackCooldown: 3
+  chaseCooldown: 3
+  patrolCooldown: 5
+  retreatCooldown: 5
 --- !u!195 &8818747722817984873
 NavMeshAgent:
   m_ObjectHideFlags: 0

@@ -1,7 +1,14 @@
-using KINEMATION.FPSAnimationPack.Scripts.Sounds;
-using Unity.Mathematics;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
+
+[System.Serializable]
+public struct itemInit
+{
+    public ConsumableItems def;
+    public int startRemaining;
+}
 
 public interface IGetBulletDirection
 {
@@ -11,19 +18,25 @@ public interface IGetBulletDirection
     float GetHoriontalOffset();
 
 }
+
 public class EnemyController : MonoBehaviour, IGetBulletDirection
 {
+    [Header("Item Init")]
+    public itemInit ifakInit, torInit, splintInit, cmsInit;
+
     [Header("Refs")]
     [SerializeField] private Transform playerLocation;
     [SerializeField] private Transform enemyEyes;
     [SerializeField] private Weapon weapon;
+   
     public NavMeshAgent agent;
     private HealthManager healthManager;
     private EnemyStateMachine fsm;
     private EnemySound enemySound;
-
+    
     [Header("LayerMasks")]
     private LayerMask layerMask;
+    private IHealthStateProvider healthStateProvider;
 
     [Header("States")]
     public IdleState idleState;
@@ -38,6 +51,9 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     [SerializeField] private float absoluteDetectionRange = 2.0f; // 절대 탐지 거리
     [SerializeField] private float detectionRange = 30.0f;
     [SerializeField] private float detectionAngle = 120.0f; //탐지 각도
+   
+
+
 
     [Header("Attack Stats")]
     [SerializeField] private float turnSpeed = 3.5f;
@@ -56,15 +72,31 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     [SerializeField] private float patrolRange = 10.0f;
     [SerializeField] private float patrolTime = 15.0f;
     [SerializeField] private float patrolWaitTime = 2.0f;
-    private Vector3 patrolP;
     private int maxPatrolPointTries = 10;
 
-    private float dx,dy;
+    [Header("Retreat Stats")]
+    [SerializeField] private float retreatAllowRange = 15.0f;
+    [SerializeField] private float retreatEnterRatio = 0.5f;
+    [SerializeField] private float retreatExitRatio = 0.7f;
+    [SerializeField] private int maxRetreatCount = 2;
+    [SerializeField] private float retreatEnterInterval = 5.0f;
+    private float nextRetreatEnterTick;
+    private int retreatCount = 0;
+    private int maxCoverPointTries = 10;
+  
+
+    [SerializeField] private ConsumableItemManager slot1;
+    [SerializeField] private ConsumableItemManager slot2;
+    [SerializeField] private ConsumableItemManager slot3;
+    [SerializeField] private ConsumableItemManager slot4;
+
+    private float dx, dy;
     private float fireRate;
     private Vector3 bulletPos;
     private int ammo;
     private bool isPlayerDetected;
- 
+    private bool isUsing;
+    private float lastUseStartTime;
 
 
     private void Awake()
@@ -94,6 +126,11 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         }
         agent.updateRotation = false;
 
+        healthStateProvider = healthManager as IHealthStateProvider;
+        if (healthStateProvider == null)
+        {
+            Debug.LogWarning("[EnemyController] healthStateProvider is NULL");
+        }
         Initialize();
         weapon.EnemeyWeaponInitialize(gameObject);
         // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
@@ -102,31 +139,122 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     private void Initialize()
     {
         idleState = new IdleState(this, fsm);
-        attackState= new AttackState(this, fsm);
+        attackState = new AttackState(this, fsm);
         chaseState = new ChaseState(this, fsm);
         patrolState = new PatrolState(this, fsm);
+        retreatState = new RetreatState(this, fsm);
 
-        dx= horizontalOffset;
-        dy= verticalOffset;
-        fireRate =fireInterval;
-        
+        dx = horizontalOffset;
+        dy = verticalOffset;
+        fireRate = fireInterval;
+
     }
-    
+
     private void Start()
     {
         fsm.ChangeState(idleState);
         ammo = weapon.GetActiveAmmo();
+        InitializeItemsSlot();
+    }
+    private void InitializeItemsSlot()
+    {
+        slot1 = InitializeItems(ifakInit);
+        slot2 = InitializeItems(torInit);
+        slot3 = InitializeItems(splintInit);
+        slot4 = InitializeItems(cmsInit);
     }
 
+    private ConsumableItemManager InitializeItems(itemInit init)
+    {
+        if (!init.def) return null;
+
+        int charges = (init.startRemaining > 0)
+       ? init.startRemaining
+       : Mathf.Max(0, init.def.remaining);
+
+        var result = new ConsumableItemManager(init.def, charges);
+       
+        return result;
+    }
+   
     private void Update()
     {
+        if (GetPlayerLocation() == null || GetEnemyEyeLocation() == null)
+        {
+            fsm.ChangeState(idleState);
+            return;
+        }
+
         fsm.Tick();
+
         //Debug.Log(ammo);
         if (IsPlayerInAbsoluteDetectionRange() || IsPlayerInSight()) isPlayerDetected = true;
         else isPlayerDetected = false;
-        
+
+        float hpRatio = healthStateProvider.GetTotalHP() / healthStateProvider.GetMaxHP();
+       // Debug.Log($"[RetreatCheck] state={fsm.CurrentState}, hp={healthStateProvider.GetTotalHP()}/{healthStateProvider.GetMaxHP()}, factor={retreatEnterRatio}");
+        //글로벌 상태) 체력이 일정 수준으로 떨어지면 후퇴상태 전이,
+        //이때 현재 상태가 후퇴상태가 아니어야 함(무한 후퇴 방지)
+        //인터벌을 두어 무한후퇴 방지
+        if (!(fsm.CurrentState is RetreatState) &&
+            hpRatio <= retreatEnterRatio &&
+            Time.time >= nextRetreatEnterTick)
+        {
+            nextRetreatEnterTick = Time.time + retreatEnterInterval;
+           // Debug.Log("[RetreatCheck] >>> RETREAT TRIGGERED <<<");
+            fsm.ChangeState(retreatState);
+            return;
+        }
+        if(!(fsm.CurrentState is RetreatState) && IsPlayerInEnemySight())
+        {
+            fsm.ChangeState(attackState);
+            return ;
+        }
+    }
+    public bool EnemyUseItem(int index, BodyParts? target = null)
+    {
+        //사용중일때도 사용중이니깐 true
+        if (isUsing) return true;
+        var item = GetSlot(index);
+
+        if (item == null || item.remaining <= 0) { Debug.Log("아이템 없음/충전 0"); return false; }
+        //적용할 대상 없으면 return
+        if (!item.CanApplyAll(healthManager, target)) return false;
+
+        StartCoroutine(CoEnemyUseItem(item, target));
+        return true;
+    }
+    private ConsumableItemManager GetSlot(int idx)
+    {
+        switch (idx)
+        {
+            case 1: return slot1;
+            case 2: return slot2;
+            case 3: return slot3;
+            case 4: return slot4;
+            default: return null;
+        }
     }
 
+    private IEnumerator CoEnemyUseItem(ConsumableItemManager item, BodyParts? target)
+    {
+        isUsing = true;
+        lastUseStartTime = Time.time;
+
+        float dur = Mathf.Max(0.05f, item.def.useTime);
+
+        float time = 0.0f;
+        while (time < dur)
+        { 
+            time += Time.deltaTime;
+            yield return null;
+
+        }
+
+        bool ok = item.ApplyAll(healthManager, target);
+        isUsing = false;
+        yield break;
+    }
     //절대 탐지거리
     private bool IsPlayerInAbsoluteDetectionRange()
     {
@@ -159,11 +287,11 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         float distanceToPlayer = toPlayer.magnitude;
 
         if (distanceToPlayer > detectionRange) return false;
-        
+
         //각도 판단 -> 각도는 적 시야 위치(정면)에서 플레이어까지의 거리만큼
         Vector3 dirToPlayer = toPlayer.normalized;
         float angle = Vector3.Angle(enemyEyes.forward, dirToPlayer);
-       // Debug.Log($"angle = {angle}");
+        // Debug.Log($"angle = {angle}");
         // 탐지 각도보다 크면 false
         if (angle > detectionAngle * 0.5f)
         {
@@ -181,7 +309,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     }
     public void OnFirePressed(Vector3 bulletPos)
     {
-      
+
         if (weapon == null) return;
 
         this.bulletPos = bulletPos;
@@ -190,7 +318,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         weapon.EnemyFirePressed();
 
     }
-   
+
     public void IsEnemyAim(bool isAiming)
     {
         enemySound.PlayAimSound(isAiming);
@@ -199,7 +327,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     {
         if (agent.speed <= 0.0f) return;
 
-        if(isWalk) enemySound.PlayWalkSound();
+        if (isWalk) enemySound.PlayWalkSound();
         else enemySound.PlaySprintSound();
     }
     public void ChangeFireOptionsByPlayerDistance()
@@ -243,14 +371,14 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
     public bool GetNextPatrolPosition(out Vector3 patrolPoint)
     {
-        patrolPoint = patrolP;
+        patrolPoint = transform.position;
         if (agent == null) return false;
         //10번 반복해서 포인트 찾음
         for (int i = 0; i < maxPatrolPointTries; i++)
         {
             //x y축만 범위 내에서 랜덤으로 매핑 -> 그걸 다시 vector3로 전환
             Vector2 rand2D = UnityEngine.Random.insideUnitSphere * patrolRange;
-            Vector3 candidatePos = patrolPoint + new Vector3(rand2D.x, rand2D.y);
+            Vector3 candidatePos = patrolPoint + new Vector3(rand2D.x, 0.0f, rand2D.y);
             if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
             {
                 patrolPoint = hit.position;
@@ -260,11 +388,38 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
         return false;
     }
-    public void FindCover()
+    public bool FindCoverPosition(out Vector3 coverPoint)
     {
-        if (playerLocation == null || enemyEyes == null) return;
+        coverPoint = transform.position;
+        if (playerLocation == null || enemyEyes == null || agent == null) return false;
 
+        Vector2 rand2D = UnityEngine.Random.insideUnitSphere * patrolRange;
+        Vector3 candidatePos = coverPoint + new Vector3(rand2D.x, 0.0f, rand2D.y);
 
+        for (int i = 0; i < maxCoverPointTries; i++)
+        {
+            if (NavMesh.SamplePosition(candidatePos, out NavMeshHit coverHit, 1.0f, NavMesh.AllAreas))
+            {
+                Vector3 fromPlayer = coverHit.position - playerLocation.position;
+                float distance = fromPlayer.magnitude;
+           
+                Vector3 dir = fromPlayer / distance;
+                float angle = Vector3.Angle(playerLocation.forward, fromPlayer);
+                //플레이어 뒤쪽 방향은 커버하기 힘듦-> 이 포지션은 제외
+                if (angle > 90.0f) continue;
+
+                if (Physics.Raycast(playerLocation.position, dir, out var hit, distance, ~layerMask))
+                {
+                    if (!hit.transform.CompareTag("Player"))
+                    {
+                        coverPoint = coverHit.position;
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
 
     }
 
@@ -275,8 +430,9 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     }
     public bool IsMoving()
     {
-        if (agent == null && agent.velocity.sqrMagnitude > 0.1f) return true;
-        else return false;
+        if (agent == null) return false;
+
+        return agent.velocity.sqrMagnitude > 0.1f;
     }
     public void StopMove()
     {
@@ -328,6 +484,23 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         if (weapon == null) return;
 
         weapon.EnemyReload();
+    }
+
+    public void PlayAttackDialogueSound()
+    {
+        enemySound.PlayAttackDialogue();
+    }
+    public void PlayChaseDialogueSound()
+    {
+        enemySound.PlayChaseDialogue();
+    }
+    public void PlayPatrolDialogueSound()
+    {
+        enemySound.PlayPatrolDialogue();
+    }
+    public void PlayRetreatDialogueSound()
+    {
+        enemySound.PlayRetreatDialogue();
     }
     public Vector3 GetVectorBetweenPlayerAndEnemy()
     {
@@ -409,11 +582,23 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     {
         return patrolTime;
     }
- 
+    public float GetTotalHP()
+    {
+        return healthStateProvider.GetTotalHP();
+    }
+    public float GetMaxHP()
+    {
+        return healthStateProvider.GetMaxHP();
+    }
+    public float GetRetreatExitRatio()
+    {
+        return retreatExitRatio;
+    }
     public float GetPatrolWaitTime()
     {
         return patrolWaitTime;
     }
+  
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

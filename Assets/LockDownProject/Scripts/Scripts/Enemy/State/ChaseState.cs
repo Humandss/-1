@@ -21,6 +21,8 @@ public class ChaseState : IState
 
     public void Enter()
     {
+        enemy.PlayChaseDialogueSound();
+
         lastPlayerPosition = enemy.GetPlayerLocation().position;
         searchTime = enemy.GetChasingTime();
 
@@ -31,26 +33,15 @@ public class ChaseState : IState
     }
     public void Execute()
     {
-        
-        if (enemy.GetPlayerLocation() == null || enemy.GetEnemyEyeLocation() == null)
+        if (enemy.IsMoving())
         {
-            fsm.ChangeState(enemy.idleState);
-            return;
+            enemy.AlignDirection();
         }
 
-        if(Time.time > nextSprint && enemy.IsMoving())
+        if (Time.time > nextSprint && enemy.IsMoving())
         {
             nextSprint = Time.time + sprintTime;
             enemy.PlayWalkSound(false);
-        }
-
-        //시야에 발견한다면 바로 공격 모드
-        if (enemy.IsPlayerInEnemySight())
-        {
-            // Debug.Log("플레이어 발견 공격!");
-            fsm.ChangeState(enemy.attackState);
-            return;
-
         }
 
         //해당 마지막 위치에서 회전하면서 판단-> 시간 동안 못찾을 경우 순찰 모드 전환

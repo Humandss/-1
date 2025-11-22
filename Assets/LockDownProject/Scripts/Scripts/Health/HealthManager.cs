@@ -734,7 +734,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     public float GetMaxHP()
     {
         float maxHP = 0.0f;
-        foreach (var part in hp)
+        foreach (var part in maxHp)
         {
             maxHP += part.Value;
         }

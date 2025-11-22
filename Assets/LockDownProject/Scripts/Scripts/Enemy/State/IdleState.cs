@@ -33,24 +33,20 @@ public class IdleState : IState
     }
     public void Execute()
     {
-        //시야에 발견한다면 바로 공격 모드
-        if (enemy.IsPlayerInEnemySight())
-        {
-           // Debug.Log("플레이어 발견 공격!");
-            fsm.ChangeState(enemy.attackState); 
-            return;
-
-        }
-
+     
         if (enemy.GetEnemyAmmo() != enemy.GetEnemyMaxAmmo())
         {
             enemy.ReloadAmmo();
         }
-
-        //회전을 하면서 플레이어 탐색
+        if (enemy.GetTotalHP() != enemy.GetMaxHP())
+        {
+            enemy.EnemyUseItem(1);
+        }
+        //회전을 하면서 플레이어 탐색 -> 체력 풀 충전
         if (isTurning)
         {
             UpdateTurn();
+         
         }
         else
         {
