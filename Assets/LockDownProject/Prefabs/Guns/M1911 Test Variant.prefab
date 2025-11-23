@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2707157275641953336
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4870496730778019115}
+  m_Layer: 0
+  m_Name: ShellEjectPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4870496730778019115
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707157275641953336}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0.23067814, w: 0.97303015}
+  m_LocalPosition: {x: 0.0067, y: 0.0057, z: 0.0194}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7395312672238046393}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 26.674}
 --- !u!1 &6405395259981595463
 GameObject:
   m_ObjectHideFlags: 0
@@ -103,6 +134,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1522576034102251883}
+    - targetCorrespondingSourceObject: {fileID: 1734822566465805218, guid: 8e489e7f96cc8a844a939320b2d379d1,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4870496730778019115}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2249710175363591869, guid: 8e489e7f96cc8a844a939320b2d379d1,
         type: 3}
@@ -148,6 +183,12 @@ MonoBehaviour:
   icon_gun: {fileID: 21300022, guid: 5acb27b603af6d44ea6113c4b7b15385, type: 3}
   weaponSettings: {fileID: 11400000, guid: 8459539ebdd80da4597382d1cea0ee22, type: 2}
   aimPoint: {fileID: 3218557214470215373}
+  shellEjectPoint: {fileID: 4870496730778019115}
+  shell: {fileID: 6558314027167338281, guid: f7522547664b0da42acdbd147c5d6de1, type: 3}
+  shellEjectDelay: 0.1
+  shellEjectForce: 0.2
+  shellEjectUpwardForce: 0.1
+  shellEjectTorque: 0.1
   fireMode: 0
   rightHandPose:
     position: {x: 0, y: 0, z: 0}

@@ -14,9 +14,10 @@ public class StatusEffectPostFX : MonoBehaviour
 
     [Header("Providers")]
     private IHealthStateProvider healthStateProvider;
+    private IGetPlayerSuprressionInfo suprressionInfo;
 
     [Header("TunnelVision Options")]
-    [SerializeField, Range(0f, 10f)] private float speed = 0.5f;   
+    [SerializeField, Range(0f, 10.0f)] private float speed = 0.5f;   
     [SerializeField] private float min = 0.25f;
     [SerializeField] private float max = 0.7f;
 
@@ -39,9 +40,16 @@ public class StatusEffectPostFX : MonoBehaviour
     [SerializeField] float bleedSatMin = 0f, bleedSatMax = -0.12f; 
     [SerializeField] float bleedExpMin = 0f, bleedExpMax = -0.10f;
 
-    float iTunnel;  
-    float iBleed;   
+    [Header("Suppression Options")]
+    [SerializeField] private PlayerSuppressionController suppressionController;
+    // 서프레션이 줄 수 있는 최대 추가 강도 (0~1 안으로)
+    [SerializeField, Range(0f, 1f)] private float suppressionMax = 0.5f;
+    // 서프레션이 있을 때 터널비전 맥박 속도 보정
+    [SerializeField] private float suppressionPulseBoost = 2.0f;
 
+    float iTunnel;  
+    float iBleed;
+    float isSuppress;
 
 
     public static AnimationCurve MakeHpCurve(float half = 0.5f, float low = 0.2f, float eps = 0.05f)
@@ -74,6 +82,14 @@ public class StatusEffectPostFX : MonoBehaviour
         {
             Debug.LogWarning("[StatusEffectPostFX]   healthStateProvider is NULL");
         }
+
+ 
+        suprressionInfo = suppressionController as IGetPlayerSuprressionInfo;
+        if (suprressionInfo == null)
+        {
+            Debug.LogWarning("[StatusEffectPostFX] suprressionInfo is NULL");
+        }
+
 
         if (hpCurve == null || hpCurve.length == 0)
             hpCurve = MakeHpCurve(half, low, eps);
@@ -115,16 +131,28 @@ public class StatusEffectPostFX : MonoBehaviour
         iTunnel = Mathf.Clamp01(hpCurve.Evaluate(hp01));
 
         iBleed = CheckBleedingCount();
-        
-        totalWeight = 1.0f - (1.0f - iTunnel) * (1.0f - iBleed);
+
+        if (suppressionController != null)
+        {
+            float sup01 = suprressionInfo.GetSuppression01();   
+            isSuppress = Mathf.Clamp01(sup01 * suppressionMax);  
+        }
+
+        totalWeight = 1.0f - (1.0f - iTunnel) * (1.0f - iBleed) * (1.0f - isSuppress);
 
         volume.weight=  Mathf.MoveTowards(volume.weight, totalWeight, weightLerpSpeed*Time.deltaTime);
 
         float baseVig = Mathf.Lerp(min, max, volume.weight);
 
+        float pulseSpeed = speed;
+        if (isSuppress > 0.0f)
+        {
+            pulseSpeed *= Mathf.Lerp(1.0f, suppressionPulseBoost, isSuppress);
+        }
+
         if (speed > 0.0f && iTunnel > 0.0f)
         {
-            float pulse = 0.5f * (Mathf.Sin(Time.time * speed * Mathf.PI * 2f) + 1f);
+            float pulse = 0.5f * (Mathf.Sin(Time.time * pulseSpeed * Mathf.PI * 2f) + 1f);
             baseVig = Mathf.Lerp(baseVig * 0.9f, baseVig * 1.1f, pulse);
         }
         curVig = Mathf.Lerp(curVig, baseVig, 1.0f - Mathf.Exp(-valueLerpSpeed * Time.deltaTime));

@@ -20,8 +20,6 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
 
     [Header("Refs")]
     public FPSWeaponSettings weaponSettings;
-    public Transform aimPoint;
-    protected GameObject ownerPlayer;
     protected RecoilAnimation recoilAnimation;
     protected WeaponSound weaponSound;
     protected Animator characterAnimator;
@@ -31,6 +29,12 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     private PlayerManager playerManager;
     private WeaponFireController fireController;
     private EnemyController enemyController;
+
+    [Header("Transform")]
+    public Transform aimPoint;
+    protected GameObject ownerPlayer;
+   
+
 
     [Header("Providers")]
     private ICameraAnimation cameraAnimation;
@@ -47,6 +51,14 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     protected static int EQUIP_OVERRIDE = Animator.StringToHash("Equip_Override");
     protected static int UNEQUIP = Animator.StringToHash("UnEquip");
     protected static int IDLE = Animator.StringToHash("Idle");
+
+    [Header("Shell")]
+    [SerializeField] private Transform shellEjectPoint;
+    [SerializeField] private GameObject shell;
+    [SerializeField] private float shellEjectDelay = 0.3f;
+    [SerializeField] private float shellEjectForce = 2.0f;
+    [SerializeField] private float shellEjectUpwardForce = 1.5f;
+    [SerializeField] private float shellEjectTorque = 2.0f;
 
     [Header("Delay")]
     protected float unEquipDelay;
@@ -193,7 +205,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         enemyController = GetComponentInParent<EnemyController>();
         if (enemyController == null)
         {
-            Debug.LogWarning("[Weapon] wenemyController is NULL!");
+            Debug.LogWarning("[Weapon] enemyController is NULL!");
         }
 
         bulletDirection = enemyController as IGetBulletDirection;
@@ -308,6 +320,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
             ? FIREOUT
             : FIRE, -1, 0f);
         fireBulletProvider.FireBullet(true);
+        Invoke(nameof(ShellEject), shellEjectDelay);
         activeAmmo--;
 
         if (fireMode == FireMode.Semi) return;
@@ -358,6 +371,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         if (weaponSound != null) weaponSound.PlayFireSound();
   
         fireBulletProvider.FireBullet(false);
+        Invoke(nameof(ShellEject), shellEjectDelay);
         activeAmmo--;
 
         //if (fireMode == FireMode.Semi) return;
@@ -378,5 +392,29 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         Invoke(nameof(ResetActiveAmmo), delay * weaponSettings.ammoResetTimeScale);
         isReloading = true;
       
+    }
+
+    private void ShellEject()
+    {
+        if (shell == null || shellEjectPoint == null) return;
+
+        // ÅºÇÇ »ý¼º
+        GameObject shellObj = Instantiate(shell, shellEjectPoint.position, shellEjectPoint.rotation);
+
+        Rigidbody rb = shellObj.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            // Æ¢¾î³ª°¡´Â ±âº» ¹æÇâ
+            Vector3 ejectDir = shellEjectPoint.right;
+
+            // »ìÂ¦ À§·Î Æ¢´Â ´À³¦
+            Vector3 force = ejectDir * shellEjectForce + Vector3.up * shellEjectUpwardForce;
+
+            rb.AddForce(force, ForceMode.Impulse);
+
+            // ·£´ý È¸Àü ÅäÅ©
+            Vector3 randomTorque = Random.insideUnitSphere * shellEjectTorque;
+            rb.AddTorque(randomTorque, ForceMode.Impulse);
+        }
     }
 }

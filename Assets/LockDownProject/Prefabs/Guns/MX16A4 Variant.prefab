@@ -31,6 +31,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8874989820529066978}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2216068312977508453
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2883892781160013322}
+  m_Layer: 0
+  m_Name: ShellEjectPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2883892781160013322
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2216068312977508453}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0.09907659, w: 0.9950798}
+  m_LocalPosition: {x: 0.0159, y: -0.0126, z: -0.0077}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8874989820529066978}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 11.372}
 --- !u!1001 &4169988896575675278
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -103,6 +134,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 967112280669699591}
+    - targetCorrespondingSourceObject: {fileID: 4824633892208154732, guid: 30c4d5711db263c4d8aa54889bae18db,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2883892781160013322}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4032086537580138804, guid: 30c4d5711db263c4d8aa54889bae18db,
         type: 3}
@@ -142,6 +177,12 @@ MonoBehaviour:
   icon_gun: {fileID: 21300046, guid: 5acb27b603af6d44ea6113c4b7b15385, type: 3}
   weaponSettings: {fileID: 11400000, guid: b04eccb126612c64f801778e9f9b5c5c, type: 2}
   aimPoint: {fileID: 4143703703342717276}
+  shellEjectPoint: {fileID: 2883892781160013322}
+  shell: {fileID: 5395481807079411917, guid: bd8018d04d01fde4db0b95a6f138edd8, type: 3}
+  shellEjectDelay: 0.1
+  shellEjectForce: 0.2
+  shellEjectUpwardForce: 0.1
+  shellEjectTorque: 0.1
   fireMode: 0
   rightHandPose:
     position: {x: 0, y: 0, z: 0}

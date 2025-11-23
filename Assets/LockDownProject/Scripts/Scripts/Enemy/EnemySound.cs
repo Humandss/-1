@@ -23,10 +23,10 @@ public class EnemySound : MonoBehaviour
 
     [Header("Cooldowns")]
     [SerializeField] private float globalCooldown = 1.5f;   // 아무 말이나 최소 간격
-    [SerializeField] private float attackCooldown = 3.0f;
-    [SerializeField] private float chaseCooldown = 3.0f;
-    [SerializeField] private float patrolCooldown = 5.0f;
-    [SerializeField] private float retreatCooldown = 5.0f;
+    [SerializeField] private float attackCooldown = 7.0f;
+    [SerializeField] private float chaseCooldown = 7.0f;
+    [SerializeField] private float patrolCooldown = 7.0f;
+    [SerializeField] private float retreatCooldown = 12.0f;
 
     private float nextGlobalTime = 0.0f;
     private float lastChaseTime = float.NegativeInfinity;
@@ -54,7 +54,7 @@ public class EnemySound : MonoBehaviour
     {
         if (!isSourceValid)
         {
-            Debug.LogWarning($"Player Audio Source is invalid!");
+            Debug.LogWarning($"Enemy Audio Source is invalid!");
             return false;
         }
 

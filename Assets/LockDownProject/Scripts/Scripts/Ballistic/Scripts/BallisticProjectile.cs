@@ -11,7 +11,7 @@ public class BallisticProjectile : MonoBehaviour
     private HealthManager healthManager;
     private ArmorManager armorManager;
     private LayerMask layerMask;
-
+  
     [Header("Providers")]
     private IBulletSoundProvider bulletSoundProvider;
     private IMaterialInfoProvider materialInfoProvider;
@@ -45,6 +45,9 @@ public class BallisticProjectile : MonoBehaviour
     private float probeDist = 8.0f;// 역방향 탐침 거리
     private float maxDist = 20.0f; //최대 관통 거리
 
+    private bool isPlayerShot = false;
+    private const float nearMissRadius = 3.0f;
+ 
 #if true // 탄 트레일 남기는 로직
     TrailRenderer trailRenderer;
 
@@ -79,10 +82,11 @@ public class BallisticProjectile : MonoBehaviour
         layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default", "Armor");
 
     }
-    public void Initialize(Vector3 position, Vector3 direction)
+    public void Initialize(Vector3 position, Vector3 direction, bool isPlayerBullet)
     {
         //isHitOnce.Clear();
-
+        isPlayerShot = isPlayerBullet;
+     
         pos=position;
         dir=direction.normalized;
         pen = ammo.penetrationPower;
@@ -137,6 +141,7 @@ public class BallisticProjectile : MonoBehaviour
         {
             //매 업데이트마다 총알 방향
             Vector3 segDir = seg / segLen;
+
             if (Physics.Raycast(prevPos, segDir, out var hit, segLen, layerMask, QueryTriggerInteraction.Ignore))
             {
 
@@ -194,6 +199,8 @@ public class BallisticProjectile : MonoBehaviour
                     //Debug.Log($"[HIT] {hit.collider.name} layer={LayerMask.LayerToName(hit.collider.gameObject.layer)} dist={hit.distance:F3}");
                     CheckBulletHitBody(hit);
                     HandleBodyPentration(hit);
+                    CheckHitSuppressionCondition(hit);
+
                     return;
                 }
                 
@@ -250,7 +257,16 @@ public class BallisticProjectile : MonoBehaviour
         //Debug.Log($"pen={pen} speed={speed}");
 
     }
+  
+    private void CheckHitSuppressionCondition(RaycastHit hit)
+    {
+        if (isPlayerShot) return;
 
+        //적이 쏜 총알일 경우 -> 플레이어한테 닿으니깐 플레이어 서프레션 체크
+        var suppression = hit.collider.GetComponentInParent<PlayerSuppressionController>();
+        if (suppression != null) suppression.AddHitSuppression(hit.point);
+        
+    }
     private void HandleTerrainPenetration(RaycastHit hit, Vector3 dirN)
     {
         dirN.Normalize();

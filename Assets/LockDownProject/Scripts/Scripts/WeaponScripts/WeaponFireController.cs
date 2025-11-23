@@ -93,7 +93,7 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
         //총알 스폰 장소 세팅
         Vector3 spawnPos = muzzle.position + dir * 0.01f;
 
-        bullet.Initialize(spawnPos, dir);
+        bullet.Initialize(spawnPos, dir ,isPlayerShot);
     }
   
     public void FireBullet(bool isPlayerShot)
