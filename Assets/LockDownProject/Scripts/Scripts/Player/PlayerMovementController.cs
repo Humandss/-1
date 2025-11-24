@@ -8,6 +8,16 @@ using UnityEngine;
 public class PlayerMovementController : MonoBehaviour
 {
     [SerializeField] private float gravity = 18f;
+    [Header("Height Settings")]
+    private float standHeight = 1.8f;
+    private float crouchHeight = 1.0f;
+    private float proneHeight = 0.1f;
+
+
+    [Header("Radius Settings")]
+    private float defaultRadius = 0.5f;
+    private float proneRadius = 0.2f;
+
 
     private CharacterController cc;
 
@@ -34,6 +44,28 @@ public class PlayerMovementController : MonoBehaviour
 
         cc.Move(totalDir * Time.deltaTime + Vector3.up * jumpValue * Time.deltaTime);
 
+    }
+    public void UpdateCCHeight(MovementMode mode)
+    {
+        if (cc == null) return;
+
+        if (mode.crouch)
+        {
+            cc.height = crouchHeight;
+            cc.radius = defaultRadius;
+        }
+
+        else if (mode.prone)
+        {
+            cc.height = proneHeight;
+            cc.radius = proneRadius;
+        }
+
+        else
+        {
+            cc.height = standHeight;
+            cc.radius = defaultRadius;
+        }
     }
     public bool IsGrounded()
     {

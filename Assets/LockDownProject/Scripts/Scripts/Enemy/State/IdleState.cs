@@ -33,7 +33,9 @@ public class IdleState : IState
     }
     public void Execute()
     {
-     
+
+        if (enemy.GetEnemyDead()) return;
+
         if (enemy.GetEnemyAmmo() != enemy.GetEnemyMaxAmmo())
         {
             enemy.ReloadAmmo();

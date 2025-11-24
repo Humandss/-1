@@ -27,6 +27,8 @@ public class RetreatState : IState
     }
     public void Execute()
     {
+        if (enemy.GetEnemyDead()) return;
+
         float hpRatio = enemy.GetTotalHP() / enemy.GetMaxHP();
 
         if (Time.time > nextSprint && enemy.IsMoving())

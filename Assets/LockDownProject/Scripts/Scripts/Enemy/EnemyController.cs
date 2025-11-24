@@ -51,7 +51,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     [SerializeField] private float absoluteDetectionRange = 2.0f; // 절대 탐지 거리
     [SerializeField] private float detectionRange = 30.0f;
     [SerializeField] private float detectionAngle = 120.0f; //탐지 각도
-   
+    private bool isDead = false;
 
 
 
@@ -186,6 +186,9 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         }
 
         fsm.Tick();
+        //적 사망 판단
+        isDead = healthManager.CheckHP();
+        EnemyDead();
 
         //Debug.Log(ammo);
         if (IsPlayerInAbsoluteDetectionRange() || IsPlayerInSight()) isPlayerDetected = true;
@@ -210,6 +213,22 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
             fsm.ChangeState(attackState);
             return ;
         }
+    }
+    private void EnemyDead()
+    {
+        if(!isDead) return;
+
+        fsm.enabled = false; 
+
+        // NavMeshAgent 정리
+        if (agent != null && agent.enabled && agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+            agent.ResetPath();
+            agent.enabled = false;  
+        }
+
+        Destroy(gameObject, 0.1f);
     }
     public bool EnemyUseItem(int index, BodyParts? target = null)
     {
@@ -425,31 +444,31 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
     public void SetWalkspeed(bool isWalk)
     {
-        if (agent == null) return;
+        if (!CanUseAgent()) return;
         agent.speed = isWalk? walkSpeed : chaseSpeed;
     }
     public bool IsMoving()
     {
-        if (agent == null) return false;
+        if (!CanUseAgent()) return false;
 
         return agent.velocity.sqrMagnitude > 0.1f;
     }
     public void StopMove()
     {
-        if (agent == null) return;
+        if (!CanUseAgent()) return;
         agent.isStopped = true;
         agent.velocity = Vector3.zero;
     }
     public void MoveTo(Vector3 pos)
     {
-        if (agent == null) return;
+        if (!CanUseAgent()) return;
         agent.isStopped = false;
         agent.SetDestination(pos);
     }
     public bool ReachedDestination()
     {
         //경로 계산중이면 false
-        if (agent == null || agent.pathPending) return false;
+        if (!CanUseAgent() || agent.pathPending) return false;
 
         if (agent.remainingDistance <= agent.stoppingDistance + reachThreshold)
         {
@@ -462,7 +481,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     }
     public void AlignDirection()
     {
-        if (agent == null) return; 
+        if (!CanUseAgent()) return; 
 
        Vector3 dir = agent.desiredVelocity;
        if (dir.sqrMagnitude < 0.01f) return;
@@ -598,7 +617,18 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     {
         return patrolWaitTime;
     }
-  
+    private bool CanUseAgent()
+    {
+        if (isDead) return false;
+        if (agent == null) return false;
+        if (!agent.enabled) return false;
+        if (!agent.isOnNavMesh) return false;
+        return true;
+    }
+    public bool GetEnemyDead()
+    {
+        return isDead;
+    }
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

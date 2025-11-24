@@ -33,6 +33,8 @@ public class ChaseState : IState
     }
     public void Execute()
     {
+        if (enemy.GetEnemyDead()) return;
+
         if (enemy.IsMoving())
         {
             enemy.AlignDirection();

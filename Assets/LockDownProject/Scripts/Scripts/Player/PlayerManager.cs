@@ -154,6 +154,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
 
         movementController.UpdateMovement(inputController.Move, speed, canJump, h);
+        movementController.UpdateCCHeight(movementInfo);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
                                   cameraChangeSpeed, mSensitivity, isFreeLook);
 

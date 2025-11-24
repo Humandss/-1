@@ -9,8 +9,8 @@ public class LookSettings : MonoBehaviour
     private IHealthStateProvider healthStateProvider;
 
     [Header("CameraPositionForPosition")]
-    [SerializeField] private float proneCameraPos = 0.5f;
-    [SerializeField] private float crouchCameraPos = 1.0f;
+    [SerializeField] private float proneCameraPos = 1.0f;
+    [SerializeField] private float crouchCameraPos = 1.2f;
     [SerializeField] private float idleCameraPos = 1.65f;
 
     [Header("RotationSpeeds")]

@@ -30,6 +30,8 @@ public class PatrolState : IState
     }
     public void Execute()
     {
+        if (enemy.GetEnemyDead()) return;
+
         patrolTime -= Time.deltaTime;
         //시간이 지나서까지 찾지 못한다면 idle상태로 전환
         if (patrolTime <= 0)

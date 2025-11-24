@@ -698,15 +698,16 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
        
      
     }
-    private void CheckHP()
+    public bool CheckHP()
     {
         totalHP = GetTotalHP();
        
         if (hp[BodyParts.Head] < 0.0f || hp[BodyParts.Thorax] < 0.0f || totalHP <= 0)
         {
-            Debug.Log("»ç¸Á");
+            return true;
         }
         
+        return false;
     }
     public void GetBluntDamage(float bluntDam)
     {

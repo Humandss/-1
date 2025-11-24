@@ -46,6 +46,7 @@ public class AttackState : IState
     }
     public void Execute()
     {
+        if (enemy.GetEnemyDead()) return;
 
         startRot = enemy.transform.rotation;
         
