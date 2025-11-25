@@ -5,6 +5,7 @@ using KINEMATION.KAnimationCore.Runtime.Core;
 using KINEMATION.ProceduralRecoilAnimationSystem.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.UI.GridLayoutGroup;
 
 public interface IGetWeaponAmmoInfoProvider
 {
@@ -213,12 +214,52 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         {
             Debug.LogWarning("[Weapon]  bulletDirection is NULL!");
         }
-            fireBulletProvider = weaponFireController as IFireBulletProvider;
+
+        fireBulletProvider = weaponFireController as IFireBulletProvider;
         if (fireBulletProvider == null)
         {
             Debug.LogWarning("[Weapon]  fireBulletProvider is NULL!");
         }
         //장전 모션 길이만 체크-> 장전 시간 구현
+        foreach (var clip in weaponSettings.characterController.animationClips)
+        {
+            if (clip.name.Contains("Reload"))
+            {
+                if (clip.name.Contains("Tac")) tacReloadDelay = clip.length;
+                if (clip.name.Contains("Empty")) emptyReloadDelay = clip.length;
+                continue;
+            }
+        }
+    }
+    public void TutorialDummyInitialize(GameObject owner)
+    {
+        GameObject ownerDummy = owner;
+
+        activeAmmo = weaponSettings.ammo;
+
+        if (ownerDummy == null)
+        {
+            Debug.LogWarning("[Weapon] ownerPlayer not found!");
+        }
+
+        weaponSound = GetComponentInChildren<WeaponSound>();
+        if (weaponSound == null)
+        {
+            Debug.LogWarning("[Weapon] WeaponSound is NULL!");
+        }
+
+        weaponFireController = GetComponent<WeaponFireController>();
+        if (weaponFireController == null)
+        {
+            Debug.LogWarning("[Weapon] weaponFireController is NULL!");
+        }
+
+        fireBulletProvider = weaponFireController as IFireBulletProvider;
+        if (fireBulletProvider == null)
+        {
+            Debug.LogWarning("[Weapon]  fireBulletProvider is NULL!");
+        }
+
         foreach (var clip in weaponSettings.characterController.animationClips)
         {
             if (clip.name.Contains("Reload"))
@@ -377,6 +418,27 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         //if (fireMode == FireMode.Semi) return;
        // Invoke(nameof(EnemyFire), 60f / weaponSettings.fireRate);
         
+    }
+    public void TutorialDummyPressed()
+    {
+        isFiring = true;
+        TutorialDummyFire();
+    }
+    private void TutorialDummyFire()
+    {
+        if (!isFiring || isReloading) return;
+
+        if (activeAmmo == 0)
+        {
+            EnemyReload();
+            return;
+        }
+
+        if (weaponSound != null) weaponSound.PlayFireSound();
+
+        fireBulletProvider.FireBullet(true);
+        Invoke(nameof(ShellEject), shellEjectDelay);
+        activeAmmo--;
     }
 
     public virtual void EnemyReload()

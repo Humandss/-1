@@ -7,6 +7,7 @@ public class StepData
 {
     public TutorialStep step;
     public GameObject gateWall;
+    public AudioClip tutorialAudio;
 
     [TextArea] public string title;
     [TextArea] public string body;
@@ -15,17 +16,18 @@ public class StepData
 public enum TutorialStep
 {
     Move,
-    Sprint,
-    Jump,
-    Crouch,
-    Prone,
-    Aim,
-    ShootTargets,
+    END_Sprint,
+    END_Jump,
+    END_Crouch,
+    END_Prone,
+    END_ShootTargets,
+    END_Penetration_Terrain,
+    //Penetration_Terrain,
     FirstEnemySpotted,
-    TakeHit,
-    UseMed,
-    ClearRoom,
-    Extract,
+    End_TakeHit,
+    End_UseMed,
+    End_ClearRoom,
+    End_Extract,
     Done
 }
 public class TutorialManager : MonoBehaviour
@@ -36,7 +38,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private PlayerInputController playerInputController;
     [SerializeField] private List<StepData> steps = new List<StepData>();
     private HashSet<TutorialStep> clearedSteps = new HashSet<TutorialStep>();
-
+    private AudioSource audioSource;
 
     private void Awake()
     {
@@ -46,6 +48,12 @@ public class TutorialManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogWarning("[TutorialManager] audioSource is NULL");
+        }
     }
 
     private void Start()
@@ -57,7 +65,9 @@ public class TutorialManager : MonoBehaviour
         var data = steps.Find(s => s.step == step);
         if (data != null && tutorialUI != null)
         {
+            audioSource.PlayOneShot(data.tutorialAudio);
             tutorialUI.Show(data.title, data.body);
+            
         }
     }
 
@@ -71,7 +81,8 @@ public class TutorialManager : MonoBehaviour
         StepData data = steps.Find(s => s.step == step);
         if (data != null && data.gateWall != null)
         {
-            data.gateWall.SetActive(false);  
+            data.gateWall.SetActive(false);
+            audioSource.Stop();
         }
 
         if (tutorialUI != null)
