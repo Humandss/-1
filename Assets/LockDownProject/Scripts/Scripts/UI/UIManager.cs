@@ -116,6 +116,8 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     [SerializeField] float tickInterval = 5.0f;
     float nextTick;
 
+    [SerializeField] private GameObject tutorialPanel;
+
     public bool IsHealthPanelOpen => panel && panel.activeSelf;
 
     private void Awake()
@@ -391,6 +393,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     public void CheckUIPanelOn(bool value)
     {
        panel.SetActive(value);
+       tutorialPanel.SetActive(!value);
        inGamepanel.SetActive(!value);
     }
    

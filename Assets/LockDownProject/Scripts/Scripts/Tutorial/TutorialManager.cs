@@ -16,13 +16,19 @@ public class StepData
 public enum TutorialStep
 {
     Move,
-    END_Sprint,
-    END_Jump,
-    END_Crouch,
-    END_Prone,
-    END_ShootTargets,
-    END_Penetration_Terrain,
-    //Penetration_Terrain,
+    Sprint,
+    Jump,
+    Crouch,
+    Prone,
+    EneterShootingRange,
+    ShootTargets,
+    Penetration_Terrain,
+    Ricochet,
+    Health_Body_Parts,
+    Item_IFAK,
+    Item_Tourniquet,
+    Item_Splint,
+    Item_CMS,
     FirstEnemySpotted,
     End_TakeHit,
     End_UseMed,
@@ -37,8 +43,11 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private TutorialUIManager tutorialUI;
     [SerializeField] private PlayerInputController playerInputController;
     [SerializeField] private List<StepData> steps = new List<StepData>();
+    [SerializeField] private HealthManager healthManager;
     private HashSet<TutorialStep> clearedSteps = new HashSet<TutorialStep>();
     private AudioSource audioSource;
+    [SerializeField] private GameObject dummy1;
+    [SerializeField] private GameObject dummy2;
 
     private void Awake()
     {
@@ -54,15 +63,39 @@ public class TutorialManager : MonoBehaviour
         {
             Debug.LogWarning("[TutorialManager] audioSource is NULL");
         }
+
+    
     }
 
     private void Start()
     {
         StartStep(TutorialStep.Move);
+        dummy1.SetActive(false);
+        dummy2.SetActive(false);
     }
     public void StartStep(TutorialStep step)
     {
         var data = steps.Find(s => s.step == step);
+
+        if (data.step == TutorialStep.Penetration_Terrain) dummy1.SetActive(true);
+        if (data.step == TutorialStep.Ricochet) 
+        {
+            dummy2.SetActive(true);
+            dummy1.SetActive(false);
+        }
+        if (data.step == TutorialStep.Health_Body_Parts) 
+        {
+            Destroy(dummy1);
+            Destroy(dummy2);
+        }
+        if (data.step == TutorialStep.Item_IFAK) healthManager.GetLBleeding();
+
+        if (data.step == TutorialStep.Item_Tourniquet) healthManager.GetHBleeding();
+
+        if (data.step == TutorialStep.Item_Splint) healthManager.GetFracture();
+
+        if (data.step == TutorialStep.Item_CMS) healthManager.GetBlackout();
+
         if (data != null && tutorialUI != null)
         {
             audioSource.PlayOneShot(data.tutorialAudio);

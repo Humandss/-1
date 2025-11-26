@@ -993,4 +993,32 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     {
         return status[part].blackout;
     }
+    public void GetLBleeding()
+    {
+        var s = status[BodyParts.LeftArm];
+        s.light = true;
+        status[BodyParts.LeftArm] = s;
+        MarkDirty(BodyParts.LeftArm);
+    }
+    public void GetHBleeding()
+    {
+        var s = status[BodyParts.LeftArm];
+        s.heavy = true;
+        status[BodyParts.LeftArm] = s;
+        MarkDirty(BodyParts.LeftArm);
+    }
+    public void GetFracture()
+    {
+        var s = status[BodyParts.LeftArm];
+        s.fracture = true;
+        status[BodyParts.LeftArm] = s;
+        MarkDirty(BodyParts.LeftArm);
+    }
+    public void GetBlackout()
+    {
+        var s = hp[BodyParts.LeftArm];
+        s = 0;
+        hp[BodyParts.LeftArm] = s;
+        MarkDirty(BodyParts.LeftArm);
+    }
 }
