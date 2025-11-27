@@ -29,11 +29,8 @@ public enum TutorialStep
     Item_Tourniquet,
     Item_Splint,
     Item_CMS,
-    FirstEnemySpotted,
-    End_TakeHit,
-    End_UseMed,
-    End_ClearRoom,
-    End_Extract,
+    ClearRoom,
+    Extract,
     Done
 }
 public class TutorialManager : MonoBehaviour
@@ -44,6 +41,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private PlayerInputController playerInputController;
     [SerializeField] private List<StepData> steps = new List<StepData>();
     [SerializeField] private HealthManager healthManager;
+    [SerializeField] private Transform extractRoom;
     private HashSet<TutorialStep> clearedSteps = new HashSet<TutorialStep>();
     private AudioSource audioSource;
     [SerializeField] private GameObject dummy1;
@@ -96,6 +94,8 @@ public class TutorialManager : MonoBehaviour
 
         if (data.step == TutorialStep.Item_CMS) healthManager.GetBlackout();
 
+        if (data.step == TutorialStep.ClearRoom) TransportPlayerToExtractRoom();
+
         if (data != null && tutorialUI != null)
         {
             audioSource.PlayOneShot(data.tutorialAudio);
@@ -112,7 +112,7 @@ public class TutorialManager : MonoBehaviour
 
         // 이 단계에 해당하는 게이트 찾기
         StepData data = steps.Find(s => s.step == step);
-        if (data != null && data.gateWall != null)
+        if (data != null)
         {
             data.gateWall.SetActive(false);
             audioSource.Stop();
@@ -135,5 +135,18 @@ public class TutorialManager : MonoBehaviour
 
         return steps[index + 1].step;
 
+    }
+
+    private void TransportPlayerToExtractRoom()
+    {
+        if (extractRoom == null) return;
+
+
+        Invoke(nameof(HideUI), 5.0f);
+   
+    }
+    private void HideUI()
+    { 
+       tutorialUI.Hide();
     }
 }
