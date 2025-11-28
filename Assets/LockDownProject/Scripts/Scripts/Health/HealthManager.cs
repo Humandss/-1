@@ -201,6 +201,10 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
 
             var s = status[parts.Key];
             s.blackout = true;
+
+            if (s.light) s.light = false;
+            if (s.heavy) s.heavy = false;
+
             status[parts.Key] = s;
             MarkDirty(parts.Key);
             /*
@@ -1020,5 +1024,9 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
         s = 0;
         hp[BodyParts.LeftArm] = s;
         MarkDirty(BodyParts.LeftArm);
+    }
+    public void GetInitializeHealth()
+    {
+        InitializeHealthProfile();
     }
 }

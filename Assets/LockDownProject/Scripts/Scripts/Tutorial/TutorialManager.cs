@@ -38,7 +38,8 @@ public class TutorialManager : MonoBehaviour
     public static TutorialManager Instance { get; private set; }
 
     [SerializeField] private TutorialUIManager tutorialUI;
-    [SerializeField] private PlayerInputController playerInputController;
+    [SerializeField] private CharacterController playerCC;
+    [SerializeField] private Transform playerTransform;
     [SerializeField] private List<StepData> steps = new List<StepData>();
     [SerializeField] private HealthManager healthManager;
     [SerializeField] private Transform extractRoom;
@@ -114,7 +115,7 @@ public class TutorialManager : MonoBehaviour
         StepData data = steps.Find(s => s.step == step);
         if (data != null)
         {
-            data.gateWall.SetActive(false);
+            if(data.gateWall !=null) data.gateWall.SetActive(false);
             audioSource.Stop();
         }
 
@@ -139,8 +140,11 @@ public class TutorialManager : MonoBehaviour
 
     private void TransportPlayerToExtractRoom()
     {
-        if (extractRoom == null) return;
+        if (extractRoom == null || playerCC == null || playerTransform == null) return;
 
+        playerCC.enabled = false;
+        playerTransform.SetLocalPositionAndRotation(extractRoom.transform.position, extractRoom.rotation);
+        playerCC.enabled = true;
 
         Invoke(nameof(HideUI), 5.0f);
    
@@ -148,5 +152,21 @@ public class TutorialManager : MonoBehaviour
     private void HideUI()
     { 
        tutorialUI.Hide();
+    }
+    private void ResetPlayer()
+    {
+        Debug.Log("반복실행중");
+        if (extractRoom == null || playerCC == null || playerTransform == null) return;
+
+        playerCC.enabled = false;
+        playerTransform.SetLocalPositionAndRotation(extractRoom.transform.position, extractRoom.rotation);
+        playerCC.enabled = true;
+
+        healthManager.GetInitializeHealth();
+    }
+    private void FixedUpdate()
+    {
+        bool isDead = healthManager.CheckHP();
+        if(isDead) ResetPlayer();
     }
 }

@@ -155,6 +155,8 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         fsm.ChangeState(idleState);
         ammo = weapon.GetActiveAmmo();
         InitializeItemsSlot();
+
+
     }
     private void InitializeItemsSlot()
     {
@@ -299,13 +301,20 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     }
     private bool IsPlayerInSight()
     {
-        if (playerLocation == null || enemyEyes == null) return false;
-
+        if (playerLocation == null || enemyEyes == null)
+        {
+           // Debug.LogWarning($"[{name}] Sight FAIL: null refs. player={playerLocation}, eye={enemyEyes}", this);
+            return false;
+        }
         //거리 판단 -> 탐지 거리보다 크면 false
         Vector3 toPlayer = GetVectorBetweenPlayerAndEnemy();
         float distanceToPlayer = toPlayer.magnitude;
 
-        if (distanceToPlayer > detectionRange) return false;
+        if (distanceToPlayer > detectionRange)
+        {
+            //Debug.Log($"[{name}] Sight FAIL: dist={distanceToPlayer:F2} > range={detectionRange:F2}", this);
+            return false;
+        }
 
         //각도 판단 -> 각도는 적 시야 위치(정면)에서 플레이어까지의 거리만큼
         Vector3 dirToPlayer = toPlayer.normalized;
@@ -314,16 +323,16 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         // 탐지 각도보다 크면 false
         if (angle > detectionAngle * 0.5f)
         {
-            //Debug.Log("SIGHT FAIL: 각도 범위 밖");
+           // Debug.Log("SIGHT FAIL: 각도 범위 밖");
             return false;
         }
         //레이케스트 쏴서 플레이어 쪽에 장애물 있는지 판단
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
-            //Debug.Log($"Raycast hit: {hit.transform.name}");
+           // Debug.Log($"[{name}] Sight FAIL: blocked by {hit.transform.name}");
             if (!hit.transform.CompareTag("Player")) return false;
         }
-        //Debug.Log("SIGHT SUCCESS");
+       // Debug.Log("SIGHT SUCCESS");
         return true;
     }
     public void OnFirePressed(Vector3 bulletPos)
