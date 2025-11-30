@@ -42,7 +42,7 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
         {
             Debug.LogWarning("[WeaponFireController] projectile is NULL");
         }
-        var bullet = Instantiate(projectile);
+  
  
         //총 발사 방향 세팅
         if (isPlayerShot)
@@ -88,11 +88,23 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
                    dir = baseDir;
                }*/
         }
-        
 
         //총알 스폰 장소 세팅
-        Vector3 spawnPos = muzzle.position + dir * 0.01f;
+       Vector3 spawnPos = muzzle.position + dir * 0.01f;
 
+        GameObject bulletObj = PoolManager.Instance.Spawn(projectile.gameObject,spawnPos,Quaternion.LookRotation(dir));
+        if (bulletObj == null)
+        {
+            Debug.LogWarning("[WeaponFireController] bulletObj is NULL from PoolManager");
+            return;
+        }
+
+        var bullet = bulletObj.GetComponent<BallisticProjectile>();
+        if (bullet == null)
+        {
+            Debug.LogWarning("[WeaponFireController] Bullet component is NULL on spawned object");
+            return;
+        }
         bullet.Initialize(spawnPos, dir ,isPlayerShot);
     }
   

@@ -30,7 +30,8 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     private PlayerManager playerManager;
     private WeaponFireController fireController;
     private EnemyController enemyController;
-
+    private ShellManager shellManager;
+ 
     [Header("Transform")]
     public Transform aimPoint;
     protected GameObject ownerPlayer;
@@ -52,7 +53,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     protected static int EQUIP_OVERRIDE = Animator.StringToHash("Equip_Override");
     protected static int UNEQUIP = Animator.StringToHash("UnEquip");
     protected static int IDLE = Animator.StringToHash("Idle");
-
+    
     [Header("Shell")]
     [SerializeField] private Transform shellEjectPoint;
     [SerializeField] private GameObject shell;
@@ -60,7 +61,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     [SerializeField] private float shellEjectForce = 2.0f;
     [SerializeField] private float shellEjectUpwardForce = 1.5f;
     [SerializeField] private float shellEjectTorque = 2.0f;
-
+    
     [Header("Delay")]
     protected float unEquipDelay;
     protected float emptyReloadDelay;
@@ -77,7 +78,7 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
     [HideInInspector] public KTransform rightHandPose;
     [HideInInspector] public KTransform adsPose;
 
- 
+
     public virtual void Initialize(GameObject owner)
     {
         ownerPlayer = owner;
@@ -208,6 +209,8 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         {
             Debug.LogWarning("[Weapon] enemyController is NULL!");
         }
+
+        
 
         bulletDirection = enemyController as IGetBulletDirection;
         if (bulletDirection == null)
@@ -455,13 +458,13 @@ public class Weapon : MonoBehaviour, IGetWeaponAmmoInfoProvider
         isReloading = true;
       
     }
-
+    
     private void ShellEject()
     {
         if (shell == null || shellEjectPoint == null) return;
 
         // ÅºÇÇ »ý¼º
-        GameObject shellObj = Instantiate(shell, shellEjectPoint.position, shellEjectPoint.rotation);
+        GameObject shellObj = PoolManager.Instance.Spawn(shell,shellEjectPoint.position, shellEjectPoint.rotation);
 
         Rigidbody rb = shellObj.GetComponent<Rigidbody>();
         if (rb != null)

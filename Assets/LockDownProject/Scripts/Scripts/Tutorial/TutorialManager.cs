@@ -68,7 +68,7 @@ public class TutorialManager : MonoBehaviour
 
     private void Start()
     {
-        StartStep(TutorialStep.Move);
+        //StartStep(TutorialStep.Move);
         dummy1.SetActive(false);
         dummy2.SetActive(false);
     }

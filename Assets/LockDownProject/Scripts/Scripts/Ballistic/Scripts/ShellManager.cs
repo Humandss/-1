@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class ShellManager : MonoBehaviour
@@ -21,6 +22,7 @@ public class ShellManager : MonoBehaviour
             Debug.LogWarning("[ShellManager] AudioSource is NULL");
         }
         isSourceValid = shellAudioSource != null;
+
         layerMask = LayerMask.GetMask("Floor");
     }
 
@@ -58,6 +60,7 @@ public class ShellManager : MonoBehaviour
 
     private void DestroyShell()
     {
-        Destroy(gameObject);
+        PoolManager.Instance.Return(gameObject);
     }
+    
 }

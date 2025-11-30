@@ -86,8 +86,9 @@ public class BallisticProjectile : MonoBehaviour
     {
         //isHitOnce.Clear();
         isPlayerShot = isPlayerBullet;
-     
-        pos=position;
+        flightTime = 0.0f;
+        prevPos = pos;
+        pos =position;
         dir=direction.normalized;
         pen = ammo.penetrationPower;
         armorDam = ammo.armorDamage;
@@ -101,8 +102,8 @@ public class BallisticProjectile : MonoBehaviour
 
         k = 0.5f * airDensity * ammo.dragCoeff * refArea * invMass;
 
-        transform.SetPositionAndRotation(pos, Quaternion.LookRotation(dir));
-        gameObject.SetActive(true);
+       //transform.SetPositionAndRotation(pos, Quaternion.LookRotation(dir));
+
 
     }
    
@@ -110,7 +111,7 @@ public class BallisticProjectile : MonoBehaviour
     {
         float dt = Time.fixedDeltaTime;
         flightTime += dt;
-        if (flightTime > ammo.lifeTime) { Destroy(gameObject); return; }
+        if (flightTime > ammo.lifeTime) { PoolManager.Instance.Return(gameObject); return; }
 
         prevPos = pos;
         //바람 저항
@@ -247,7 +248,7 @@ public class BallisticProjectile : MonoBehaviour
 
         if (pen <= 0 || speed <= 0)
         {
-            Destroy(gameObject);
+            PoolManager.Instance.Return(gameObject);
         }
 
         pos = hit.point + dir * exit;
@@ -293,7 +294,7 @@ public class BallisticProjectile : MonoBehaviour
         if (!found)
         {
             Debug.Log("관통 실패! (출구 없음)");
-            Destroy(gameObject);
+            PoolManager.Instance.Return(gameObject);
             return;
         }
 
@@ -307,7 +308,7 @@ public class BallisticProjectile : MonoBehaviour
         //관통실패
         if (pen <= 0.0f)
         {
-            Destroy(gameObject);
+            PoolManager.Instance.Return(gameObject);
             return;
         }
 
@@ -337,7 +338,7 @@ public class BallisticProjectile : MonoBehaviour
         {
             healthStateProvider.GetBluntDamage(ammo.bluntDamage);
             armorInfoProvider.HandleArmorDurabilityAfterHit(armorDam, false);
-            Destroy(gameObject);
+            PoolManager.Instance.Return(gameObject);
             return;
         }
         //부분 관통
@@ -349,7 +350,7 @@ public class BallisticProjectile : MonoBehaviour
             {
                 healthStateProvider.GetBluntDamage(ammo.bluntDamage);
                 armorInfoProvider.HandleArmorDurabilityAfterHit(armorDam, false);
-                Destroy(gameObject);
+                PoolManager.Instance.Return(gameObject);
                 return;
             }
              
