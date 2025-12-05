@@ -72,7 +72,7 @@ public class RetreatState : IState
                 else
                 {
                     if (enemy.IsPlayerInEnemySight()) fsm.ChangeState(enemy.attackState);
-  
+                    else fsm.ChangeState(enemy.patrolState);
                 }
             }
         }

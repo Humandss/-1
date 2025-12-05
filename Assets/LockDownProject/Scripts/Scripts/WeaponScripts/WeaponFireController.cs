@@ -13,6 +13,7 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
 {
     [Header("Refs")]
     [SerializeField] private Transform muzzle;
+    [SerializeField] private GameObject muzzleFlash;
     [SerializeField] private BallisticProjectile projectile;
     private Vector3 dir;
 
@@ -106,8 +107,15 @@ public class WeaponFireController : MonoBehaviour, IFireBulletProvider
             return;
         }
         bullet.Initialize(spawnPos, dir ,isPlayerShot);
+        SpawnMuzzleFlash();
     }
-  
+    private void SpawnMuzzleFlash()
+    {
+        if (muzzleFlash == null || muzzle == null) return;
+
+        PoolManager.Instance.Spawn(muzzleFlash, muzzle.position, Quaternion.LookRotation(dir));
+
+    }
     public void FireBullet(bool isPlayerShot)
     {
          Initialize(isPlayerShot);

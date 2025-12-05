@@ -205,6 +205,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   muzzle: {fileID: 967112280669699591}
+  muzzleFlash: {fileID: 7012819153644896469, guid: 3fa89f9c0c0e70240b42da463e0e439d,
+    type: 3}
   projectile: {fileID: 2487843424798778260, guid: 292bbc0fae5b2d64a874546212cd0418,
     type: 3}
 --- !u!4 &4143703703342717276 stripped

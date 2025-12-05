@@ -33,12 +33,12 @@ public class PoolManager : MonoBehaviour
     {
         GameObject obj = Instantiate(prefab);
         instanceToPrefab[obj] = prefab;
-
-        // 풀로 돌아가기 위한 컴포넌트 자동 부착
+        /*
+ 
         var pooled = obj.GetComponent<PooledObject>();
         if (pooled == null)
             pooled = obj.AddComponent<PooledObject>();
-
+        */
         return obj;
     }
 

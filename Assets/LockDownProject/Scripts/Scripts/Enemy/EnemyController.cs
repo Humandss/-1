@@ -155,8 +155,11 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         fsm.ChangeState(idleState);
         ammo = weapon.GetActiveAmmo();
         InitializeItemsSlot();
-
-
+        //기존에 너무 자동차?같은 느낌 없애기 위해서 
+        agent.acceleration = 100.0f;   
+        agent.angularSpeed = 720.0f;   
+        agent.stoppingDistance = 0.05f; 
+        agent.autoBraking = false;  
     }
     private void InitializeItemsSlot()
     {
