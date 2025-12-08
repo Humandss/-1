@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BallisticProjectile : MonoBehaviour
@@ -47,17 +48,18 @@ public class BallisticProjectile : MonoBehaviour
 
     private bool isPlayerShot = false;
     private const float nearMissRadius = 3.0f;
- 
+
+    private HashSet<int> hitTargets = new HashSet<int>();
+
 #if true // 탄 트레일 남기는 로직
     TrailRenderer trailRenderer;
 
     private void Awake()
     {
         trailRenderer = GetComponent<TrailRenderer>();
-        
         trailRenderer.time = 0.45f;              // 궤적이 남아있는 시간
         trailRenderer.minVertexDistance = 0.005f;
-        trailRenderer.startWidth = 0.9f;       // 살짝 굵게
+        trailRenderer.startWidth = 0.5f;       // 살짝 굵게
         trailRenderer.endWidth = 0.0f;
         trailRenderer.emitting = true;
         trailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -66,6 +68,8 @@ public class BallisticProjectile : MonoBehaviour
 #endif
     private void Start()
     {
+        if (trailRenderer != null) trailRenderer.Clear();
+
         bulletSoundController = GetComponent<BulletSoundController>();
         if(bulletSoundController == null)
         {
@@ -78,18 +82,22 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile]  bulletSoundProvide is NULL");
         }
 
-        id = System.Threading.Interlocked.Increment(ref idSeq);
+        
         layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default", "Armor");
 
     }
     public void Initialize(Vector3 position, Vector3 direction, bool isPlayerBullet)
     {
-        //isHitOnce.Clear();
+
+        hitTargets.Clear();
+
+        id = System.Threading.Interlocked.Increment(ref idSeq);
+
         isPlayerShot = isPlayerBullet;
         flightTime = 0.0f;
-        prevPos = pos;
         pos =position;
-        dir=direction.normalized;
+        prevPos = pos;
+        dir =direction.normalized;
         pen = ammo.penetrationPower;
         armorDam = ammo.armorDamage;
 
@@ -399,9 +407,14 @@ public class BallisticProjectile : MonoBehaviour
     }
     private void CheckBulletHitBody(RaycastHit hit)
     {
+        //이미 한번 맞춘 몸이라면 return/ 같은 탄이 관통하면 중첩 대미지 주는거 방지
+        int targetID = hit.collider.GetInstanceID();
+
+        if (!hitTargets.Add(targetID)) return;
+
         GetHealthManager(hit);
 
-        healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier, speed, pen, id);
+        healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier, speed, pen);
         healthStateProvider.CheckEffectTrigger(hit.collider, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
        
     }

@@ -18,7 +18,7 @@ public interface IHealthStateProvider
     bool GetIsRightArmBlackout();
     bool GetIsLeftLegBlackout();
     bool GetIsRightLegBlackout();
-    void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen, int bulletId);
+    void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen);
     void CheckEffectTrigger(Collider col, float lightBleedingChance, float heavyBleedingChance, float fractureChance);
 
 
@@ -94,7 +94,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     float afterSpeed = 0.0f;
 
     //같은 콜라이더 중첩으로 때리는거(관통 했을 경우) 방지하는 헤쉬셋
-    private readonly HashSet<int> isHitOnce = new HashSet<int>();
+    //private readonly HashSet<int> isHitOnce = new HashSet<int>();
 
     //public event System.Action<PartSnapshot> OnPartChanged;                 
     public event System.Action<IReadOnlyList<PartSnapshot>> OnBatchChanged; // 한 틱에 여러 부위 갱신
@@ -188,7 +188,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             nextTick = Time.time + tickInterval;
             CheckBleedingEffects();
             CheckBlackoutEffects();
-           // Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
+            if(!areYouPlayer)
+            {
+                Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
+            }
+                
             
         }
        
@@ -256,11 +260,11 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
            */
         }
     }
-    public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen, int bulletId)
+    public void CheckBodyHit(Collider col, float ammoDamage, float ammoCriticalChance, float ammoCriticalDamMul, float speed, float pen)
     {
        // Debug.Log($"[HIT] {col.name} layer={LayerMask.LayerToName(col.gameObject.layer)}");
         //한번 맞은 총알은 대미지X
-        if (!isHitOnce.Add(bulletId)) return;
+        //if (!isHitOnce.Add(bulletId)) return;
 
         float totalDamage = CalculateDamage(ammoDamage, ammoCriticalChance, ammoCriticalDamMul);
        
@@ -651,13 +655,13 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
                     //머리와 흉부는 초과 대미지 받을시 -로 => 사망
                     if (parts == BodyParts.Head)
                     {
-                        hp[parts] -= 1.0f;
+                        hp[parts] = -1.0f;
                         MarkDirty(parts);
 
                     }
                     else if (parts == BodyParts.Thorax)
                     {
-                        hp[parts] -= 1.0f;
+                        hp[parts] = -1.0f;
                         MarkDirty(parts);
                     }
                     else hp[parts] = 0.0f; MarkDirty(parts);
@@ -717,14 +721,16 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     {
         
         float distributeDam = bluntDam / (float)GetAllParts().Count;
-
+        DistributeDamageToOtherParts(distributeDam);
+        /*
         var parts = GetAllParts();
         //Debug.Log(distributeDam);
         foreach (var part in parts)
         {
-            hp[part] = Mathf.Max(0, hp[part] - distributeDam); 
+            //hp[part] = Mathf.Max(0, hp[part] - distributeDam); 
+            DistributeDamageToOtherParts(distributeDam);
             MarkDirty(part);
-        }
+        }*/
      }
     public float GetTotalHP()
     {

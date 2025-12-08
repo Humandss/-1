@@ -24,13 +24,13 @@ MonoBehaviour:
   tracer: 0
   baseRicochetAngleDeg: 30
   afterRicochetEnergyPercent: 0.5
-  randomRicochetAngle: 0.28
+  randomRicochetAngle: 0.35
   damage: 72
   criticalChance: 0.015
   criticalDamMultiplier: 0.15
   bluntDamage: 10
   armorDamage: 35
-  lightBleedingChance: 0.09
-  heavyBleedingChance: 0.05
-  fractureChance: 0.03
+  lightBleedingChance: 0.1
+  heavyBleedingChance: 0.08
+  fractureChance: 0.05
   lifeTime: 10

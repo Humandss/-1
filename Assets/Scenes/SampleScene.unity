@@ -14007,6 +14007,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
         type: 3}
+      propertyPath: fireInterval
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
+        type: 3}
       propertyPath: playerLocation
       value: 
       objectReference: {fileID: 731441118}

@@ -155,7 +155,7 @@ public class TutorialManager : MonoBehaviour
     }
     private void ResetPlayer()
     {
-        Debug.Log("반복실행중");
+        //Debug.Log("반복실행중");
         if (extractRoom == null || playerCC == null || playerTransform == null) return;
 
         playerCC.enabled = false;
