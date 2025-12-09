@@ -22,6 +22,10 @@ public class MaterialManager : MonoBehaviour, IMaterialInfoProvider
 
         if (profile.materialType == MaterialType.Wood) return 0.3f;
 
+        if (profile.materialType == MaterialType.Body) return 0.0f;
+
+        if (profile.materialType == MaterialType.Head) return 0.0f;
+
         return 0.5f;
     }
 

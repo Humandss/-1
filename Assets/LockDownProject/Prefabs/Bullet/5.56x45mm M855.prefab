@@ -180,6 +180,16 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 062d68ebe6dc5e3499863f556684e15f, type: 3}
   - {fileID: 8300000, guid: a6d96048ff34fb84f82ce7667ecb2310, type: 3}
   bulletFlyBySounds: []
+  bodyImpactSounds:
+  - {fileID: 8300000, guid: 95708d3c736f3734bbd50c03a1cbaad7, type: 3}
+  - {fileID: 8300000, guid: ae7baccce6fc4ed40bae6af34a122206, type: 3}
+  - {fileID: 8300000, guid: b8a7c4379ec25ee408309bfeea9af1e0, type: 3}
+  - {fileID: 8300000, guid: c3c6f4d122b798c4fb0ea28e235e6f7a, type: 3}
+  headImpactSounds:
+  - {fileID: 8300000, guid: 82fc7c8d053f16f4fb4e9c00830fbac5, type: 3}
+  - {fileID: 8300000, guid: 28aee3d61e53e4e4aa4ecfdc9dcc142d, type: 3}
+  - {fileID: 8300000, guid: a356ed8a4ef7d4846b2a4da2174d913b, type: 3}
+  - {fileID: 8300000, guid: b7e3bb63fff64234597b885b2062c0e7, type: 3}
 --- !u!82 &370691792379888124
 AudioSource:
   m_ObjectHideFlags: 0

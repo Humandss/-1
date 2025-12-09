@@ -468,6 +468,7 @@ GameObject:
   m_Component:
   - component: {fileID: 27573519}
   - component: {fileID: 27573520}
+  - component: {fileID: 27573521}
   m_Layer: 10
   m_Name: left_arm
   m_TagString: Untagged
@@ -513,6 +514,20 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &27573521
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27573518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &28132898
 GameObject:
   m_ObjectHideFlags: 0
@@ -2213,6 +2228,7 @@ GameObject:
   m_Component:
   - component: {fileID: 108444134}
   - component: {fileID: 108444135}
+  - component: {fileID: 108444136}
   m_Layer: 10
   m_Name: left_hand
   m_TagString: Untagged
@@ -2256,6 +2272,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.03, y: 0.5, z: 0.2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &108444136
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 108444133}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &108901016
 GameObject:
   m_ObjectHideFlags: 0
@@ -2436,6 +2466,7 @@ GameObject:
   m_Component:
   - component: {fileID: 113029421}
   - component: {fileID: 113029422}
+  - component: {fileID: 113029423}
   m_Layer: 11
   m_Name: right_forearm
   m_TagString: Untagged
@@ -2481,6 +2512,20 @@ CapsuleCollider:
   m_Height: 0.7
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &113029423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 113029420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &116498450
 GameObject:
   m_ObjectHideFlags: 0
@@ -3638,6 +3683,7 @@ GameObject:
   m_Component:
   - component: {fileID: 161333570}
   - component: {fileID: 161333571}
+  - component: {fileID: 161333572}
   m_Layer: 13
   m_Name: right_foot
   m_TagString: Untagged
@@ -3681,6 +3727,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.09, y: 0.15, z: 0.27}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &161333572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161333569}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &167585786
 GameObject:
   m_ObjectHideFlags: 0
@@ -3893,6 +3953,7 @@ GameObject:
   m_Component:
   - component: {fileID: 172640839}
   - component: {fileID: 172640840}
+  - component: {fileID: 172640841}
   m_Layer: 11
   m_Name: right_hand
   m_TagString: Untagged
@@ -3936,6 +3997,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.03, y: 0.5, z: 0.2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &172640841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172640838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &177574302
 GameObject:
   m_ObjectHideFlags: 0
@@ -5142,6 +5217,7 @@ GameObject:
   m_Component:
   - component: {fileID: 238545665}
   - component: {fileID: 238545666}
+  - component: {fileID: 238545667}
   m_Layer: 9
   m_Name: thorax
   m_TagString: Untagged
@@ -5185,6 +5261,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3, y: 0.3, z: 0.2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &238545667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238545664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &240408536
 GameObject:
   m_ObjectHideFlags: 0
@@ -6482,6 +6572,7 @@ GameObject:
   m_Component:
   - component: {fileID: 327780486}
   - component: {fileID: 327780487}
+  - component: {fileID: 327780488}
   m_Layer: 11
   m_Name: right_arm
   m_TagString: Untagged
@@ -6527,6 +6618,20 @@ CapsuleCollider:
   m_Height: 0.9
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &327780488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 327780485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -7317,6 +7422,7 @@ GameObject:
   m_Component:
   - component: {fileID: 369751955}
   - component: {fileID: 369751956}
+  - component: {fileID: 369751957}
   m_Layer: 13
   m_Name: right_shin
   m_TagString: Untagged
@@ -7362,6 +7468,20 @@ CapsuleCollider:
   m_Height: 0.8
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &369751957
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 369751954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &370767032
 GameObject:
   m_ObjectHideFlags: 0
@@ -12081,6 +12201,7 @@ GameObject:
   m_Component:
   - component: {fileID: 710901641}
   - component: {fileID: 710901642}
+  - component: {fileID: 710901643}
   m_Layer: 9
   m_Name: thorax_back
   m_TagString: Untagged
@@ -12124,6 +12245,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3, y: 0.2, z: 0.1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &710901643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710901640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &711821756
 GameObject:
   m_ObjectHideFlags: 0
@@ -12481,11 +12616,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Enemy_with_M1911 (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 1287204935894237204, guid: 4885863274605584591b89d05d340343,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1915932809162873518, guid: 4885863274605584591b89d05d340343,
         type: 3}
@@ -14008,22 +14138,37 @@ PrefabInstance:
     - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
         type: 3}
       propertyPath: fireInterval
-      value: 1.5
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
         type: 3}
       propertyPath: playerLocation
       value: 
       objectReference: {fileID: 731441118}
+    - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
+        type: 3}
+      propertyPath: verticalOffset
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
+        type: 3}
+      propertyPath: horizontalOffset
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
+        type: 3}
+      propertyPath: burstShotInterval
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2639984137324521456, guid: cbb05d16bc7f46f4099957b10607ad60,
+        type: 3}
+      propertyPath: nextBurstShotTime
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8661371735085036944, guid: cbb05d16bc7f46f4099957b10607ad60,
         type: 3}
       propertyPath: m_Name
       value: Enemy_with_M16A4 (9)
-      objectReference: {fileID: 0}
-    - target: {fileID: 8661371735085036944, guid: cbb05d16bc7f46f4099957b10607ad60,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14640,6 +14785,7 @@ GameObject:
   m_Component:
   - component: {fileID: 833077508}
   - component: {fileID: 833077509}
+  - component: {fileID: 833077510}
   m_Layer: 13
   m_Name: right_thigh
   m_TagString: Untagged
@@ -14685,6 +14831,20 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &833077510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 833077507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &850344050
 GameObject:
   m_ObjectHideFlags: 0
@@ -15570,6 +15730,7 @@ GameObject:
   m_Component:
   - component: {fileID: 893642155}
   - component: {fileID: 893642156}
+  - component: {fileID: 893642157}
   m_Layer: 12
   m_Name: left_foot
   m_TagString: Untagged
@@ -15613,6 +15774,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.09, y: 0.15, z: 0.27}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &893642157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 893642154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &894891003
 GameObject:
   m_ObjectHideFlags: 0
@@ -17658,6 +17833,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1023982356}
   - component: {fileID: 1023982357}
+  - component: {fileID: 1023982358}
   m_Layer: 7
   m_Name: head
   m_TagString: Untagged
@@ -17703,6 +17879,20 @@ CapsuleCollider:
   m_Height: 0.28
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1023982358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023982355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 979f733b43a78ef47a1d326e52ea3584, type: 2}
+  penetrable: 1
 --- !u!1 &1024203097
 GameObject:
   m_ObjectHideFlags: 0
@@ -25226,6 +25416,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1432651151}
   - component: {fileID: 1432651152}
+  - component: {fileID: 1432651153}
   m_Layer: 9
   m_Name: thorax_back_neck
   m_TagString: Untagged
@@ -25269,6 +25460,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3, y: 0.08, z: 0.1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1432651153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1432651150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!4 &1439778914 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3354143721162612517, guid: 18f13e9f0284d0a41a64a62b7cdc0f3b,
@@ -26565,6 +26770,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1508168719}
   - component: {fileID: 1508168720}
+  - component: {fileID: 1508168721}
   m_Layer: 10
   m_Name: left_forearm
   m_TagString: Untagged
@@ -26610,6 +26816,20 @@ CapsuleCollider:
   m_Height: 0.7
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1508168721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1508168718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &1510126012
 GameObject:
   m_ObjectHideFlags: 0
@@ -29171,6 +29391,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1661950633}
   - component: {fileID: 1661950634}
+  - component: {fileID: 1661950635}
   m_Layer: 12
   m_Name: left_thigh
   m_TagString: Untagged
@@ -29216,6 +29437,20 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1661950635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661950632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &1663306420
 GameObject:
   m_ObjectHideFlags: 0
@@ -32777,6 +33012,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1815032312}
   - component: {fileID: 1815032313}
+  - component: {fileID: 1815032314}
   m_Layer: 12
   m_Name: left_shin
   m_TagString: Untagged
@@ -32822,6 +33058,20 @@ CapsuleCollider:
   m_Height: 0.8
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1815032314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1815032311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &1822291896
 GameObject:
   m_ObjectHideFlags: 0
@@ -33096,6 +33346,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1828334140}
   - component: {fileID: 1828334141}
+  - component: {fileID: 1828334142}
   m_Layer: 8
   m_Name: stomach
   m_TagString: Untagged
@@ -33139,6 +33390,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.27, y: 0.3, z: 0.2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1828334142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828334139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe83ac9c4c000354baa004bc6e1fe148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
+  penetrable: 1
 --- !u!1 &1830354200
 GameObject:
   m_ObjectHideFlags: 0

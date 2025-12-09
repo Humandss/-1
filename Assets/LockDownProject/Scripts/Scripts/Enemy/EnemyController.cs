@@ -33,7 +33,8 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     private HealthManager healthManager;
     private EnemyStateMachine fsm;
     private EnemySound enemySound;
-    
+    private Coroutine burstRoutine;
+
     [Header("LayerMasks")]
     private LayerMask layerMask;
     private IHealthStateProvider healthStateProvider;
@@ -63,6 +64,12 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     [SerializeField] private float verticalOffset = 0.3f;
     [SerializeField] private float reloadIntrerval = 3.0f;
     [SerializeField] private float aimDelay = 1.0f;
+
+    [Header("Burst stats")]
+    [SerializeField] private bool isBursting = false;      // 지금 3점사 중인지
+    [SerializeField] private int burstShotsLeft = 0;      // 이번 버스트에서 남은 탄 수
+    [SerializeField] private float burstShotInterval = 0.5f; // 버스트 안에서 총알 사이 간격(초)
+    [SerializeField] private float nextBurstShotTime = 2.0f;  // 다음 발사 시각
 
     [Header("Chase Stats")]
     [SerializeField] private float searchTime = 15.0f;
@@ -371,12 +378,20 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         if (distance <= detectionRange && distance > detectionRange * 0.8f)
         {
             fireRate = 2.0f;
+            dx *= 1.5f;
+            dy *= 1.5f;
+
+        }
+
+        else if (distance <= detectionRange * 0.8f && distance > detectionRange * 0.6f)
+        {
+            fireRate = 1.5f;
             dx *= 1.2f;
             dy *= 1.2f;
 
         }
 
-        else if (distance <= detectionRange * 0.8f && distance > detectionRange * 0.6f)
+        else if (distance <= detectionRange * 0.6f && distance > detectionRange * 0.3f)
         {
             fireRate = 1.0f;
             dx *= 1.0f;
@@ -384,17 +399,9 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
         }
 
-        else if (distance <= detectionRange * 0.6f && distance > detectionRange * 0.3f)
-        {
-            fireRate = 0.8f;
-            dx *= 0.8f;
-            dy *= 0.8f;
-
-        }
-
         else if (distance <= detectionRange * 0.3f && distance > detectionRange * 0.0f)
         {
-            fireRate = 0.3f;
+            fireRate = 0.75f;
             dx *= 0.8f;
             dy *= 0.8f;
         }
@@ -453,7 +460,26 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         return false;
 
     }
+    public void TryStartBurst(Vector3 bulletPos)
+    {
+        if (burstRoutine != null) return;
 
+        burstRoutine = StartCoroutine(BurstRoutine(bulletPos));
+    }
+
+    private IEnumerator BurstRoutine(Vector3 bulletPos)
+    {
+        int shots = Mathf.Min(3, GetEnemyAmmo());
+
+        for (int i = 0; i < shots; i++)
+        {
+            OnFirePressed(bulletPos);
+            yield return new WaitForSeconds(burstShotInterval);
+        }
+
+        yield return new WaitForSeconds(fireInterval);
+        burstRoutine = null;
+    }
     public void SetWalkspeed(bool isWalk)
     {
         if (!CanUseAgent()) return;

@@ -7,7 +7,8 @@ public enum MaterialType
     Metal,
     Armor,
     Wood,
-    Human,
+    Body,
+    Head,
     None,
 
 }

@@ -93,6 +93,7 @@ public class BallisticProjectile : MonoBehaviour
 
         id = System.Threading.Interlocked.Increment(ref idSeq);
 
+        ricochetChance = 0;
         isPlayerShot = isPlayerBullet;
         flightTime = 0.0f;
         pos =position;
@@ -120,7 +121,7 @@ public class BallisticProjectile : MonoBehaviour
         float dt = Time.fixedDeltaTime;
         flightTime += dt;
         if (flightTime > ammo.lifeTime) { PoolManager.Instance.Return(gameObject); return; }
-
+        
         prevPos = pos;
         //바람 저항
         Vector3 vRel = velocity - windWorld;
@@ -228,11 +229,27 @@ public class BallisticProjectile : MonoBehaviour
         {
             bulletSoundController.PlayMetalImpactSound(hit.point);
         }
+      
         if (GetMaterialName(hit.collider) == "Floor" || GetMaterialName(hit.collider) == "Concrete" || GetMaterialName(hit.collider) == "Kevlar" || GetMaterialName(hit.collider) == "Compsite_Armor")
         {
             bulletSoundController.PlayDefaultImpactSound(hit.point);
         }
        
+    }
+    private void PlaySoundHitHuman(RaycastHit hit)
+    {
+        if (GetMaterialName(hit.collider) == "Body")
+        {
+            bulletSoundController.PlayBodyImpactSound(hit.point);
+            Debug.Log("몸통 맞음");
+
+        }
+        if (GetMaterialName(hit.collider) == "Head")
+        {
+            bulletSoundController.PlayHeadImpactSound(hit.point);
+            Debug.Log("머리 맞음");
+
+        }
     }
     private void HandleBodyPentration(RaycastHit hit)
     {
@@ -416,7 +433,7 @@ public class BallisticProjectile : MonoBehaviour
 
         healthStateProvider.CheckBodyHit(hit.collider, ammo.damage, ammo.criticalChance, ammo.criticalDamMultiplier, speed, pen);
         healthStateProvider.CheckEffectTrigger(hit.collider, ammo.lightBleedingChance, ammo.heavyBleedingChance, ammo.fractureChance);
-       
+        PlaySoundHitHuman(hit);
     }
     private float GetMaterialRicochetFactor(Collider col, float defaultFactor = 0.5f)
     {

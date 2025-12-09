@@ -28,6 +28,9 @@ public class BulletSoundController : MonoBehaviour,IBulletSoundProvider
     [Header("Bullet Fly By Sound")]
     [SerializeField] private List<AudioClip> bulletFlyBySounds;
 
+    [Header("Human Impact Sound")]
+    [SerializeField] private List<AudioClip> bodyImpactSounds;
+    [SerializeField] private List<AudioClip> headImpactSounds;
 
     private void Awake()
     {
@@ -60,6 +63,16 @@ public class BulletSoundController : MonoBehaviour,IBulletSoundProvider
     public void PlayMetalImpactSound(Vector3 hitPoint)
     {
         AudioSource.PlayClipAtPoint(GetRandomAudioClip(metalImpactSounds), hitPoint);
+        return;
+    }
+    public void PlayBodyImpactSound(Vector3 hitPoint)
+    {
+        AudioSource.PlayClipAtPoint(GetRandomAudioClip(bodyImpactSounds), hitPoint);
+        return;
+    }
+    public void PlayHeadImpactSound(Vector3 hitPoint)
+    {
+        AudioSource.PlayClipAtPoint(GetRandomAudioClip(headImpactSounds), hitPoint);
         return;
     }
 }

@@ -24,7 +24,7 @@ MonoBehaviour:
   tracer: 0
   baseRicochetAngleDeg: 20
   afterRicochetEnergyPercent: 0.75
-  randomRicochetAngle: 3
+  randomRicochetAngle: 2
   damage: 57
   criticalChance: 0.035
   criticalDamMultiplier: 0.25
