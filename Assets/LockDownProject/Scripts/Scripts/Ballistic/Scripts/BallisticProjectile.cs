@@ -7,6 +7,7 @@ public class BallisticProjectile : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private BulletInfo ammo;
+    [SerializeField] private GameObject metalImpactVFX;
     private BulletSoundController bulletSoundController;
     private MaterialManager materialManager;
     private HealthManager healthManager;
@@ -51,7 +52,7 @@ public class BallisticProjectile : MonoBehaviour
 
     private HashSet<int> hitTargets = new HashSet<int>();
 
-#if true // 탄 트레일 남기는 로직
+#if true// 탄 트레일 남기는 로직
     TrailRenderer trailRenderer;
 
     private void Awake()
@@ -92,7 +93,7 @@ public class BallisticProjectile : MonoBehaviour
         hitTargets.Clear();
 
         id = System.Threading.Interlocked.Increment(ref idSeq);
-
+        isPenetratingTerrain = false;
         ricochetChance = 0;
         isPlayerShot = isPlayerBullet;
         flightTime = 0.0f;
@@ -172,6 +173,7 @@ public class BallisticProjectile : MonoBehaviour
                     {
                         HandleRicochet(hit, segDir);
                         bulletSoundProvider.PlayRicochetSound();
+                        SpawnImpactVfx(hit);
                         return;
                     }
                     else
@@ -179,6 +181,7 @@ public class BallisticProjectile : MonoBehaviour
                         isPenetratingTerrain = true;
                         PlaySoundByMaterialName(hit);
                         HandleTerrainPenetration(hit, segDir);
+                        SpawnImpactVfx(hit);
                         return;
                     }
 
@@ -192,15 +195,20 @@ public class BallisticProjectile : MonoBehaviour
                         HandleRicochet(hit, segDir);
                         bulletSoundProvider.PlayRicochetSound();
                         HandleArmorDamageAfterRicochet(hit);
+                        SpawnImpactVfx(hit);
                         return;
                     }
                     else
                     {
                         PlaySoundByMaterialName(hit);
                         HandleArmorPenetration(hit);
+                        SpawnImpactVfx(hit);
                         return;
                     }
+
                     
+
+
                 }
                 //그외 사람한테 닿았을 경우
                 else
@@ -222,7 +230,17 @@ public class BallisticProjectile : MonoBehaviour
         }
         
     }
+    private void SpawnImpactVfx(RaycastHit hit)
+    {
+        if (GetMaterialName(hit.collider) != "Metal" && GetMaterialName(hit.collider) != "Steel_Plate") return;
+        
+        if (metalImpactVFX == null) return;
 
+        var rot = Quaternion.LookRotation(hit.normal);
+        var vfx = Instantiate(metalImpactVFX, hit.point+hit.normal*exit, rot);
+        //Debug.Log("발생");
+        Destroy(vfx, 0.16f);
+    }
     private void PlaySoundByMaterialName(RaycastHit hit)
     {
         if (GetMaterialName(hit.collider) == "Metal" || GetMaterialName(hit.collider) == "Steel_Plate")
@@ -299,9 +317,9 @@ public class BallisticProjectile : MonoBehaviour
 
         GetMaterialManager(hit.collider);
         // 바닥은 관통 x
-        if (materialInfoProvider.GetMaterialType() == MaterialType.Floor) { Destroy(gameObject); return; }
+        if (materialInfoProvider.GetMaterialType() == MaterialType.Floor) { PoolManager.Instance.Return(gameObject); return; }
         //관통 불가능한 오브젝트라면 파괴
-        if(!materialInfoProvider.GetIsPentrable()) { Destroy(gameObject); return; }
+        if(!materialInfoProvider.GetIsPentrable()) { PoolManager.Instance.Return(gameObject); return; }
 
         RaycastHit exitHit;
         bool found = false;
