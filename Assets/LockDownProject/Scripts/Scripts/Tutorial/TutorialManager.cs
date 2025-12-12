@@ -166,7 +166,7 @@ public class TutorialManager : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        bool isDead = healthManager.CheckHP();
+        bool isDead = healthManager.CheckIsDead();
         if(isDead) ResetPlayer();
     }
 }

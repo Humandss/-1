@@ -14,7 +14,7 @@ public class TutorialDummy : MonoBehaviour
 
     private void Update()
     {
-        bool isDie = healthManager.CheckHP();
+        bool isDie = healthManager.CheckIsDead();
         if (isDie) Destroy(gameObject);
     }
 }

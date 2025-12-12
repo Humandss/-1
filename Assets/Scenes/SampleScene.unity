@@ -1695,6 +1695,7 @@ GameObject:
   - component: {fileID: 96261553}
   - component: {fileID: 96261554}
   - component: {fileID: 96261555}
+  - component: {fileID: 96261556}
   m_Layer: 20
   m_Name: Player
   m_TagString: Player
@@ -2140,6 +2141,21 @@ MonoBehaviour:
   tutorialUI: {fileID: 1665471478}
   titleText: {fileID: 1830354202}
   bodyText: {fileID: 567806261}
+--- !u!114 &96261556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96261525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf6fd03eb4db27641868468aba874b33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 96261552}
+  heartbeatClip: {fileID: 8300000, guid: 4103f70985074214191f50bcfca5f9b4, type: 3}
+  startThreshold: 0.5
 --- !u!1001 &105866507
 PrefabInstance:
   m_ObjectHideFlags: 0

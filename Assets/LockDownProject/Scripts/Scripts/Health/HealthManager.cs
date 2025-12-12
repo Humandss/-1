@@ -182,7 +182,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
     private void FixedUpdate()
     {
         NotifyDirty();
-        CheckHP();
+        CheckIsDead();
         if (Time.time >= nextTick)
         {
             nextTick = Time.time + tickInterval;
@@ -706,7 +706,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
        
      
     }
-    public bool CheckHP()
+    public bool CheckIsDead()
     {
         totalHP = GetTotalHP();
        

@@ -199,7 +199,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
         fsm.Tick();
         //Àû »ç¸Á ÆÇ´Ü
-        isDead = healthManager.CheckHP();
+        isDead = healthManager.CheckIsDead();
         EnemyDead();
 
         //Debug.Log(ammo);

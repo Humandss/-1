@@ -76,7 +76,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         {
             Debug.LogWarning("[PlayerController] uiManager is NULL");
         }
-
+  
         stateProvider = player as IStateProvider;
         if (stateProvider == null)
         {
@@ -105,6 +105,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             tacticalSprint = inputController.TacSprint,
 
         };
+
         //ui 활성화시 움직임 제한
         isUIOn = inputController.UIClick;
         uIStateProvider.CheckUIPanelOn(isUIOn);

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 
-public class MuzzleFlashAutoReturn : MonoBehaviour
+public class EffectsAutoReturn : MonoBehaviour
 {
     private ParticleSystem particle;
 

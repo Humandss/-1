@@ -8,6 +8,7 @@ public class BallisticProjectile : MonoBehaviour
     [Header("Refs")]
     [SerializeField] private BulletInfo ammo;
     [SerializeField] private GameObject metalImpactVFX;
+    [SerializeField] private GameObject hitSmoke;
     private BulletSoundController bulletSoundController;
     private MaterialManager materialManager;
     private HealthManager healthManager;
@@ -173,17 +174,19 @@ public class BallisticProjectile : MonoBehaviour
                     {
                         HandleRicochet(hit, segDir);
                         bulletSoundProvider.PlayRicochetSound();
-                        SpawnImpactVfx(hit);
-                        return;
+                        
                     }
                     else
                     {
                         isPenetratingTerrain = true;
                         PlaySoundByMaterialName(hit);
                         HandleTerrainPenetration(hit, segDir);
-                        SpawnImpactVfx(hit);
-                        return;
+                      
                     }
+                    SpawnImpactVfx(hit);
+                    SpawnImpactSmoke(hit);
+
+                    return;
 
                 }
                 //사람이 착용한 방탄판에 닿았을경우
@@ -195,18 +198,18 @@ public class BallisticProjectile : MonoBehaviour
                         HandleRicochet(hit, segDir);
                         bulletSoundProvider.PlayRicochetSound();
                         HandleArmorDamageAfterRicochet(hit);
-                        SpawnImpactVfx(hit);
-                        return;
+                        
                     }
                     else
                     {
                         PlaySoundByMaterialName(hit);
                         HandleArmorPenetration(hit);
-                        SpawnImpactVfx(hit);
-                        return;
+                                        
                     }
+                    SpawnImpactVfx(hit);
+                    SpawnImpactSmoke(hit);
 
-                    
+                    return;
 
 
                 }
@@ -230,6 +233,14 @@ public class BallisticProjectile : MonoBehaviour
         }
         
     }
+    private void SpawnImpactSmoke(RaycastHit hit)
+    {
+        if (hitSmoke == null) return;
+
+        var rot = Quaternion.LookRotation(hit.normal);
+        PoolManager.Instance.Spawn(hitSmoke, hit.point + hit.normal * exit, rot);
+ 
+    }
     private void SpawnImpactVfx(RaycastHit hit)
     {
         if (GetMaterialName(hit.collider) != "Metal" && GetMaterialName(hit.collider) != "Steel_Plate") return;
@@ -237,9 +248,7 @@ public class BallisticProjectile : MonoBehaviour
         if (metalImpactVFX == null) return;
 
         var rot = Quaternion.LookRotation(hit.normal);
-        var vfx = Instantiate(metalImpactVFX, hit.point+hit.normal*exit, rot);
-        //Debug.Log("발생");
-        Destroy(vfx, 0.16f);
+        PoolManager.Instance.Spawn(metalImpactVFX, hit.point + hit.normal * exit, rot);
     }
     private void PlaySoundByMaterialName(RaycastHit hit)
     {
