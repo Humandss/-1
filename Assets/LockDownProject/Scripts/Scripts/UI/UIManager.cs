@@ -66,6 +66,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     private MovementSettings movementSettings;
     private Player player;
     private Weapon weapon;
+    private HealthSound healthSound;
 
     private IPlayerMoveInfoProvider playerMoveInfoProvider;
     private IGetActiveWeaponProvider activeWeaponProvider;
@@ -115,8 +116,11 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     [Header("Time")]
     [SerializeField] float tickInterval = 5.0f;
     float nextTick;
-
+    [Header("Tutorial")]
     [SerializeField] private GameObject tutorialPanel;
+
+    [Header("Dead")]
+    [SerializeField] private GameObject deadPanel;
 
     public bool IsHealthPanelOpen => panel && panel.activeSelf;
 
@@ -155,6 +159,11 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         if (playerMoveInfoProvider == null)
         {
             Debug.LogWarning("[UIManager] playerMoveInfoProvider is NULL");
+        }
+        healthSound = GetComponent<HealthSound>();
+        if (healthSound == null)
+        {
+            Debug.LogWarning("[UIManager] healthSound is NULL");
         }
         
         map = new Dictionary<BodyParts, PartRowRefs>();
@@ -200,6 +209,13 @@ public class UIManager : MonoBehaviour, IUIStateProvider
             nextTick = Time.time + tickInterval;
             checkAmmoPanel.SetActive(false);
         }
+
+        if (healthManager.CheckIsDead())
+        {
+            deadPanel.SetActive(true);
+        }
+
+        else deadPanel.SetActive(false);
     }
     private void InitializeItemsSlot()
     {
@@ -231,6 +247,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         inGameIconBlackout.SetActive(false);
         itemPanel.SetActive(false);
         checkAmmoPanel.SetActive(false);
+        deadPanel.SetActive(false);
 
     }
  

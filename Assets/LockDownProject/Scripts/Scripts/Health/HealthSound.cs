@@ -6,13 +6,14 @@ public class HealthSound : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private HealthManager health;
-    [SerializeField] private AudioClip heartbeatClip;  // 여기 클립만 넣으면 됨
+    [SerializeField] private AudioClip heartbeatClip;
+    [SerializeField] private AudioClip deadClip;
+    private AudioSource heartbeatSource;
+    private AudioSource deadSource;
 
     [Header("Settings")]
     [SerializeField, Range(0f, 1f)]
-    private float startThreshold = 0.3f;   // 체력 30% 이하면 심장 소리 ON
-
-    private AudioSource heartbeatSource;
+    private float startThreshold = 0.3f;   // 체력 임계점
 
     private void Awake()
     {
@@ -27,13 +28,41 @@ public class HealthSound : MonoBehaviour
         heartbeatSource.clip = heartbeatClip;
         heartbeatSource.loop = true;
         heartbeatSource.playOnAwake = false;
-        heartbeatSource.spatialBlend = 0f; // 2D
+        heartbeatSource.spatialBlend = 0f;
         heartbeatSource.volume = 1f;
+
+        deadSource = gameObject.AddComponent<AudioSource>();
+        deadSource.clip = deadClip;
+        deadSource.loop = true;
+        deadSource.playOnAwake = false;
+        deadSource.spatialBlend = 0f;
+        deadSource.volume = 1f;
+
     }
 
     private void Update()
     {
-        // 기본 방어
+        PlayHeartBeatSound();
+        PlayDeadSound();
+
+    }
+    private void PlayDeadSound()
+    {
+        if (health == null || heartbeatSource == null || heartbeatClip == null)
+            return;
+
+        if(health.CheckIsDead())
+        {
+            if (!deadSource.isPlaying) deadSource.Play();             
+        }
+        else
+        {
+            deadSource.Stop();
+        }
+    }
+
+    private void PlayHeartBeatSound()
+    {
         if (health == null || heartbeatSource == null || heartbeatClip == null)
             return;
 

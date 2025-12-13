@@ -128,6 +128,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             };
             MarkDirty(p.parts);
         }
+        NotifyDirty();
         /*
         headHP = health.headHP;
         thoraxHP = health.thoraxHP;
@@ -206,8 +207,8 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             var s = status[parts.Key];
             s.blackout = true;
 
-            if (s.light) s.light = false;
-            if (s.heavy) s.heavy = false;
+           // if (s.light) s.light = false;
+           // if (s.heavy) s.heavy = false;
 
             status[parts.Key] = s;
             MarkDirty(parts.Key);

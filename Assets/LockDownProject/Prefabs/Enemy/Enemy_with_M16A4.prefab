@@ -4459,11 +4459,15 @@ MonoBehaviour:
   detectionAngle: 110
   turnSpeed: 3.5
   aimAngleAllow: 5
-  fireInterval: 3.5
-  horizontalOffset: 2.5
-  verticalOffset: 2.5
+  fireInterval: 2
+  horizontalOffset: 2
+  verticalOffset: 2
   reloadIntrerval: 3
   aimDelay: 1
+  isBursting: 0
+  burstShotsLeft: 0
+  burstShotInterval: 0.1
+  nextBurstShotTime: 1
   searchTime: 5
   reachThreshold: 0.5
   patrolRange: 10

@@ -1669,6 +1669,10 @@ MonoBehaviour:
   verticalOffset: 1
   reloadIntrerval: 3
   aimDelay: 1
+  isBursting: 0
+  burstShotsLeft: 0
+  burstShotInterval: 1.5
+  nextBurstShotTime: 2
   searchTime: 5
   reachThreshold: 0.5
   patrolRange: 10

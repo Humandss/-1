@@ -162,6 +162,10 @@ public class TutorialManager : MonoBehaviour
         playerTransform.SetLocalPositionAndRotation(extractRoom.transform.position, extractRoom.rotation);
         playerCC.enabled = true;
 
+        Invoke(nameof(InitializeHealth), 5.0f);
+    }
+    private void InitializeHealth()
+    {
         healthManager.GetInitializeHealth();
     }
     private void FixedUpdate()

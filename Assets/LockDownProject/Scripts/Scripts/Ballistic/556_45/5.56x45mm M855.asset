@@ -30,7 +30,7 @@ MonoBehaviour:
   criticalDamMultiplier: 0.25
   bluntDamage: 20
   armorDamage: 37
-  lightBleedingChance: 0.1
-  heavyBleedingChance: 0.08
-  fractureChance: 0.08
+  lightBleedingChance: 0.3
+  heavyBleedingChance: 0.25
+  fractureChance: 0.2
   lifeTime: 4
