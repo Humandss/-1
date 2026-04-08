@@ -33,6 +33,11 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     bool isMainWeapon;
     bool isCheckLeftAmmo;
 
+    private void Start()
+    {
+        ApplyCursorState(true);
+    }
+
     private void Awake()
     {
         inputController = GetComponent<PlayerInputController>();
@@ -109,6 +114,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         //ui 활성화시 움직임 제한
         isUIOn = inputController.UIClick;
         uIStateProvider.CheckUIPanelOn(isUIOn);
+        ApplyCursorState(!isUIOn);
         if (isUIOn) return;
     
 
@@ -162,6 +168,19 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
 
         camSettings.UpdateFOVandCameraShake();
 
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus) return;
+
+        ApplyCursorState(!inputController.UIClick);
+    }
+
+    private static void ApplyCursorState(bool lockCursor)
+    {
+        Cursor.lockState = lockCursor ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !lockCursor;
     }
     private void CheckLeftAmmo(bool isCheck, float speed)
     {

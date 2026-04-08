@@ -6,6 +6,10 @@ using UnityEngine;
 
 public class WeaponSound : MonoBehaviour
 {
+    [Header("Volume")]
+    [SerializeField] private float fireSfxVolume = 1.0f;
+    [SerializeField] private float weaponEventSfxVolume = 1.0f;
+
     private FPSWeaponSettings settings;
     private AudioSource audioSource;
 
@@ -29,13 +33,13 @@ public class WeaponSound : MonoBehaviour
         }
 
         audioSource.pitch = Random.Range(settings.firePitchRange.x, settings.firePitchRange.y);
-        audioSource.volume = Random.Range(settings.fireVolumeRange.x, settings.fireVolumeRange.y);
         //audioSource.PlayOneShot(FPSPlayerSound.GetRandomAudioClip(settings.fireSounds));
 
         var clip = FPSPlayerSound.GetRandomAudioClip(settings.fireSounds);
         if (clip != null)
         {
-            audioSource.PlayOneShot(clip);
+            float baseVolume = Random.Range(settings.fireVolumeRange.x, settings.fireVolumeRange.y);
+            audioSource.PlayOneShot(clip, baseVolume * fireSfxVolume);
         }
     }
 
@@ -53,6 +57,6 @@ public class WeaponSound : MonoBehaviour
             return;
         }
 
-        audioSource.PlayOneShot(settings.weaponEventSounds[clipIndex]);
+        audioSource.PlayOneShot(settings.weaponEventSounds[clipIndex], weaponEventSfxVolume);
     }
 }

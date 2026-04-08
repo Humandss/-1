@@ -146,7 +146,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2249710175363591869, guid: 8e489e7f96cc8a844a939320b2d379d1,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3101787193292413750}
+      addedObject: {fileID: 1321600502090409769}
     - targetCorrespondingSourceObject: {fileID: 1394008405709340952, guid: 8e489e7f96cc8a844a939320b2d379d1,
         type: 3}
       insertIndex: -1
@@ -189,6 +189,8 @@ MonoBehaviour:
   shellEjectForce: 0.2
   shellEjectUpwardForce: 0.1
   shellEjectTorque: 0.1
+  emptyFireSoundIndex: 2
+  emptyFireSoundCooldown: 0.08
   fireMode: 0
   rightHandPose:
     position: {x: 0, y: 0, z: 0}
@@ -198,7 +200,7 @@ MonoBehaviour:
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 0}
     scale: {x: 0, y: 0, z: 0}
---- !u!114 &3101787193292413750
+--- !u!114 &1321600502090409769
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -207,7 +209,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7028620536768362918}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44e855a49da24684eb1003d06494d1f7, type: 3}
+  m_Script: {fileID: 11500000, guid: 94b3e7482f8f96447977ab3c4ec9af64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   muzzle: {fileID: 1522576034102251883}
@@ -239,6 +241,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65a5f624f5b7a514f89e6393985d66b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fireSfxVolume: 3
+  weaponEventSfxVolume: 1
 --- !u!82 &7830629424899916461
 AudioSource:
   m_ObjectHideFlags: 0

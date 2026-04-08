@@ -191,7 +191,7 @@ public class HealthManager : MonoBehaviour,IHealthStateProvider, IGetFactorAfter
             CheckBlackoutEffects();
             if(!areYouPlayer)
             {
-                Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
+                //Debug.Log($"머리 체력 : {hp[BodyParts.Head]}, 흉부 체력 : {hp[BodyParts.Thorax]}, 복부 체력 :{hp[BodyParts.Stomach]}");
             }
                 
             

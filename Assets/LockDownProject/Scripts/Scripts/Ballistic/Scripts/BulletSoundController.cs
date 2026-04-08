@@ -16,6 +16,13 @@ public class BulletSoundController : MonoBehaviour,IBulletSoundProvider
 {
     private AudioSource bulletAudioSource;
 
+    [Header("Volume")]
+    [SerializeField, Range(0f, 2f)] private float ricochetVolume = 1.0f;
+    [SerializeField, Range(0f, 2f)] private float defaultImpactVolume = 1.0f;
+    [SerializeField, Range(0f, 2f)] private float metalImpactVolume = 1.0f;
+    [SerializeField, Range(0f, 2f)] private float bodyImpactVolume = 1.0f;
+    [SerializeField, Range(0f, 2f)] private float headImpactVolume = 1.0f;
+
     [Header("Ricochet Sound")]
     [SerializeField] private List<AudioClip> ricochetSounds;
 
@@ -47,32 +54,44 @@ public class BulletSoundController : MonoBehaviour,IBulletSoundProvider
     }
     private static AudioClip GetRandomAudioClip(List<AudioClip> audioClips)
     {
-        int index = Random.Range(0, audioClips.Count - 1);
+        if (audioClips == null || audioClips.Count == 0) return null;
+        int index = Random.Range(0, audioClips.Count);
         return audioClips[index];
     }
     public void PlayRicochetSound()
     {
-        bulletAudioSource.PlayOneShot(GetRandomAudioClip(ricochetSounds));
+        if (bulletAudioSource == null) return;
+        AudioClip clip = GetRandomAudioClip(ricochetSounds);
+        if (clip == null) return;
+        bulletAudioSource.PlayOneShot(clip, ricochetVolume);
         return;
     }
     public void PlayDefaultImpactSound(Vector3 hitPoint)
     {
-        AudioSource.PlayClipAtPoint(GetRandomAudioClip(defaultImpactSounds), hitPoint);
+        AudioClip clip = GetRandomAudioClip(defaultImpactSounds);
+        if (clip == null) return;
+        AudioSource.PlayClipAtPoint(clip, hitPoint, defaultImpactVolume);
         return;
     }
     public void PlayMetalImpactSound(Vector3 hitPoint)
     {
-        AudioSource.PlayClipAtPoint(GetRandomAudioClip(metalImpactSounds), hitPoint);
+        AudioClip clip = GetRandomAudioClip(metalImpactSounds);
+        if (clip == null) return;
+        AudioSource.PlayClipAtPoint(clip, hitPoint, metalImpactVolume);
         return;
     }
     public void PlayBodyImpactSound(Vector3 hitPoint)
     {
-        AudioSource.PlayClipAtPoint(GetRandomAudioClip(bodyImpactSounds), hitPoint);
+        AudioClip clip = GetRandomAudioClip(bodyImpactSounds);
+        if (clip == null) return;
+        AudioSource.PlayClipAtPoint(clip, hitPoint, bodyImpactVolume);
         return;
     }
     public void PlayHeadImpactSound(Vector3 hitPoint)
     {
-        AudioSource.PlayClipAtPoint(GetRandomAudioClip(headImpactSounds), hitPoint);
+        AudioClip clip = GetRandomAudioClip(headImpactSounds);
+        if (clip == null) return;
+        AudioSource.PlayClipAtPoint(clip, hitPoint, headImpactVolume);
         return;
     }
 }

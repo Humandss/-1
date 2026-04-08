@@ -16,6 +16,7 @@ MonoBehaviour:
     type: 2}
   recoilAnimData: {fileID: 11400000, guid: 92673ffc2b52cbe49b5ca835e895cc09, type: 2}
   cameraShake: {fileID: 11400000, guid: 51e31a48fd04bce48a71191e26e85118, type: 2}
+  rotationOffset: {x: 0.70710677, y: 0, z: 0, w: 0.70710677}
   ikOffset: {x: 0, y: 0, z: 0}
   leftClavicleOffset: {x: 0, y: 0, z: 0}
   rightClavicleOffset: {x: 0, y: 0, z: 0}
@@ -25,6 +26,7 @@ MonoBehaviour:
   fireRate: 450
   ammo: 7
   aimFov: 60
+  ammoResetTimeScale: 1
   fullAuto: 0
   useFireClip: 0
   hasEquipOverride: 0
@@ -40,3 +42,4 @@ MonoBehaviour:
   weaponEventSounds:
   - {fileID: 8300000, guid: bc82ba36c26d3a54ebf758dc4cd7fd1d, type: 3}
   - {fileID: 8300000, guid: 10409535ce860be4fb2c327aa0e390c1, type: 3}
+  - {fileID: 8300000, guid: da92ad48f5c7d594ca4f163a936fda53, type: 3}

@@ -6,7 +6,6 @@ public class TutorialShoot : MonoBehaviour
 {
     [SerializeField] private Weapon weapon;
     [SerializeField] private float shootTick;
-    private WeaponFireController weaponFireController;
     private float nextTick;
 
     private void Awake()

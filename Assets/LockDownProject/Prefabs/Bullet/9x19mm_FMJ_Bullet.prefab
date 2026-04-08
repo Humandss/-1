@@ -46,6 +46,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ammo: {fileID: 11400000, guid: 5ed8e5bb8dd927d48aff1cbe54d9b7e6, type: 2}
+  metalImpactVFX: {fileID: 0}
+  hitSmoke: {fileID: 1997017898088194, guid: b72790a19c8d6894ca12b5c63ffc10b5, type: 3}
 --- !u!96 &9122503636527201114
 TrailRenderer:
   serializedVersion: 3

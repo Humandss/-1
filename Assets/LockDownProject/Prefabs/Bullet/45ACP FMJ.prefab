@@ -50,8 +50,7 @@ MonoBehaviour:
   ammo: {fileID: 11400000, guid: 96069db8ee716dc4abe7a3d44b5b83db, type: 2}
   metalImpactVFX: {fileID: 616415416099729619, guid: 080f285a30ccb7c42aecb1daf04ace84,
     type: 3}
-  hitSmoke: {fileID: 7585795796421847938, guid: 9d7ea330d69cdcf4bb4627275c8c1c17,
-    type: 3}
+  hitSmoke: {fileID: 1997017898088194, guid: b72790a19c8d6894ca12b5c63ffc10b5, type: 3}
 --- !u!96 &4021191341837868933
 TrailRenderer:
   serializedVersion: 3

@@ -49,9 +49,9 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     [Header("Stats")]
     [SerializeField] private float walkSpeed = 2.5f;
     [SerializeField] private float chaseSpeed = 5.5f;
-    [SerializeField] private float absoluteDetectionRange = 2.0f; // Àı´ë Å½Áö °Å¸®
+    [SerializeField] private float absoluteDetectionRange = 2.0f; // ì ˆëŒ€ íƒì§€ ê±°ë¦¬
     [SerializeField] private float detectionRange = 30.0f;
-    [SerializeField] private float detectionAngle = 120.0f; //Å½Áö °¢µµ
+    [SerializeField] private float detectionAngle = 120.0f; //íƒì§€ ê°ë„
     private bool isDead = false;
 
 
@@ -66,10 +66,10 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     [SerializeField] private float aimDelay = 1.0f;
 
     [Header("Burst stats")]
-    [SerializeField] private bool isBursting = false;      // Áö±İ 3Á¡»ç ÁßÀÎÁö
-    [SerializeField] private int burstShotsLeft = 0;      // ÀÌ¹ø ¹ö½ºÆ®¿¡¼­ ³²Àº Åº ¼ö
-    [SerializeField] private float burstShotInterval = 0.5f; // ¹ö½ºÆ® ¾È¿¡¼­ ÃÑ¾Ë »çÀÌ °£°İ(ÃÊ)
-    [SerializeField] private float nextBurstShotTime = 2.0f;  // ´ÙÀ½ ¹ß»ç ½Ã°¢
+    [SerializeField] private bool isBursting = false;      // ì§€ê¸ˆ 3ì ì‚¬ ì¤‘ì¸ì§€
+    [SerializeField] private int burstShotsLeft = 0;      // ì´ë²ˆ ë²„ìŠ¤íŠ¸ì—ì„œ ë‚¨ì€ íƒ„ ìˆ˜
+    [SerializeField] private float burstShotInterval = 0.5f; // ë²„ìŠ¤íŠ¸ ì•ˆì—ì„œ ì´ì•Œ ì‚¬ì´ ê°„ê²©(ì´ˆ)
+    [SerializeField] private float nextBurstShotTime = 2.0f;  // ë‹¤ìŒ ë°œì‚¬ ì‹œê°
 
     [Header("Chase Stats")]
     [SerializeField] private float searchTime = 15.0f;
@@ -104,6 +104,8 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     private bool isPlayerDetected;
     private bool isUsing;
     private float lastUseStartTime;
+    private bool hasAimSfxState;
+    private bool lastAimSfxState;
 
 
     private void Awake()
@@ -140,7 +142,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         }
         Initialize();
         weapon.EnemeyWeaponInitialize(gameObject);
-        // ·¹ÀÌÄÉ½ºÆ®¿¡¼­ Á¦¿ÜÇÒ ºÎºĞµé(Àû º»ÀÎ¸ö¿¡ ¾ÃÈ÷´Â °æ¿ì Á¦¿ÜÇÏ±â À§Çì¼­)
+        // ë ˆì´ì¼€ìŠ¤íŠ¸ì—ì„œ ì œì™¸í•  ë¶€ë¶„ë“¤(ì  ë³¸ì¸ëª¸ì— ì”¹íˆëŠ” ê²½ìš° ì œì™¸í•˜ê¸° ìœ„í—¤ì„œ)
         layerMask = LayerMask.GetMask("Head", "Thorax", "Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg", "Armor");
     }
     private void Initialize()
@@ -162,7 +164,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         fsm.ChangeState(idleState);
         ammo = weapon.GetActiveAmmo();
         InitializeItemsSlot();
-        //±âÁ¸¿¡ ³Ê¹« ÀÚµ¿Â÷?°°Àº ´À³¦ ¾ø¾Ö±â À§ÇØ¼­ 
+        //ê¸°ì¡´ì— ë„ˆë¬´ ìë™ì°¨?ê°™ì€ ëŠë‚Œ ì—†ì• ê¸° ìœ„í•´ì„œ 
         agent.acceleration = 100.0f;   
         agent.angularSpeed = 720.0f;   
         agent.stoppingDistance = 0.05f; 
@@ -198,7 +200,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         }
 
         fsm.Tick();
-        //Àû »ç¸Á ÆÇ´Ü
+        //ì  ì‚¬ë§ íŒë‹¨
         isDead = healthManager.CheckIsDead();
         EnemyDead();
 
@@ -208,9 +210,9 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
         float hpRatio = healthStateProvider.GetTotalHP() / healthStateProvider.GetMaxHP();
        // Debug.Log($"[RetreatCheck] state={fsm.CurrentState}, hp={healthStateProvider.GetTotalHP()}/{healthStateProvider.GetMaxHP()}, factor={retreatEnterRatio}");
-        //±Û·Î¹ú »óÅÂ) Ã¼·ÂÀÌ ÀÏÁ¤ ¼öÁØÀ¸·Î ¶³¾îÁö¸é ÈÄÅğ»óÅÂ ÀüÀÌ,
-        //ÀÌ¶§ ÇöÀç »óÅÂ°¡ ÈÄÅğ»óÅÂ°¡ ¾Æ´Ï¾î¾ß ÇÔ(¹«ÇÑ ÈÄÅğ ¹æÁö)
-        //ÀÎÅÍ¹úÀ» µÎ¾î ¹«ÇÑÈÄÅğ ¹æÁö
+        //ê¸€ë¡œë²Œ ìƒíƒœ) ì²´ë ¥ì´ ì¼ì • ìˆ˜ì¤€ìœ¼ë¡œ ë–¨ì–´ì§€ë©´ í›„í‡´ìƒíƒœ ì „ì´,
+        //ì´ë•Œ í˜„ì¬ ìƒíƒœê°€ í›„í‡´ìƒíƒœê°€ ì•„ë‹ˆì–´ì•¼ í•¨(ë¬´í•œ í›„í‡´ ë°©ì§€)
+        //ì¸í„°ë²Œì„ ë‘ì–´ ë¬´í•œí›„í‡´ ë°©ì§€
         if (!(fsm.CurrentState is RetreatState) &&
             hpRatio <= retreatEnterRatio &&
             Time.time >= nextRetreatEnterTick)
@@ -232,7 +234,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
         fsm.enabled = false; 
 
-        // NavMeshAgent Á¤¸®
+        // NavMeshAgent ì •ë¦¬
         if (agent != null && agent.enabled && agent.isOnNavMesh)
         {
             agent.isStopped = true;
@@ -244,12 +246,12 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     }
     public bool EnemyUseItem(int index, BodyParts? target = null)
     {
-        //»ç¿ëÁßÀÏ¶§µµ »ç¿ëÁßÀÌ´Ï±ñ true
+        //ì‚¬ìš©ì¤‘ì¼ë•Œë„ ì‚¬ìš©ì¤‘ì´ë‹ˆê¹ true
         if (isUsing) return true;
         var item = GetSlot(index);
 
-        if (item == null || item.remaining <= 0) { Debug.Log("¾ÆÀÌÅÛ ¾øÀ½/ÃæÀü 0"); return false; }
-        //Àû¿ëÇÒ ´ë»ó ¾øÀ¸¸é return
+        if (item == null || item.remaining <= 0) { Debug.Log("ì•„ì´í…œ ì—†ìŒ/ì¶©ì „ 0"); return false; }
+        //ì ìš©í•  ëŒ€ìƒ ì—†ìœ¼ë©´ return
         if (!item.CanApplyAll(healthManager, target)) return false;
 
         StartCoroutine(CoEnemyUseItem(item, target));
@@ -286,7 +288,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         isUsing = false;
         yield break;
     }
-    //Àı´ë Å½Áö°Å¸®
+    //ì ˆëŒ€ íƒì§€ê±°ë¦¬
     private bool IsPlayerInAbsoluteDetectionRange()
     {
         if (playerLocation == null || enemyEyes == null) return false;
@@ -296,12 +298,12 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
         if (distanceToPlayer > absoluteDetectionRange)
         {
-            //Debug.Log("SIGHT FAIL: °¢µµ ¹üÀ§ ¹Û");
+            //Debug.Log("SIGHT FAIL: ê°ë„ ë²”ìœ„ ë°–");
             return false;
         }
         Vector3 dirToPlayer = toPlayer.normalized;
 
-        //·¹ÀÌÄÉ½ºÆ® ½÷¼­ ÇÃ·¹ÀÌ¾î ÂÊ¿¡ Àå¾Ö¹° ÀÖ´ÂÁö ÆÇ´Ü
+        //ë ˆì´ì¼€ìŠ¤íŠ¸ ì´ì„œ í”Œë ˆì´ì–´ ìª½ì— ì¥ì• ë¬¼ ìˆëŠ”ì§€ íŒë‹¨
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
             if (!hit.transform.CompareTag("Player")) return false;
@@ -316,7 +318,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
            // Debug.LogWarning($"[{name}] Sight FAIL: null refs. player={playerLocation}, eye={enemyEyes}", this);
             return false;
         }
-        //°Å¸® ÆÇ´Ü -> Å½Áö °Å¸®º¸´Ù Å©¸é false
+        //ê±°ë¦¬ íŒë‹¨ -> íƒì§€ ê±°ë¦¬ë³´ë‹¤ í¬ë©´ false
         Vector3 toPlayer = GetVectorBetweenPlayerAndEnemy();
         float distanceToPlayer = toPlayer.magnitude;
 
@@ -326,17 +328,17 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
             return false;
         }
 
-        //°¢µµ ÆÇ´Ü -> °¢µµ´Â Àû ½Ã¾ß À§Ä¡(Á¤¸é)¿¡¼­ ÇÃ·¹ÀÌ¾î±îÁöÀÇ °Å¸®¸¸Å­
+        //ê°ë„ íŒë‹¨ -> ê°ë„ëŠ” ì  ì‹œì•¼ ìœ„ì¹˜(ì •ë©´)ì—ì„œ í”Œë ˆì´ì–´ê¹Œì§€ì˜ ê±°ë¦¬ë§Œí¼
         Vector3 dirToPlayer = toPlayer.normalized;
         float angle = Vector3.Angle(enemyEyes.forward, dirToPlayer);
         // Debug.Log($"angle = {angle}");
-        // Å½Áö °¢µµº¸´Ù Å©¸é false
+        // íƒì§€ ê°ë„ë³´ë‹¤ í¬ë©´ false
         if (angle > detectionAngle * 0.5f)
         {
-           // Debug.Log("SIGHT FAIL: °¢µµ ¹üÀ§ ¹Û");
+           // Debug.Log("SIGHT FAIL: ê°ë„ ë²”ìœ„ ë°–");
             return false;
         }
-        //·¹ÀÌÄÉ½ºÆ® ½÷¼­ ÇÃ·¹ÀÌ¾î ÂÊ¿¡ Àå¾Ö¹° ÀÖ´ÂÁö ÆÇ´Ü
+        //ë ˆì´ì¼€ìŠ¤íŠ¸ ì´ì„œ í”Œë ˆì´ì–´ ìª½ì— ì¥ì• ë¬¼ ìˆëŠ”ì§€ íŒë‹¨
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
            // Debug.Log($"[{name}] Sight FAIL: blocked by {hit.transform.name}");
@@ -359,7 +361,11 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
     public void IsEnemyAim(bool isAiming)
     {
+        if (hasAimSfxState && lastAimSfxState == isAiming) return;
+
         enemySound.PlayAimSound(isAiming);
+        hasAimSfxState = true;
+        lastAimSfxState = isAiming;
     }
     public void PlayWalkSound(bool isWalk)
     {
@@ -411,10 +417,10 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     {
         patrolPoint = transform.position;
         if (agent == null) return false;
-        //10¹ø ¹İº¹ÇØ¼­ Æ÷ÀÎÆ® Ã£À½
+        //10ë²ˆ ë°˜ë³µí•´ì„œ í¬ì¸íŠ¸ ì°¾ìŒ
         for (int i = 0; i < maxPatrolPointTries; i++)
         {
-            //x yÃà¸¸ ¹üÀ§ ³»¿¡¼­ ·£´ıÀ¸·Î ¸ÅÇÎ -> ±×°É ´Ù½Ã vector3·Î ÀüÈ¯
+            //x yì¶•ë§Œ ë²”ìœ„ ë‚´ì—ì„œ ëœë¤ìœ¼ë¡œ ë§¤í•‘ -> ê·¸ê±¸ ë‹¤ì‹œ vector3ë¡œ ì „í™˜
             Vector2 rand2D = UnityEngine.Random.insideUnitSphere * patrolRange;
             Vector3 candidatePos = patrolPoint + new Vector3(rand2D.x, 0.0f, rand2D.y);
             if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
@@ -443,7 +449,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
            
                 Vector3 dir = fromPlayer / distance;
                 float angle = Vector3.Angle(playerLocation.forward, fromPlayer);
-                //ÇÃ·¹ÀÌ¾î µÚÂÊ ¹æÇâÀº Ä¿¹öÇÏ±â Èûµê-> ÀÌ Æ÷Áö¼ÇÀº Á¦¿Ü
+                //í”Œë ˆì´ì–´ ë’¤ìª½ ë°©í–¥ì€ ì»¤ë²„í•˜ê¸° í˜ë“¦-> ì´ í¬ì§€ì…˜ì€ ì œì™¸
                 if (angle > 90.0f) continue;
 
                 if (Physics.Raycast(playerLocation.position, dir, out var hit, distance, ~layerMask))
@@ -505,12 +511,12 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     }
     public bool ReachedDestination()
     {
-        //°æ·Î °è»êÁßÀÌ¸é false
+        //ê²½ë¡œ ê³„ì‚°ì¤‘ì´ë©´ false
         if (!CanUseAgent() || agent.pathPending) return false;
 
         if (agent.remainingDistance <= agent.stoppingDistance + reachThreshold)
         {
-            //µµÂøÇØ¼­ °æ·Îµµ ¾ø°í ¼Óµµµµ ³·À¸¸é µµÂøÇÑ ÆÇÁ¤
+            //ë„ì°©í•´ì„œ ê²½ë¡œë„ ì—†ê³  ì†ë„ë„ ë‚®ìœ¼ë©´ ë„ì°©í•œ íŒì •
             if (!agent.hasPath || agent.velocity.sqrMagnitude <= 0.01f) return true;
         }
 
@@ -670,7 +676,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(enemyEyes.position, absoluteDetectionRange);  // Àı´ë Å½Áö °Å¸®
+        Gizmos.DrawWireSphere(enemyEyes.position, absoluteDetectionRange);  // ì ˆëŒ€ íƒì§€ ê±°ë¦¬
 
 
         Gizmos.color = Color.red;

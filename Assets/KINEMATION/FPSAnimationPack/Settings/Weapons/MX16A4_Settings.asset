@@ -42,3 +42,4 @@ MonoBehaviour:
   weaponEventSounds:
   - {fileID: 8300000, guid: ffdf2c9609f11504eb07f8537dc379ba, type: 3}
   - {fileID: 8300000, guid: f12edba8af796c24bb00ea2cb90052c0, type: 3}
+  - {fileID: 8300000, guid: da92ad48f5c7d594ca4f163a936fda53, type: 3}

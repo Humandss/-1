@@ -1,4 +1,4 @@
-using System.Collections;
+Ôªøusing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,6 +14,7 @@ public class EnemySound : MonoBehaviour
     [Header("Aiming")]
     [SerializeField] private AudioClip aimInSound;
     [SerializeField] private AudioClip aimOutSound;
+    [SerializeField] private float aimSoundMinInterval = 0.15f;
 
     [Header("Dialogues")]
     [SerializeField] private List<AudioClip> attackDialogue;
@@ -22,7 +23,7 @@ public class EnemySound : MonoBehaviour
     [SerializeField] private List<AudioClip> retreatDialogue;
 
     [Header("Cooldowns")]
-    [SerializeField] private float globalCooldown = 1.5f;   // æ∆π´ ∏ª¿Ã≥™ √÷º“ ∞£∞›
+    [SerializeField] private float globalCooldown = 1.5f;   // ÏïÑÎ¨¥ ÎßêÏù¥ÎÇò ÏµúÏÜå Í∞ÑÍ≤©
     [SerializeField] private float attackCooldown = 7.0f;
     [SerializeField] private float chaseCooldown = 7.0f;
     [SerializeField] private float patrolCooldown = 7.0f;
@@ -33,6 +34,10 @@ public class EnemySound : MonoBehaviour
     private float lastPatrolTime = float.NegativeInfinity;
     private float lastRetreatTime = float.NegativeInfinity;
     private float lastAttackTime = float.NegativeInfinity;
+    private float lastAimSoundTime = float.NegativeInfinity;
+    private float aimClipEndTime = float.NegativeInfinity;
+    private bool hasAimState;
+    private bool lastAimInState;
 
     private AudioSource enemyAudioSource;
     private bool isSourceValid;
@@ -64,7 +69,27 @@ public class EnemySound : MonoBehaviour
     public void PlayAimSound(bool isAimIn = true)
     {
         if (!CheckAudioSource()) return;
-        enemyAudioSource.PlayOneShot(isAimIn ? aimInSound : aimOutSound);
+
+        // Block duplicate aim-in/aim-out calls caused by rapid state jitter.
+        if (hasAimState && lastAimInState == isAimIn)
+        {
+            return;
+        }
+
+        if (Time.time - lastAimSoundTime < aimSoundMinInterval)
+        {
+            return;
+        }
+
+        AudioClip clip = isAimIn ? aimInSound : aimOutSound;
+        if (clip == null) return;
+        if (Time.time < aimClipEndTime) return;
+
+        enemyAudioSource.PlayOneShot(clip);
+        hasAimState = true;
+        lastAimInState = isAimIn;
+        lastAimSoundTime = Time.time;
+        aimClipEndTime = Time.time + clip.length;
     }
 
     public void PlayWalkSound()
@@ -85,18 +110,18 @@ public class EnemySound : MonoBehaviour
 
         float now = Time.time;
 
-        // ¿¸ø™ ∞£∞›
+        // Ï†ÑÏó≠ Í∞ÑÍ≤©
         if (now < nextGlobalTime) return false;
 
-        // ∞¢ ≈∏¿‘∫∞ ∞£∞›: ∞∞¿∫ ≈∏¿‘ ø¨º” ≥≠ªÁ πÊ¡ˆ
+        // Í∞Å ÌÉÄÏûÖÎ≥Ñ Í∞ÑÍ≤©: Í∞ôÏùÄ ÌÉÄÏûÖ Ïó∞ÏÜç ÎÇúÏÇ¨ Î∞©ÏßÄ
         if (now - lastTime < localCooldown) return false;
 
         AudioClip clip = GetRandomAudioClip(audioClips);
         if (clip == null) return false;
-  
-        //¿Ã¿¸ø° ∏ª«œ∞Ì ¿÷¥¬∞≈ Ω∫≈æ »ƒ ¿Áª˝
+
+        //Ïù¥Ï†ÑÏóê ÎßêÌïòÍ≥† ÏûàÎäîÍ±∞ Ïä§ÌÉë ÌõÑ Ïû¨ÏÉù
         if (enemyAudioSource.isPlaying) enemyAudioSource.Stop();
-  
+
         enemyAudioSource.PlayOneShot(clip);
 
         lastTime = now;
