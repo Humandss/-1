@@ -21,6 +21,8 @@ public interface IGetBulletDirection
 
 public class EnemyController : MonoBehaviour, IGetBulletDirection
 {
+    private const int MaxNearbyBullets = 16;
+
     [Header("Item Init")]
     public itemInit ifakInit, torInit, splintInit, cmsInit;
 
@@ -37,6 +39,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
 
     [Header("LayerMasks")]
     private LayerMask layerMask;
+    [SerializeField] private LayerMask bulletLayerMask;
     private IHealthStateProvider healthStateProvider;
 
     [Header("States")]
@@ -107,6 +110,15 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
     private bool hasAimSfxState;
     private bool lastAimSfxState;
 
+    [Header("Bullet Awareness")]
+    [SerializeField] private float bulletAwarenessRadius = 6.0f;
+    [SerializeField] private float bulletAwarenessDuration = 0.5f;
+    [SerializeField] private float bulletAwarenessTurnSpeedMultiplier = 1.4f;
+
+    private readonly Collider[] nearbyBullets = new Collider[MaxNearbyBullets];
+    private Vector3 lastIncomingBulletLookDirection;
+    private float lastIncomingBulletTime = float.NegativeInfinity;
+
 
     private void Awake()
     {
@@ -144,6 +156,10 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
         weapon.EnemeyWeaponInitialize(gameObject);
         // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
         layerMask = LayerMask.GetMask("Head", "Thorax", "Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg", "Armor");
+        if (bulletLayerMask.value == 0)
+        {
+            bulletLayerMask = LayerMask.GetMask("Bullet");
+        }
     }
     private void Initialize()
     {
@@ -199,6 +215,7 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
             return;
         }
 
+        UpdateIncomingBulletAwareness();
         fsm.Tick();
         //적 사망 판단
         isDead = healthManager.CheckIsDead();
@@ -227,6 +244,8 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
             fsm.ChangeState(attackState);
             return ;
         }
+
+        ApplyIncomingBulletRotation();
     }
     private void EnemyDead()
     {
@@ -536,6 +555,64 @@ public class EnemyController : MonoBehaviour, IGetBulletDirection
        Quaternion targetRot = Quaternion.LookRotation(dir);
        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
     }
+
+    private void UpdateIncomingBulletAwareness()
+    {
+        if (bulletLayerMask.value == 0) return;
+
+        Transform origin = enemyEyes != null ? enemyEyes : transform;
+        int hitCount = Physics.OverlapSphereNonAlloc(origin.position, bulletAwarenessRadius, nearbyBullets, bulletLayerMask, QueryTriggerInteraction.Collide);
+
+        float bestDistance = float.MaxValue;
+        Vector3 detectedLookDirection = Vector3.zero;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider bulletCollider = nearbyBullets[i];
+            if (bulletCollider == null) continue;
+
+            BallisticProjectile projectile = bulletCollider.GetComponentInParent<BallisticProjectile>();
+            if (projectile == null || !projectile.IsPlayerBullet()) continue;
+
+            Vector3 travelDirection = projectile.GetTravelDirection();
+            if (travelDirection.sqrMagnitude < 0.0001f) continue;
+
+            Vector3 lookDirection = -travelDirection;
+            lookDirection.y = 0.0f;
+            if (lookDirection.sqrMagnitude < 0.0001f) continue;
+
+            float distance = (bulletCollider.transform.position - origin.position).sqrMagnitude;
+            if (distance >= bestDistance) continue;
+
+            bestDistance = distance;
+            detectedLookDirection = lookDirection.normalized;
+        }
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            nearbyBullets[i] = null;
+        }
+
+        if (detectedLookDirection.sqrMagnitude < 0.0001f) return;
+
+        lastIncomingBulletLookDirection = detectedLookDirection;
+        lastIncomingBulletTime = Time.time;
+    }
+
+    private void ApplyIncomingBulletRotation()
+    {
+        if (Time.time - lastIncomingBulletTime > bulletAwarenessDuration) return;
+        if (fsm.CurrentState is AttackState) return;
+        if (CanUseAgent() && !agent.isStopped && agent.desiredVelocity.sqrMagnitude > 0.01f) return;
+
+        Vector3 lookDirection = lastIncomingBulletLookDirection;
+        lookDirection.y = 0.0f;
+        if (lookDirection.sqrMagnitude < 0.0001f) return;
+
+        Quaternion targetRot = Quaternion.LookRotation(lookDirection.normalized);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * bulletAwarenessTurnSpeedMultiplier * Time.deltaTime);
+    }
+
     public void SlowRotateSearch()
     {
         Vector3 euler = transform.eulerAngles;

@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class LookSettings : MonoBehaviour
@@ -7,6 +6,7 @@ public class LookSettings : MonoBehaviour
     private HealthManager healthManager;
     [Header("Providers")]
     private IHealthStateProvider healthStateProvider;
+    private MovementSettings movementSettings;
 
     [Header("CameraPositionForPosition")]
     [SerializeField] private float proneCameraPos = 1.0f;
@@ -31,17 +31,6 @@ public class LookSettings : MonoBehaviour
     [SerializeField] private float changeToCrouchTime = 0.1f;
     [SerializeField] private float changeToIdleTime = 0.2f;
 
-    [Header("HealthState Fracture")]
-    private bool isLeftLegFrac = false;
-    private bool isRightLegFrac = false;
-    private bool isLeftArmFrac = false;
-    private bool isRightArmFrac = false;
-    [Header("HealthState Blackout")]
-    private bool isLeftLegBlackout = false;
-    private bool isRightLegBlackout = false;
-    private bool isLeftArmBlackout = false;
-    private bool isRightArmBlackout = false;
-
     private void Awake()
     {
         healthManager = GetComponent<HealthManager>();
@@ -55,17 +44,20 @@ public class LookSettings : MonoBehaviour
         {
             Debug.LogWarning("[PlayerController] healthStateProvider is NULL");
         }
+
+        movementSettings = GetComponent<MovementSettings>();
+        if (movementSettings == null)
+        {
+            Debug.LogWarning("[PlayerController] movementSettings is NULL");
+        }
     }
+
     public float GetRotationSpeed(in MovementMode mode)
     {
-        if (((isLeftArmFrac || isRightArmFrac) || (isLeftArmBlackout || isRightArmBlackout))) return woundedRotationSpeed;
-
+        if (movementSettings != null && movementSettings.HasAnyArmInjury()) return woundedRotationSpeed;
         if (mode.prone) return proneRotationSpeed;
-
         if (mode.crouch) return crouchRotationSpeed;
-
         if (mode.sprint) return sprintRotationSpeed;
-
         if (mode.tacticalSprint) return tacticalRotationSprintSpeed;
 
         return walkRotationSpeed;
@@ -74,7 +66,6 @@ public class LookSettings : MonoBehaviour
     public float GetCameraPosition(in MovementMode mode)
     {
         if (mode.prone) return proneCameraPos;
-
         if (mode.crouch) return crouchCameraPos;
 
         return idleCameraPos;
@@ -83,30 +74,16 @@ public class LookSettings : MonoBehaviour
     public float GetCameraChangeTime(in MovementMode mode)
     {
         if (mode.prone) return changeToProneTime;
-
         if (mode.crouch) return changeToCrouchTime;
 
         return changeToIdleTime;
     }
+
     public float GetMouseSensitivity()
     {
-        if (((isLeftArmFrac || isLeftArmBlackout) && (isRightArmFrac || isRightArmBlackout))) return bothArmWoundedMouseSensitivity;
-
-        if (((isLeftArmFrac || isLeftArmBlackout) || (isRightArmFrac || isRightArmBlackout))) return oneArmWoundedMouseSensitivity;
+        if (movementSettings != null && movementSettings.HasBothArmInjuries()) return bothArmWoundedMouseSensitivity;
+        if (movementSettings != null && movementSettings.HasAnyArmInjury()) return oneArmWoundedMouseSensitivity;
 
         return mouseSensitivity;
-    }
-    public void CheckPlayerHealthState()
-    {
-        //골절 상태 체크
-        isLeftLegFrac = healthStateProvider.GetIsLeftLegFracture();
-        isRightLegFrac = healthStateProvider.GetIsRightLegFracture();
-        isLeftArmFrac = healthStateProvider.GetIsLeftArmFracture();
-        isRightArmFrac = healthStateProvider.GetIsRightArmFracture();
-        //블랙 아웃 상태 체크
-        isLeftLegBlackout = healthStateProvider.GetIsLeftLegBlackout();
-        isRightLegBlackout = healthStateProvider.GetIsRightLegBlackout();
-        isLeftArmBlackout = healthStateProvider.GetIsLeftArmBlackout();
-        isRightArmBlackout = healthStateProvider.GetIsRightArmBlackout();
     }
 }

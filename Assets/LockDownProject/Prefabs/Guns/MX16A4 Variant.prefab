@@ -183,6 +183,8 @@ MonoBehaviour:
   shellEjectForce: 0.2
   shellEjectUpwardForce: 0.1
   shellEjectTorque: 0.1
+  emptyFireSoundIndex: 2
+  emptyFireSoundCooldown: 0.08
   fireMode: 0
   rightHandPose:
     position: {x: 0, y: 0, z: 0}

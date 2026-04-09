@@ -9,6 +9,8 @@ public class BallisticProjectile : MonoBehaviour
     [SerializeField] private BulletInfo ammo;
     [SerializeField] private GameObject metalImpactVFX;
     [SerializeField] private GameObject hitSmoke;
+    private Collider[] projectileColliders;
+    private Rigidbody projectileRigidbody;
     private BulletSoundController bulletSoundController;
     private MaterialManager materialManager;
     private HealthManager healthManager;
@@ -58,6 +60,8 @@ public class BallisticProjectile : MonoBehaviour
 
     private void Awake()
     {
+        ConfigureProjectilePhysics();
+
         trailRenderer = GetComponent<TrailRenderer>();
         trailRenderer.time = 0.45f;              // 궤적이 남아있는 시간
         trailRenderer.minVertexDistance = 0.005f;
@@ -68,6 +72,11 @@ public class BallisticProjectile : MonoBehaviour
         trailRenderer.receiveShadows = false;
     }
 #endif
+    private void OnEnable()
+    {
+        ConfigureProjectilePhysics();
+    }
+
     private void Start()
     {
         if (trailRenderer != null) trailRenderer.Clear();
@@ -84,9 +93,37 @@ public class BallisticProjectile : MonoBehaviour
             Debug.LogWarning("[BallisticProjectile]  bulletSoundProvide is NULL");
         }
 
-        
+
         layerMask = LayerMask.GetMask("Head","Thorax","Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg","Default", "Armor");
 
+    }
+
+    private void ConfigureProjectilePhysics()
+    {
+        if (projectileColliders == null || projectileColliders.Length == 0)
+        {
+            projectileColliders = GetComponentsInChildren<Collider>(true);
+        }
+
+        for (int i = 0; i < projectileColliders.Length; i++)
+        {
+            Collider projectileCollider = projectileColliders[i];
+            if (projectileCollider == null) continue;
+
+            projectileCollider.isTrigger = true;
+        }
+
+        if (projectileRigidbody == null)
+        {
+            projectileRigidbody = GetComponent<Rigidbody>();
+        }
+
+        if (projectileRigidbody == null) return;
+
+        projectileRigidbody.isKinematic = true;
+        projectileRigidbody.useGravity = false;
+        projectileRigidbody.velocity = Vector3.zero;
+        projectileRigidbody.angularVelocity = Vector3.zero;
     }
     public void Initialize(Vector3 position, Vector3 direction, bool isPlayerBullet)
     {
@@ -530,6 +567,21 @@ public class BallisticProjectile : MonoBehaviour
         {
             Debug.LogWarning("[BallisticProjectile] armorInfoProvider is NULL");
         }
+    }
+
+    public Vector3 GetTravelDirection()
+    {
+        if (velocity.sqrMagnitude > 0.0001f)
+        {
+            return velocity.normalized;
+        }
+
+        return dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
+    }
+
+    public bool IsPlayerBullet()
+    {
+        return isPlayerShot;
     }
 
 

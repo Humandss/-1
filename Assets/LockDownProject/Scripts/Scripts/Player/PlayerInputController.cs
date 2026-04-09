@@ -1,10 +1,33 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+
+public enum WeaponSlotRequest
+{
+    None,
+    Main,
+    Sub
+}
+
+public enum ItemUseRequest
+{
+    None = -1,
+    IFAK = 4,
+    Tourniquet = 5,
+    Splint = 6,
+    SurgeryKit = 7
+}
+
 public class PlayerInputController : MonoBehaviour
 {
     private Player player;
 
     private IStateProvider stateProvider;
+    private bool jumpRequested;
+    private bool reloadRequested;
+    private bool changeFireModeRequested;
+    private bool checkAmmoRequested;
+    private WeaponSlotRequest requestedWeaponSlot = WeaponSlotRequest.None;
+    private ItemUseRequest requestedItemUse = ItemUseRequest.None;
    
     private void Awake()
     {
@@ -22,27 +45,18 @@ public class PlayerInputController : MonoBehaviour
         }
     }
 
-    public Vector2 Move;
-    public Vector2 Look;
-    public bool Jump;
-    public bool Sprint; 
-    public bool TacSprint;
-    public bool Crouch;
-    public bool Prone;
-    public bool FreeLook;
-    public bool Fire;
-    public bool Aim;
-    public bool Reload;
-    public bool ChangeFireMode;
-    public bool ChangeWeapon;
-    public bool UIClick;
-    public bool EquipMainWeapon;
-    public bool EquipSubWeapon;
-    public bool UseIFAK;
-    public bool UseTourniquet;
-    public bool UseSplint;
-    public bool UseSurgeryKit;
-    public bool CheckAmmo;
+    public Vector2 Move { get; private set; }
+    public Vector2 Look { get; private set; }
+    public bool Jump => jumpRequested;
+    public bool Sprint { get; private set; }
+    public bool TacSprint { get; private set; }
+    public bool Crouch { get; private set; }
+    public bool Prone { get; private set; }
+    public bool FreeLook { get; private set; }
+    public bool Fire { get; private set; }
+    public bool Aim { get; private set; }
+    public bool Reload => reloadRequested;
+    public bool UIClick { get; private set; }
 
     private void OnMove(InputValue value) => Move = value.Get<Vector2>();
     private void OnLook(InputValue value)=> Look = value.Get<Vector2>();
@@ -51,7 +65,7 @@ public class PlayerInputController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            Jump = true;
+            jumpRequested = true;
         }
     }
 
@@ -84,6 +98,7 @@ public class PlayerInputController : MonoBehaviour
 
     private void OnFire(InputValue value)
     {
+        if (stateProvider == null) return;
 
         if (value.isPressed && !UIClick)
         {
@@ -105,7 +120,7 @@ public class PlayerInputController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            Reload = true;
+            reloadRequested = true;
         }
     }
 
@@ -113,52 +128,45 @@ public class PlayerInputController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            ChangeFireMode = true;
+            changeFireModeRequested = true;
         }
     }
-    /*
-    private void OnChangeWeapon(InputValue value)
-    {
-        if (value.isPressed)
-        {
-            ChangeWeapon = true;
-        }
-    }*/
+
     private void OnUIClick(InputValue value)
     {
         if (value.isPressed)
         {
             UIClick = !UIClick;
+
+            if (UIClick && stateProvider != null)
+            {
+                stateProvider.OnFire(false);
+                Fire = false;
+                Aim = false;
+                stateProvider.OnAim(false);
+            }
         }
         
     }
     private void OnEquipMainWeapon(InputValue value)
     {
-        if (value.isPressed && !EquipMainWeapon) 
+        if (value.isPressed) 
         {
-            ChangeWeapon = true;
-            EquipMainWeapon = true;
-            EquipSubWeapon = false;
-
+            requestedWeaponSlot = WeaponSlotRequest.Main;
         }
     }
     private void OnEquipSubWeapon(InputValue value)
     {
-        if (value.isPressed && !EquipSubWeapon)
+        if (value.isPressed)
         {
-            ChangeWeapon = true;
-            EquipMainWeapon = false;
-            EquipSubWeapon = true;
+            requestedWeaponSlot = WeaponSlotRequest.Sub;
         }
     }
     private void OnUseIFAK(InputValue value)
     {
         if (value.isPressed)
         {
-            UseIFAK = true;
-            UseTourniquet = false;
-            UseSplint = false;
-            UseSurgeryKit = false;
+            requestedItemUse = ItemUseRequest.IFAK;
         } 
 
     }
@@ -166,10 +174,7 @@ public class PlayerInputController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            UseIFAK = false;
-            UseTourniquet = true;
-            UseSplint = false;
-            UseSurgeryKit = false;
+            requestedItemUse = ItemUseRequest.Tourniquet;
         }
 
     }
@@ -177,10 +182,7 @@ public class PlayerInputController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            UseIFAK = false;
-            UseTourniquet = false;
-            UseSplint = true;
-            UseSurgeryKit = false;
+            requestedItemUse = ItemUseRequest.Splint;
         }
 
     }
@@ -188,28 +190,55 @@ public class PlayerInputController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            UseIFAK = false;
-            UseTourniquet = false;
-            UseSplint = false;
-            UseSurgeryKit = true;
+            requestedItemUse = ItemUseRequest.SurgeryKit;
         }
 
     }
     private void OnCheckLeftAmmo(InputValue value)
     {
-        if (value.isPressed) CheckAmmo = true;
+        if (value.isPressed) checkAmmoRequested = true;
        
     }
-    private void LateUpdate()
+
+    public bool ConsumeJumpRequest()
     {
-        Jump = false;
-        Reload = false;
-        ChangeFireMode = false;
-        ChangeWeapon = false;
-        UseIFAK = false;
-        UseTourniquet = false;
-        UseSplint = false;
-        UseSurgeryKit = false;
-        CheckAmmo = false;
+        bool requested = jumpRequested;
+        jumpRequested = false;
+        return requested;
+    }
+
+    public bool ConsumeReloadRequest()
+    {
+        bool requested = reloadRequested;
+        reloadRequested = false;
+        return requested;
+    }
+
+    public bool ConsumeChangeFireModeRequest()
+    {
+        bool requested = changeFireModeRequested;
+        changeFireModeRequested = false;
+        return requested;
+    }
+
+    public WeaponSlotRequest ConsumeWeaponSlotRequest()
+    {
+        WeaponSlotRequest requested = requestedWeaponSlot;
+        requestedWeaponSlot = WeaponSlotRequest.None;
+        return requested;
+    }
+
+    public ItemUseRequest ConsumeItemUseRequest()
+    {
+        ItemUseRequest requested = requestedItemUse;
+        requestedItemUse = ItemUseRequest.None;
+        return requested;
+    }
+
+    public bool ConsumeCheckAmmoRequest()
+    {
+        bool requested = checkAmmoRequested;
+        checkAmmoRequested = false;
+        return requested;
     }
 }

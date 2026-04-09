@@ -30,8 +30,15 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     bool canChangeFireMode;
     bool canChangeWeapon;
     bool isUIOn;
-    bool isMainWeapon;
     bool isCheckLeftAmmo;
+    bool isFreeLook;
+    [Header("State Variables")]
+    float speed = 0f;
+    float rotationSpeed = 0f;
+    float cameraPosition = 0f;
+    float cameraChangeSpeed = 0f;
+    float mSensitivity = 0f;
+    float h = 0f;
 
     private void Start()
     {
@@ -40,69 +47,102 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
 
     private void Awake()
     {
+        Initialize();
+    }
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus) return;
+
+        ApplyCursorState(!inputController.UIClick);
+    }
+    private void Update()
+    {
+        if (!HasRequiredReferences()) return;
+
+        var movementInfo = CheckMovementMode();
+        //ui 활성화시 움직임 제한
+        CheckUIState();
+        if (isUIOn) return;
+
+        WeaponSlotRequest weaponSlotRequest = inputController.ConsumeWeaponSlotRequest();
+        ItemUseRequest itemUseRequest = inputController.ConsumeItemUseRequest();
+        bool reloadRequested = inputController.ConsumeReloadRequest();
+        bool jumpRequested = inputController.ConsumeJumpRequest();
+        bool changeFireModeRequested = inputController.ConsumeChangeFireModeRequest();
+        bool checkAmmoRequested = inputController.ConsumeCheckAmmoRequest();
+
+        UpdateFrameVariables(movementInfo, jumpRequested);
+        EvaluateActionAvailability(movementInfo, reloadRequested, changeFireModeRequested, weaponSlotRequest, checkAmmoRequested);
+        PlayAction(weaponSlotRequest, itemUseRequest);
+        UpdateAction(movementInfo); 
+
+    }
+
+    private void Initialize()
+    {
         inputController = GetComponent<PlayerInputController>();
         if (inputController == null)
         {
-            Debug.LogWarning("[PlayerController] inputController is NULL");
+            Debug.LogWarning("[PlayerManager] inputController is NULL");
         }
 
         movementController = GetComponent<PlayerMovementController>();
         if (movementController == null)
         {
-            Debug.LogWarning("[PlayerController] movementController is NULL");
+            Debug.LogWarning("[PlayerManager] movementController is NULL");
         }
 
         lookController = GetComponent<PlayerLookController>();
         if (lookController == null)
         {
-            Debug.LogWarning("[PlayerController] lookController is NULL");
+            Debug.LogWarning("[PlayerManager] lookController is NULL");
         }
 
         movementSettings = GetComponent<MovementSettings>();
         if (movementSettings == null)
         {
-            Debug.LogWarning("[PlayerController] movementSettings is NULL");
+            Debug.LogWarning("[PlayerManager] movementSettings is NULL");
         }
 
         lookSettings = GetComponent<LookSettings>();
         if (lookSettings == null)
         {
-            Debug.LogWarning("[PlayerController] lookSettings is NULL");
+            Debug.LogWarning("[PlayerManager] lookSettings is NULL");
         }
 
         player = GetComponentInChildren<Player>();
         if (player == null)
         {
-            Debug.LogWarning("[PlayerController]  player is NULL");
+            Debug.LogWarning("[PlayerManager]  player is NULL");
         }
 
         uiManager = GetComponent<UIManager>();
         if (uiManager == null)
         {
-            Debug.LogWarning("[PlayerController] uiManager is NULL");
+            Debug.LogWarning("[PlayerManager] uiManager is NULL");
         }
-  
+
         stateProvider = player as IStateProvider;
         if (stateProvider == null)
         {
-            Debug.LogWarning("[PlayerController] stateProvider is NULL");
+            Debug.LogWarning("[PlayerManager] stateProvider is NULL");
         }
         camSettings = lookController as ICameraAnimation;
         if (camSettings == null)
         {
-            Debug.LogWarning("[PlayerController]  camSettings is NULL");
+            Debug.LogWarning("[PlayerManager]  camSettings is NULL");
         }
 
         uIStateProvider = uiManager as IUIStateProvider;
         if (uIStateProvider == null)
         {
-            Debug.LogWarning("[PlayerController] uIStateProvider is NULL");
+            Debug.LogWarning("[PlayerManager] uIStateProvider is NULL");
         }
     }
 
-    private void Update()
+    private MovementMode CheckMovementMode()
     {
-        var movementInfo = new MovementMode
+        return new MovementMode
         {
             prone = inputController.Prone,
             crouch = inputController.Crouch,
@@ -110,71 +150,56 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
             tacticalSprint = inputController.TacSprint,
 
         };
-
-        //ui 활성화시 움직임 제한
+    }
+    private void CheckUIState()
+    {
         isUIOn = inputController.UIClick;
         uIStateProvider.CheckUIPanelOn(isUIOn);
         ApplyCursorState(!isUIOn);
-        if (isUIOn) return;
-    
-
+    }
+    private void EvaluateActionAvailability(in MovementMode movementInfo, bool reloadRequested, bool changeFireModeRequested, WeaponSlotRequest weaponSlotRequest, bool checkAmmoRequested)
+    {
         //플레이어 부상 상태 확인
         movementSettings.CheckPlayerHealthState();
-        lookSettings.CheckPlayerHealthState();
-        //������
-        isForward = movementSettings.IsForward(inputController.Move);
-        float speed = movementSettings.GetSpeed(movementInfo, isForward);
-        canJump = movementSettings.CanJump(movementInfo, inputController.Jump, movementController.IsGrounded());
-       
 
-        //ī�޶� 
-        float rotationSpeed = lookSettings.GetRotationSpeed(movementInfo);
-        float cameraPosition = lookSettings.GetCameraPosition(movementInfo);
-        float cameraChangeSpeed = lookSettings.GetCameraChangeTime(movementInfo);
-        bool isFreeLook = inputController.FreeLook;
-
-        
-        //get�Լ�
-        float mSensitivity = lookSettings.GetMouseSensitivity();
-        float h = movementSettings.GetJumpHeight();
-
-        //Debug.Log($"rotationSpeed = {rotationSpeed}, mouseS ={mSensitivity}");
-        //��� �� ����
         canFire = movementSettings.CanFire(movementInfo);
         canAim = movementSettings.CanAim(movementInfo, inputController.Aim);
-        canReload = movementSettings.CanReload(movementInfo, inputController.Reload);
-        canChangeFireMode = movementSettings.CanChangeFireMode(movementInfo, inputController.ChangeFireMode);
-        canChangeWeapon = movementSettings.CanChangeWeapon(movementInfo, inputController.ChangeWeapon);
-        isMainWeapon = inputController.EquipMainWeapon ? true : false;
-        isCheckLeftAmmo = inputController.CheckAmmo;
-        
-
+        canReload = movementSettings.CanReload(movementInfo, reloadRequested);
+        canChangeFireMode = movementSettings.CanChangeFireMode(movementInfo, changeFireModeRequested);
+        canChangeWeapon = movementSettings.CanChangeWeapon(movementInfo, weaponSlotRequest != WeaponSlotRequest.None);
+        isCheckLeftAmmo = checkAmmoRequested;
+    }
+    private void UpdateFrameVariables(in MovementMode movementInfo, bool jumpRequested)
+    {
+        isForward = movementSettings.IsForward(inputController.Move);
+        speed = movementSettings.GetSpeed(movementInfo, isForward);
+        canJump = movementSettings.CanJump(movementInfo, jumpRequested, movementController.IsGrounded());
+        rotationSpeed = lookSettings.GetRotationSpeed(movementInfo);
+        cameraPosition = lookSettings.GetCameraPosition(movementInfo);
+        cameraChangeSpeed = lookSettings.GetCameraChangeTime(movementInfo);
+        isFreeLook = inputController.FreeLook;
+        mSensitivity = lookSettings.GetMouseSensitivity();
+        h = movementSettings.GetJumpHeight();
+    }
+    private void PlayAction(WeaponSlotRequest weaponSlotRequest, ItemUseRequest itemUseRequest)
+    {
         PlayReload(canReload);
         PlayAim(canAim);
         PlayJump(canJump);
         ChangeWeaponFireMode(canChangeFireMode);
-        ChangeWeaponByNumKey(canChangeWeapon, isMainWeapon);
-      
-        GetItemSlotIndex(inputController.UseIFAK, inputController.UseTourniquet, inputController.UseSplint, inputController.UseSurgeryKit);
+        ChangeWeaponByNumKey(canChangeWeapon, weaponSlotRequest);
+        HandleItemRequest(itemUseRequest);
         CheckLeftAmmo(isCheckLeftAmmo, speed);
-
+    }
+    private void UpdateAction(in MovementMode movementInfo)
+    {
         movementSettings.CheckDesiredGait(inputController.Move, movementInfo, speed);
-
         movementController.UpdateMovement(inputController.Move, speed, canJump, h);
         movementController.UpdateCCHeight(movementInfo);
         lookController.UpdateLook(inputController.Look, rotationSpeed, cameraPosition,
                                   cameraChangeSpeed, mSensitivity, isFreeLook);
 
-
         camSettings.UpdateFOVandCameraShake();
-
-    }
-
-    private void OnApplicationFocus(bool hasFocus)
-    {
-        if (!hasFocus) return;
-
-        ApplyCursorState(!inputController.UIClick);
     }
 
     private static void ApplyCursorState(bool lockCursor)
@@ -182,6 +207,19 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         Cursor.lockState = lockCursor ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !lockCursor;
     }
+
+    private bool HasRequiredReferences()
+    {
+        return inputController != null &&
+               movementController != null &&
+               lookController != null &&
+               movementSettings != null &&
+               lookSettings != null &&
+               stateProvider != null &&
+               camSettings != null &&
+               uIStateProvider != null;
+    }
+
     private void CheckLeftAmmo(bool isCheck, float speed)
     {
         
@@ -191,17 +229,10 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         }
         else return;
     }
-    private void GetItemSlotIndex(bool useIFAK, bool useTour, bool useSplint, bool useSurKit)
+    private void HandleItemRequest(ItemUseRequest itemUseRequest)
     {
-        if (useIFAK) uIStateProvider.UseItem(4);
-       
-        else if (useTour) uIStateProvider.UseItem(5);
-
-        else if (useSplint) uIStateProvider.UseItem(6);
-      
-        else if(useSurKit) uIStateProvider.UseItem(7);
-
-
+        if (itemUseRequest == ItemUseRequest.None) return;
+        uIStateProvider.UseItem((int)itemUseRequest);
     }
     private void PlayJump(bool canJump)
     {
@@ -212,7 +243,6 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         }
         else return;
     }
-
     private void PlayReload(bool canReload)
     {
         if (canReload)
@@ -239,23 +269,14 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         else return;
    
     }
-    private void ChangeWeaponByNumKey(bool canChangeWeapon, bool isMain)
+    private void ChangeWeaponByNumKey(bool canChangeWeapon, WeaponSlotRequest weaponSlotRequest)
     {
         if (canChangeWeapon)
         {
-            stateProvider.OnEquipWeaponByNumberKey(isMain);
+            stateProvider.OnEquipWeaponByNumberKey(weaponSlotRequest == WeaponSlotRequest.Main);
         }
         else return;
     }
-    /*
-    private void ChangeWeapon(bool canChangeWeapon)
-    {
-        if(canChangeWeapon)
-        {
-            stateProvider.OnChangeWeapon();
-        }
-        else return;
-    }*/
     public bool CanPlayerFire()
     {
         return canFire;

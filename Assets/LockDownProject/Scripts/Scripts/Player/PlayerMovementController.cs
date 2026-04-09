@@ -1,13 +1,10 @@
-using KINEMATION.FPSAnimationPack.Scripts.Player;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
 public class PlayerMovementController : MonoBehaviour
 {
     [SerializeField] private float gravity = 18f;
+    [SerializeField] private float groundedGravity = -2f;
     [Header("Height Settings")]
     private float standHeight = 1.8f;
     private float crouchHeight = 1.0f;
@@ -30,17 +27,23 @@ public class PlayerMovementController : MonoBehaviour
     }
     public void UpdateMovement(Vector2 moveInput, float moveSpeed, bool isJumped, float h)
     {
-        
+        if (cc == null) return;
+
         Vector3 dir = transform.right * moveInput.x + transform.forward * moveInput.y;
 
         Vector3 totalDir = dir * moveSpeed;
 
+        if (cc.isGrounded && jumpValue < 0.0f)
+        {
+            jumpValue = groundedGravity;
+        }
+
         if (isJumped)
         {
             jumpValue = Mathf.Sqrt(2.0f * gravity * h);
-       
         }
-        jumpValue += (-gravity) * Time.deltaTime;
+
+        jumpValue -= gravity * Time.deltaTime;
 
         cc.Move(totalDir * Time.deltaTime + Vector3.up * jumpValue * Time.deltaTime);
 
@@ -53,18 +56,21 @@ public class PlayerMovementController : MonoBehaviour
         {
             cc.height = crouchHeight;
             cc.radius = defaultRadius;
+            cc.center = new Vector3(0.0f, crouchHeight * 0.5f, 0.0f);
         }
 
         else if (mode.prone)
         {
             cc.height = proneHeight;
             cc.radius = proneRadius;
+            cc.center = new Vector3(0.0f, proneHeight * 0.5f, 0.0f);
         }
 
         else
         {
             cc.height = standHeight;
             cc.radius = defaultRadius;
+            cc.center = new Vector3(0.0f, standHeight * 0.5f, 0.0f);
         }
     }
     public bool IsGrounded()

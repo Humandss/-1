@@ -1,8 +1,6 @@
 using System.Security.Claims;
 using UnityEngine;
 
-
-// �÷��̾� ���� ����ü
 public struct MovementMode
 {
     public bool idle;

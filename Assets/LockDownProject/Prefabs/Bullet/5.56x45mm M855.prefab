@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -7001548528304526049}
   - component: {fileID: -680484886503574195}
   - component: {fileID: 370691792379888124}
+  - component: {fileID: 638947485914516726}
   m_Layer: 6
   m_Name: 5.56x45mm M855
   m_TagString: Untagged
@@ -167,6 +168,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb4c6945edcf296438eaa1d160de8e25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ricochetVolume: 2
+  defaultImpactVolume: 1
+  metalImpactVolume: 1
+  bodyImpactVolume: 1
+  headImpactVolume: 2
   ricochetSounds:
   - {fileID: 8300000, guid: d305647bc2a42324aaeb2f054a14c244, type: 3}
   - {fileID: 8300000, guid: d3311ab8b28e0b74aa62ec610443dd51, type: 3}
@@ -289,3 +295,26 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!136 &638947485914516726
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2888894084736280621}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.2
+  m_Height: 0.2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
