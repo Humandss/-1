@@ -4342,13 +4342,13 @@ GameObject:
   m_Component:
   - component: {fileID: 1513541003480670252}
   - component: {fileID: 7770979065900457495}
-  - component: {fileID: 2850560805245687918}
   - component: {fileID: 2639984137324521456}
   - component: {fileID: 3709307061649335415}
   - component: {fileID: 1204499457000244062}
   - component: {fileID: 4172534473780092392}
   - component: {fileID: 1966744438237141985}
   - component: {fileID: 6285177478062717416}
+  - component: {fileID: 1984955644354193166}
   m_Layer: 17
   m_Name: Enemy_with_M16A4
   m_TagString: Enemy
@@ -4409,21 +4409,6 @@ LODGroup:
     renderers:
     - renderer: {fileID: 3246669308813912347}
   m_Enabled: 1
---- !u!114 &2850560805245687918
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8661371735085036944}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23874a2c27db9ec418eabb2b39f51c7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  areYouPlayer: 0
-  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
-  tickInterval: 2.5
 --- !u!114 &2639984137324521456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4452,6 +4437,9 @@ MonoBehaviour:
   enemyEyes: {fileID: 9013432500460742042}
   weapon: {fileID: 4299872479829769278}
   agent: {fileID: 0}
+  bulletLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
   walkSpeed: 2.5
   chaseSpeed: 5.5
   absoluteDetectionRange: 3.5
@@ -4478,6 +4466,9 @@ MonoBehaviour:
   retreatExitRatio: 0.7
   maxRetreatCount: 2
   retreatEnterInterval: 5
+  bulletAwarenessRadius: 6
+  bulletAwarenessDuration: 0.5
+  bulletAwarenessTurnSpeedMultiplier: 1.4
 --- !u!114 &3709307061649335415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4615,6 +4606,7 @@ MonoBehaviour:
   tacSprintDelay: 0.4
   aimInSound: {fileID: 8300000, guid: b7f063ad1558c924c9d335aa79dbc8cb, type: 3}
   aimOutSound: {fileID: 8300000, guid: a0aa5ddeec187eb4a8b26271ce7f9a68, type: 3}
+  aimSoundMinInterval: 0.15
   attackDialogue:
   - {fileID: 8300000, guid: 934ae3a32e3115540a409b94bbbd0250, type: 3}
   - {fileID: 8300000, guid: 48080c60bc6d64d4882f819723c5ac59, type: 3}
@@ -4679,6 +4671,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 9f956a18f6f8b42469d3cf3e69b98ee4, type: 2}
   penetrable: 1
+--- !u!114 &1984955644354193166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8661371735085036944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bf1dd5a2789a814190215708c49cc54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
+  tickInterval: 2.5
 --- !u!1 &8738468495380087599
 GameObject:
   m_ObjectHideFlags: 0

@@ -637,21 +637,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1327478824}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &39564775
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 39564774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23874a2c27db9ec418eabb2b39f51c7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  areYouPlayer: 0
-  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
-  tickInterval: 2.5
 --- !u!4 &39564776 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 72c050bcb52a0f04c9d4602d5a153cc7,
@@ -670,7 +655,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c31638766e92d8b4dad50fa426f5f954, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthManager: {fileID: 39564775}
+  healthManager: {fileID: 39564778}
+--- !u!114 &39564778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39564774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bf1dd5a2789a814190215708c49cc54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
+  tickInterval: 2.5
 --- !u!1 &43173687
 GameObject:
   m_ObjectHideFlags: 0
@@ -1691,11 +1690,11 @@ GameObject:
   - component: {fileID: 96261546}
   - component: {fileID: 96261550}
   - component: {fileID: 96261551}
-  - component: {fileID: 96261552}
   - component: {fileID: 96261553}
   - component: {fileID: 96261554}
   - component: {fileID: 96261555}
   - component: {fileID: 96261556}
+  - component: {fileID: 96261557}
   m_Layer: 20
   m_Name: Player
   m_TagString: Player
@@ -1788,27 +1787,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 146906426a2ae1d42aa24b21517d729c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Move: {x: 0, y: 0}
-  Look: {x: 0, y: 0}
-  Jump: 0
-  Sprint: 0
-  TacSprint: 0
-  Crouch: 0
-  Prone: 0
-  FreeLook: 0
-  Fire: 0
-  Aim: 0
-  Reload: 0
-  ChangeFireMode: 0
-  ChangeWeapon: 0
-  UIClick: 0
-  EquipMainWeapon: 0
-  EquipSubWeapon: 0
-  UseIFAK: 0
-  UseTourniquet: 0
-  UseSplint: 0
-  UseSurgeryKit: 0
-  CheckAmmo: 0
 --- !u!114 &96261543
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1822,6 +1800,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gravity: 18
+  groundedGravity: -2
 --- !u!114 &96261545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1834,7 +1813,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 074fee4a6be60d54eae8f7593eb7de31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerRoot: {fileID: 96261533}
   legWoundedSpeed: 1
   proneSpeed: 0.75
   crouchSpeed: 1.5
@@ -1899,21 +1877,6 @@ MonoBehaviour:
   minPitch: -65
   freeLookYawLimit: 75
   freeLookRecoverTime: 0.25
---- !u!114 &96261552
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 96261525}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23874a2c27db9ec418eabb2b39f51c7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  areYouPlayer: 1
-  health: {fileID: 11400000, guid: 2a1aaaa59638bb940b638026286219a0, type: 2}
-  tickInterval: 2.5
 --- !u!114 &96261553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2154,10 +2117,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf6fd03eb4db27641868468aba874b33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: {fileID: 96261552}
+  health: {fileID: 0}
   heartbeatClip: {fileID: 8300000, guid: 4103f70985074214191f50bcfca5f9b4, type: 3}
   deadClip: {fileID: 8300000, guid: 9cfd6dc298b76b548b59820b93daee0f, type: 3}
   startThreshold: 0.5
+--- !u!114 &96261557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96261525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f284b74532e023a44b0fdb98fc4ba291, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 11400000, guid: 2a1aaaa59638bb940b638026286219a0, type: 2}
+  tickInterval: 2.5
 --- !u!1001 &105866507
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4667,7 +4644,7 @@ MonoBehaviour:
     tutorialAudio: {fileID: 8300000, guid: c255a5dd5871f3e4fa30820674279bf5, type: 3}
     title: 
     body: 
-  healthManager: {fileID: 96261552}
+  healthManager: {fileID: 96261557}
   extractRoom: {fileID: 526517225}
   dummy1: {fileID: 272118685}
   dummy2: {fileID: 139214887}
@@ -14814,7 +14791,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b151aeb1804f9747ac681cc7f6324d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthManager: {fileID: 96261552}
+  healthManager: {fileID: 96261557}
   volume: {fileID: 832575518}
   speed: 0.5
   min: 0.25
@@ -17046,6 +17023,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gravity: 18
+  groundedGravity: -2
 --- !u!114 &981175811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17070,27 +17048,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 146906426a2ae1d42aa24b21517d729c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Move: {x: 0, y: 0}
-  Look: {x: 0, y: 0}
-  Jump: 0
-  Sprint: 0
-  TacSprint: 0
-  Crouch: 0
-  Prone: 0
-  FreeLook: 0
-  Fire: 0
-  Aim: 0
-  Reload: 0
-  ChangeFireMode: 0
-  ChangeWeapon: 0
-  UIClick: 0
-  EquipMainWeapon: 0
-  EquipSubWeapon: 0
-  UseIFAK: 0
-  UseTourniquet: 0
-  UseSplint: 0
-  UseSurgeryKit: 0
-  CheckAmmo: 0
 --- !u!4 &981175814 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 72c050bcb52a0f04c9d4602d5a153cc7,
@@ -22763,21 +22720,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1797276366}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1271961044
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1271961043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23874a2c27db9ec418eabb2b39f51c7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  areYouPlayer: 0
-  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
-  tickInterval: 2.5
 --- !u!4 &1271961045 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 72c050bcb52a0f04c9d4602d5a153cc7,
@@ -22796,7 +22738,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c31638766e92d8b4dad50fa426f5f954, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthManager: {fileID: 1271961044}
+  healthManager: {fileID: 1271961047}
+--- !u!114 &1271961047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1271961043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bf1dd5a2789a814190215708c49cc54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
+  tickInterval: 2.5
 --- !u!1001 &1275331895
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23964,11 +23920,11 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 72c050bcb52a0f04c9d4602d5a153cc7,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 39564775}
+      addedObject: {fileID: 39564777}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 72c050bcb52a0f04c9d4602d5a153cc7,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 39564777}
+      addedObject: {fileID: 39564778}
   m_SourcePrefab: {fileID: 100100000, guid: 72c050bcb52a0f04c9d4602d5a153cc7, type: 3}
 --- !u!4 &1333807502 stripped
 Transform:
@@ -32954,11 +32910,11 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 72c050bcb52a0f04c9d4602d5a153cc7,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1271961044}
+      addedObject: {fileID: 1271961046}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 72c050bcb52a0f04c9d4602d5a153cc7,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1271961046}
+      addedObject: {fileID: 1271961047}
   m_SourcePrefab: {fileID: 100100000, guid: 72c050bcb52a0f04c9d4602d5a153cc7, type: 3}
 --- !u!1 &1798517967
 GameObject:

@@ -7,12 +7,6 @@ public interface IPlayerMoveInfoProvider
 
 public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
 {
-    [Header("Refs")]
-    private HealthManager healthManager;
-
-    [Header("Providers")]
-    private IHealthStateProvider healthStateProvider;
-
     [Header("Speeds")]
     [SerializeField] private float legWoundedSpeed = 1.0f;
     [SerializeField] private float proneSpeed = 0.75f;
@@ -24,42 +18,17 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
     [Header("Jump")]
     [SerializeField] private float jumpHeight = 1.0f;
 
-    [Header("HealthState Fracture")]
-    private bool isLeftLegFrac;
-    private bool isRightLegFrac;
-    private bool isLeftArmFrac;
-    private bool isRightArmFrac;
-
-    [Header("HealthState Blackout")]
-    private bool isLeftLegBlackout;
-    private bool isRightLegBlackout;
-    private bool isLeftArmBlackout;
-    private bool isRightArmBlackout;
+    private PlayerInjuryState injuryState;
 
     private float gait;
 
-    private void Awake()
-    {
-        healthManager = GetComponent<HealthManager>();
-        if (healthManager == null)
-        {
-            Debug.LogWarning("[PlayerController]  healthManager is NULL");
-        }
-
-        healthStateProvider = healthManager as IHealthStateProvider;
-        if (healthStateProvider == null)
-        {
-            Debug.LogWarning("[PlayerController] healthStateProvider is NULL");
-        }
-    }
-
     public float GetSpeed(in MovementMode mode, bool isForward)
     {
-        if ((isLeftLegFrac || isLeftLegBlackout) && (isRightLegFrac || isRightLegBlackout)) return legWoundedSpeed;
+        if (injuryState.HasBothLegInjuries) return legWoundedSpeed;
         if (mode.prone) return proneSpeed;
         if (mode.crouch) return crouchSpeed;
 
-        bool legsHealthy = !isLeftLegFrac && !isRightLegFrac && !isLeftLegBlackout && !isRightLegBlackout;
+        bool legsHealthy = !injuryState.HasAnyLegInjury;
         if (isForward && legsHealthy)
         {
             if (mode.sprint) return sprintSpeed;
@@ -77,8 +46,8 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
 
     public bool CanJump(in MovementMode mode, bool isJumped, bool isGrounded)
     {
-        bool leftOk = !isLeftLegFrac && !isLeftLegBlackout;
-        bool rightOk = !isRightLegFrac && !isRightLegBlackout;
+        bool leftOk = !injuryState.leftLegInjured;
+        bool rightOk = !injuryState.rightLegInjured;
         bool canJump = leftOk || rightOk;
 
         return isJumped && !mode.prone && isGrounded && canJump;
@@ -108,7 +77,7 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
 
     public bool CanAim(in MovementMode mode, bool isAim)
     {
-        if (HasBothArmInjuries()) return false;
+        if (injuryState.HasBothArmInjuries) return false;
         if (!isAim) return false;
         if (mode.sprint) return false;
         if (mode.tacticalSprint) return false;
@@ -131,29 +100,19 @@ public class MovementSettings : MonoBehaviour, IPlayerMoveInfoProvider
         return CanPerformRequestedAction(mode, isChangeWeapon);
     }
 
-    public void CheckPlayerHealthState()
+    public void ApplyInjuryState(PlayerInjuryState newInjuryState)
     {
-        if (healthStateProvider == null) return;
-
-        isLeftLegFrac = healthStateProvider.GetIsLeftLegFracture();
-        isRightLegFrac = healthStateProvider.GetIsRightLegFracture();
-        isLeftArmFrac = healthStateProvider.GetIsLeftArmFracture();
-        isRightArmFrac = healthStateProvider.GetIsRightArmFracture();
-
-        isLeftLegBlackout = healthStateProvider.GetIsLeftLegBlackout();
-        isRightLegBlackout = healthStateProvider.GetIsRightLegBlackout();
-        isLeftArmBlackout = healthStateProvider.GetIsLeftArmBlackout();
-        isRightArmBlackout = healthStateProvider.GetIsRightArmBlackout();
+        injuryState = newInjuryState;
     }
 
     public bool HasAnyArmInjury()
     {
-        return isLeftArmFrac || isRightArmFrac || isLeftArmBlackout || isRightArmBlackout;
+        return injuryState.HasAnyArmInjury;
     }
 
     public bool HasBothArmInjuries()
     {
-        return (isLeftArmFrac || isLeftArmBlackout) && (isRightArmFrac || isRightArmBlackout);
+        return injuryState.HasBothArmInjuries;
     }
 
     private static bool CanPerformRequestedAction(in MovementMode mode, bool isRequested)

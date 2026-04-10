@@ -1565,7 +1565,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 5b786078d4e073949a1f9006b9ac2d32,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1586,10 +1586,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b786078d4e073949a1f9006b9ac2d32,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6381845865661922112}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b786078d4e073949a1f9006b9ac2d32,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 7430752447326431809}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b786078d4e073949a1f9006b9ac2d32,
         type: 3}
@@ -1607,6 +1603,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 8438947954995553702}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b786078d4e073949a1f9006b9ac2d32,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5386592868242453797}
   m_SourcePrefab: {fileID: 100100000, guid: 5b786078d4e073949a1f9006b9ac2d32, type: 3}
 --- !u!1 &1287204935894237204 stripped
 GameObject:
@@ -1614,21 +1614,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 2097687592506375493}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6381845865661922112
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1287204935894237204}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23874a2c27db9ec418eabb2b39f51c7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  areYouPlayer: 0
-  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
-  tickInterval: 2.5
 --- !u!114 &7430752447326431809
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1657,6 +1642,9 @@ MonoBehaviour:
   enemyEyes: {fileID: 2336771382448373068}
   weapon: {fileID: 6242650948647940189}
   agent: {fileID: 0}
+  bulletLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
   walkSpeed: 2.5
   chaseSpeed: 5.5
   absoluteDetectionRange: 3.5
@@ -1683,6 +1671,9 @@ MonoBehaviour:
   retreatExitRatio: 0.7
   maxRetreatCount: 2
   retreatEnterInterval: 5
+  bulletAwarenessRadius: 6
+  bulletAwarenessDuration: 0.5
+  bulletAwarenessTurnSpeedMultiplier: 1.4
 --- !u!114 &8860578307435013603
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1820,6 +1811,7 @@ MonoBehaviour:
   tacSprintDelay: 0.4
   aimInSound: {fileID: 8300000, guid: b7f063ad1558c924c9d335aa79dbc8cb, type: 3}
   aimOutSound: {fileID: 8300000, guid: a0aa5ddeec187eb4a8b26271ce7f9a68, type: 3}
+  aimSoundMinInterval: 0.15
   attackDialogue:
   - {fileID: 8300000, guid: 934ae3a32e3115540a409b94bbbd0250, type: 3}
   - {fileID: 8300000, guid: 48080c60bc6d64d4882f819723c5ac59, type: 3}
@@ -1870,6 +1862,20 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &5386592868242453797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1287204935894237204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bf1dd5a2789a814190215708c49cc54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: {fileID: 11400000, guid: 5c4afe1cf91fe7a46b1ea079c90cc14d, type: 2}
+  tickInterval: 2.5
 --- !u!4 &1915932809162873518 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5b786078d4e073949a1f9006b9ac2d32,

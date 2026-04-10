@@ -13,6 +13,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     private PlayerLookController lookController;
     private MovementSettings movementSettings;
     private LookSettings lookSettings;
+    private HealthManager healthManager;
     private Player player;
     private UIManager uiManager;
 
@@ -71,6 +72,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         bool changeFireModeRequested = inputController.ConsumeChangeFireModeRequest();
         bool checkAmmoRequested = inputController.ConsumeCheckAmmoRequest();
 
+        ApplyPlayerInjuryState();
         UpdateFrameVariables(movementInfo, jumpRequested);
         EvaluateActionAvailability(movementInfo, reloadRequested, changeFireModeRequested, weaponSlotRequest, checkAmmoRequested);
         PlayAction(weaponSlotRequest, itemUseRequest);
@@ -108,6 +110,12 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         if (lookSettings == null)
         {
             Debug.LogWarning("[PlayerManager] lookSettings is NULL");
+        }
+
+        healthManager = GetComponent<HealthManager>();
+        if (healthManager == null)
+        {
+            Debug.LogWarning("[PlayerManager] healthManager is NULL");
         }
 
         player = GetComponentInChildren<Player>();
@@ -160,8 +168,6 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
     private void EvaluateActionAvailability(in MovementMode movementInfo, bool reloadRequested, bool changeFireModeRequested, WeaponSlotRequest weaponSlotRequest, bool checkAmmoRequested)
     {
         //플레이어 부상 상태 확인
-        movementSettings.CheckPlayerHealthState();
-
         canFire = movementSettings.CanFire(movementInfo);
         canAim = movementSettings.CanAim(movementInfo, inputController.Aim);
         canReload = movementSettings.CanReload(movementInfo, reloadRequested);
@@ -208,6 +214,15 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
         Cursor.visible = !lockCursor;
     }
 
+    private void ApplyPlayerInjuryState()
+    {
+        if (healthManager == null) return;
+
+        PlayerInjuryState injuryState = healthManager.GetPlayerInjuryState();
+        movementSettings.ApplyInjuryState(injuryState);
+        lookSettings.ApplyInjuryState(injuryState);
+    }
+
     private bool HasRequiredReferences()
     {
         return inputController != null &&
@@ -215,6 +230,7 @@ public class PlayerManager : MonoBehaviour, IPlayerCanFireCheckProvider
                lookController != null &&
                movementSettings != null &&
                lookSettings != null &&
+               healthManager != null &&
                stateProvider != null &&
                camSettings != null &&
                uIStateProvider != null;

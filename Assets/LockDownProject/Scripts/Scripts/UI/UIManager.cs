@@ -61,7 +61,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     [SerializeField] private GameObject panel;
     [SerializeField] private TextMeshProUGUI totalHP;
     [SerializeField] private List<PartRowRefs> rows;
-    public HealthManager healthManager;
+    public PlayerHealthManager healthManager;
     private PlayerInputController inputController;
     private MovementSettings movementSettings;
     private Player player;
@@ -127,7 +127,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     private void Awake()
     {
 
-        healthManager = GetComponent<HealthManager>();
+        healthManager = GetComponent<PlayerHealthManager>();
         if (healthManager == null)
         {
             Debug.LogWarning("[UIManager] healthManager is NULL");
@@ -181,6 +181,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     }
     private void OnEnable()
     {
+        if (healthManager == null || player == null) return;
 
         healthManager.OnBatchChanged += UpdateBatch;
         healthManager.OnOverallChanged += UpdateOverall;
@@ -188,6 +189,7 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     }
     private void OnDisable()
     {
+        if (healthManager == null || player == null) return;
 
         healthManager.OnBatchChanged -= UpdateBatch;
         healthManager.OnOverallChanged -= UpdateOverall;
@@ -208,6 +210,12 @@ public class UIManager : MonoBehaviour, IUIStateProvider
         {
             nextTick = Time.time + tickInterval;
             checkAmmoPanel.SetActive(false);
+        }
+
+        if (healthManager == null)
+        {
+            deadPanel.SetActive(false);
+            return;
         }
 
         if (healthManager.CheckIsDead())
@@ -253,9 +261,11 @@ public class UIManager : MonoBehaviour, IUIStateProvider
  
     public void RefreshAll()
     {
-        //각 파트마다 갱신
+        if (healthManager == null) return;
+
+        //? ???? ??
         foreach (var r in rows) UpdateRow(healthManager.GetSnapshot(r.part));
-        // 전체 오버롤 갱신
+        // ?? ??? ??
         UpdateOverall(healthManager.GetOverallSnapshot());
     }
 
@@ -590,3 +600,5 @@ public class UIManager : MonoBehaviour, IUIStateProvider
     }
 
 }
+
+
