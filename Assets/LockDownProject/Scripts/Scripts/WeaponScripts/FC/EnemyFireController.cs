@@ -16,7 +16,7 @@ public class EnemyFireController : FireController
         if (!CacheEnemyRefs()) return;
 
         Vector3 baseDir = getBulletDirection.GetBulletDirection();
-        float horizontalOffset = getBulletDirection.GetHoriontalOffset();
+        float horizontalOffset = getBulletDirection.GetHorizontalOffset();
         float verticalOffset = getBulletDirection.GetVerticalOffset();
 
         float h = Random.Range(-horizontalOffset, horizontalOffset);

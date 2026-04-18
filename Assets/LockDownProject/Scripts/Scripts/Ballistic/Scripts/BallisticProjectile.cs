@@ -484,7 +484,7 @@ public class BallisticProjectile : MonoBehaviour
     private void HandleArmorDamageAfterRicochet(RaycastHit hit)
     {
         GetArmorManager(hit);
-        armorInfoProvider.HandleArmorDurablityAfterRicochet(armorDam);
+        armorInfoProvider.HandleArmorDurabilityAfterRicochet(armorDam);
     }
     private void CheckBulletHitBody(RaycastHit hit)
     {

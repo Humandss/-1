@@ -38,7 +38,7 @@ public class WeaponFireController : FireController
     private Vector3 BuildEnemyDirection(IGetBulletDirection directionProvider)
     {
         Vector3 baseDir = directionProvider.GetBulletDirection();
-        float horizontalOffset = directionProvider.GetHoriontalOffset();
+        float horizontalOffset = directionProvider.GetHorizontalOffset();
         float verticalOffset = directionProvider.GetVerticalOffset();
 
         float h = Random.Range(-horizontalOffset, horizontalOffset);

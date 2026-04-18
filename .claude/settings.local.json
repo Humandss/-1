@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /c/Users/Babo/Documents/GitHub/-1 log --oneline -10)",
+      "Bash(find /c/Users/Babo/Documents/GitHub/-1/Assets/LockDownProject/Scripts/Scripts -name \"*.cs\" -exec wc -l {} +)",
+      "Bash(xargs wc:*)",
+      "Bash(git -C /c/Users/Babo/Documents/GitHub/-1 log --all --pretty=format:\"%ai %s\")"
+    ]
+  }
+}

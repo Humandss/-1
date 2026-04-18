@@ -5,7 +5,7 @@ public interface IArmorInfoProviders
     float GetArmorClass();
     void HandleArmorDurabilityAfterHit(float ammoArmorDamage, bool isPen);
 
-    void HandleArmorDurablityAfterRicochet(float ammoArmorDamage);
+    void HandleArmorDurabilityAfterRicochet(float ammoArmorDamage);
 }
 public class ArmorManager : MonoBehaviour,IArmorInfoProviders
 {
@@ -21,13 +21,13 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
         durability = armorInfo.durability;
     }
 
-    private float GetArmorDurabilityDecreasMulByMaterial()
+    private float GetArmorDurabilityDecreaseMulByMaterial()
     {
         if (armorInfo.material == ArmorMaterial.Titanium) return 0.15f;
 
         if (armorInfo.material == ArmorMaterial.Ceramic) return 0.6f;
 
-        if (armorInfo.material == ArmorMaterial.Compsite) return 0.25f;
+        if (armorInfo.material == ArmorMaterial.Composite) return 0.25f;
 
         if (armorInfo.material == ArmorMaterial.Steel) return 0.2f;
 
@@ -40,28 +40,28 @@ public class ArmorManager : MonoBehaviour,IArmorInfoProviders
     {
         if (durability <= 0.0f) return;
 
-        float decreasMul = GetArmorDurabilityDecreasMulByMaterial();
-        float totalCosst = decreasMul * ammoArmorDamage * (isPen ? penArmorDamFactor : nonPenArmorDamFactor);
+        float decreaseMul = GetArmorDurabilityDecreaseMulByMaterial();
+        float totalCost = decreaseMul * ammoArmorDamage * (isPen ? penArmorDamFactor : nonPenArmorDamFactor);
 
-        durability = Mathf.Max(0.0f, durability - totalCosst);
+        durability = Mathf.Max(0.0f, durability - totalCost);
 
-        //Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
+        //Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCost}, dur={durability}");
     }
 
-    public void HandleArmorDurablityAfterRicochet(float ammoArmorDamage)
+    public void HandleArmorDurabilityAfterRicochet(float ammoArmorDamage)
     {
         if (durability <= 0.0f) return;
 
-        float decreasMul = GetArmorDurabilityDecreasMulByMaterial();
-        float totalCosst = decreasMul * ammoArmorDamage * ricochetArmorDamFactor;
+        float decreaseMul = GetArmorDurabilityDecreaseMulByMaterial();
+        float totalCost = decreaseMul * ammoArmorDamage * ricochetArmorDamFactor;
 
-        durability = Mathf.Max(0.0f, durability - totalCosst);
+        durability = Mathf.Max(0.0f, durability - totalCost);
 
-        //Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCosst}, dur={durability}");
+        //Debug.Log($"ArmorDam = {ammoArmorDamage}, totalDam = {totalCost}, dur={durability}");
     }
     public float GetArmorClass()
     {
-        //³»±¸µµ°¡ 0ÀÌÇÏ¶ó¸é º¸È£ ±â´É x
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ x
         if(durability <= 0.0f) return 0.0f;
 
         if (armorInfo.armorClass == ArmorClass.Level1) return 10.0f;

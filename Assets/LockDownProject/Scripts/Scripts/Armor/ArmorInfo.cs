@@ -2,7 +2,7 @@ using UnityEngine;
 
 public enum ArmorMaterial
 {
-    Compsite,
+    Composite,
     Kevlar,
     Titanium,
     Steel,

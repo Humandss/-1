@@ -14,8 +14,8 @@ public class AttackState : IState
     private float aimAngle;
     private float turnSpeed;
     private float dx, dy;
-    private bool isAimed = false; // ¿¡³Ê¹Ì°¡ ÇÃ·¹ÀÌ¾î¸¦ ÇâÇÏ°í ÀÖ´Â°¡
-    private bool prevAimed; // ¿¡³Ê¹Ì°¡ Á¶ÁØÀ» ÇÏ°í ÀÖ´Â°¡
+    private bool isAimed = false; // ï¿½ï¿½ï¿½Ê¹Ì°ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î¸¦ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´Â°ï¿½
+    private bool prevAimed; // ï¿½ï¿½ï¿½Ê¹Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½Ö´Â°ï¿½
     private Quaternion startRot;
     private Quaternion targetRot;
     private Vector3 bulletPos;
@@ -38,7 +38,7 @@ public class AttackState : IState
         fireTime = enemy.GetFireInterval();
         aimAngle = enemy.GetAttackAllowAngle();
         turnSpeed = enemy.GetAttackTurnSpeed();
-        dx = enemy.GetHoriontalOffset();
+        dx = enemy.GetHorizontalOffset();
         dy = enemy.GetVerticalOffset();
         leftAmmo = enemy.GetEnemyAmmo();
         prevAimed = false;
@@ -52,7 +52,7 @@ public class AttackState : IState
         
         Vector3 toPlayer = enemy.GetVectorBetweenPlayerAndEnemy();
         float distanceToPlayer = toPlayer.magnitude;
-        //°Å¸®°¡ ¸Ö°Å³ª ½Ã¾ß¿¡¼­ ³õÄ¥°æ¿ì -> Ãß°Ý»óÅÂ
+        //ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½Ö°Å³ï¿½ ï¿½Ã¾ß¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¥ï¿½ï¿½ï¿½ -> ï¿½ß°Ý»ï¿½ï¿½ï¿½
         if (distanceToPlayer > enemy.GetDetectionRange() || !enemy.IsPlayerInEnemySight())
         {
             fsm.ChangeState(enemy.chaseState);
@@ -64,7 +64,7 @@ public class AttackState : IState
         enemy.ChangeFireOptionsByPlayerDistance();
         fireTime = enemy.GetFireInterval();
         leftAmmo = enemy.GetEnemyAmmo();
-        //ÃÑ¾ËÀÌ ¾ø´Ù¸é ÀåÀü
+        //ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (leftAmmo <= 0)
         {
             enemy.ReloadAmmo();
@@ -111,7 +111,7 @@ public class AttackState : IState
 
         if (dirToPlayer.sqrMagnitude < 0.0001f)
         {
-            // ³Ê¹« °¡±î¿ì¸é ±×³É ÇöÀç º¸´Â ¹æÇâ À¯ÁöÇÏ°í Á¶ÁØµÈ °É·Î Ãë±Þ
+            // ï¿½Ê¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½Øµï¿½ ï¿½É·ï¿½ ï¿½ï¿½ï¿½
             bulletPos = enemyBody.forward;
             return true;
         }
