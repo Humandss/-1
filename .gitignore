@@ -102,3 +102,4 @@ Assets/**/LightingData.asset
 Assets/**/Lightmap-*.exr
 Assets/**/ReflectionProbe-*.exr
 /.claude
+/docs
