@@ -4,8 +4,6 @@ using UnityEngine;
 public partial class EnemyController
 {
     [Header("Bullet Awarness")]
-    private const int MaxNearbyBullets = 16;
-    private readonly Collider[] nearbyBullets = new Collider[MaxNearbyBullets];
     private Vector3 lastIncomingBulletLookDirection;
     private float lastIncomingBulletTime = float.NegativeInfinity;
 
@@ -18,12 +16,12 @@ public partial class EnemyController
 
         if (distanceToPlayer > absoluteDetectionRange)
         {
-            //Debug.Log("SIGHT FAIL: ���� ���� ��");
+            //Debug.Log("SIGHT FAIL: 거리 범위 밖");
             return false;
         }
         Vector3 dirToPlayer = toPlayer.normalized;
 
-        //�����ɽ�Ʈ ���� �÷��̾� �ʿ� ��ֹ� �ִ��� �Ǵ�
+        //레이캐스트 시야 플레이어 쪽에 장애물 있는지 판단
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
             if (!hit.transform.CompareTag("Player")) return false;
@@ -38,7 +36,7 @@ public partial class EnemyController
             // Debug.LogWarning($"[{name}] Sight FAIL: null refs. player={playerLocation}, eye={enemyEyes}", this);
             return false;
         }
-        //�Ÿ� �Ǵ� -> Ž�� �Ÿ����� ũ�� false
+        //거리 판단 -> 탐지 거리보다 크면 false
         Vector3 toPlayer = GetVectorBetweenPlayerAndEnemy();
         float distanceToPlayer = toPlayer.magnitude;
 
@@ -48,17 +46,17 @@ public partial class EnemyController
             return false;
         }
 
-        //���� �Ǵ� -> ������ �� �þ� ��ġ(����)���� �÷��̾������ �Ÿ���ŭ
+        //각도 판단 -> 적군의 시야 위치(가슴)에서 플레이어까지의 거리만큼
         Vector3 dirToPlayer = toPlayer.normalized;
         float angle = Vector3.Angle(enemyEyes.forward, dirToPlayer);
         // Debug.Log($"angle = {angle}");
-        // Ž�� �������� ũ�� false
+        // 탐지 각도보다 크면 false
         if (angle > detectionAngle * 0.5f)
         {
-            // Debug.Log("SIGHT FAIL: ���� ���� ��");
+            // Debug.Log("SIGHT FAIL: 각도 범위 밖");
             return false;
         }
-        //�����ɽ�Ʈ ���� �÷��̾� �ʿ� ��ֹ� �ִ��� �Ǵ�
+        //레이캐스트 시야 플레이어 쪽에 장애물 있는지 판단
         if (Physics.Raycast(enemyEyes.position, dirToPlayer, out var hit, distanceToPlayer, ~layerMask))
         {
             // Debug.Log($"[{name}] Sight FAIL: blocked by {hit.transform.name}");
@@ -68,41 +66,44 @@ public partial class EnemyController
         return true;
     }
 
+    /// <summary>
+    /// 근접 플레이어 총알 인지. PhysX OverlapSphere를 안 쓰고
+    /// BulletSimulationSystem이 노출하는 활성 플레이어 총알 NativeArray에 거리 체크.
+    /// </summary>
     private void UpdateIncomingBulletAwareness()
     {
-        if (bulletLayerMask.value == 0) return;
+        var sys = LockDown.Ballistic.Job.BulletSimulationSystem.Instance;
+        if (sys == null) return;
+
+        var bullets = sys.GetActivePlayerBulletsForDetection();
+        if (!bullets.IsCreated || bullets.Length == 0) return;
 
         Transform origin = enemyEyes != null ? enemyEyes : transform;
-        int hitCount = Physics.OverlapSphereNonAlloc(origin.position, bulletAwarenessRadius, nearbyBullets, bulletLayerMask, QueryTriggerInteraction.Collide);
+        Vector3 originPos = origin.position;
+        float radiusSq = bulletAwarenessRadius * bulletAwarenessRadius;
 
-        float bestDistance = float.MaxValue;
+        float bestDistanceSq = float.MaxValue;
         Vector3 detectedLookDirection = Vector3.zero;
 
-        for (int i = 0; i < hitCount; i++)
+        for (int i = 0; i < bullets.Length; i++)
         {
-            Collider bulletCollider = nearbyBullets[i];
-            if (bulletCollider == null) continue;
+            var b = bullets[i];
+            Vector3 bulletPos = b.pos;
+            Vector3 toBullet = bulletPos - originPos;
+            float distSq = toBullet.sqrMagnitude;
+            if (distSq > radiusSq) continue;
 
-            BallisticProjectile projectile = bulletCollider.GetComponentInParent<BallisticProjectile>();
-            if (projectile == null || !projectile.IsPlayerBullet()) continue;
-
-            Vector3 travelDirection = projectile.GetTravelDirection();
+            Vector3 travelDirection = b.travelDir;
             if (travelDirection.sqrMagnitude < 0.0001f) continue;
 
             Vector3 lookDirection = -travelDirection;
             lookDirection.y = 0.0f;
             if (lookDirection.sqrMagnitude < 0.0001f) continue;
 
-            float distance = (bulletCollider.transform.position - origin.position).sqrMagnitude;
-            if (distance >= bestDistance) continue;
+            if (distSq >= bestDistanceSq) continue;
 
-            bestDistance = distance;
+            bestDistanceSq = distSq;
             detectedLookDirection = lookDirection.normalized;
-        }
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            nearbyBullets[i] = null;
         }
 
         if (detectedLookDirection.sqrMagnitude < 0.0001f) return;

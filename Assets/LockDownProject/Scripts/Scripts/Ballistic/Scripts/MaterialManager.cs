@@ -14,6 +14,31 @@ public class MaterialManager : MonoBehaviour, IMaterialInfoProvider
     [Header("Refs")]
     [SerializeField] private MaterialProfile profile;
     public bool penetrable = true;
+
+    private Collider[] cachedColliders;
+
+    private void OnEnable()
+    {
+        // 자가 콜라이더(자식 포함) 모두 ColliderMaterialRegistry + ColliderRegistry에 등록.
+        // BulletHitProcessor가 colliderInstanceID로 MaterialManager + Collider 조회 가능.
+        cachedColliders = GetComponentsInChildren<Collider>(includeInactive: true);
+        for (int i = 0; i < cachedColliders.Length; i++)
+        {
+            LockDown.Ballistic.Job.ColliderRegistry.Register(cachedColliders[i]);
+            LockDown.Ballistic.Job.ColliderMaterialRegistry.Register(cachedColliders[i], this);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (cachedColliders == null) return;
+        for (int i = 0; i < cachedColliders.Length; i++)
+        {
+            LockDown.Ballistic.Job.ColliderRegistry.Unregister(cachedColliders[i]);
+            LockDown.Ballistic.Job.ColliderMaterialRegistry.Unregister(cachedColliders[i]);
+        }
+    }
+
     public float GetMaterialPenetrationFactor()
     {
         if (profile.materialType == MaterialType.Metal) return 0.8f;

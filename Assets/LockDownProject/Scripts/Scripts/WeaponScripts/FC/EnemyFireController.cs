@@ -32,9 +32,9 @@ public class EnemyFireController : FireController
             dir = muzzle.forward;
         }
 
-        if (!TrySpawnBullet(dir, out var bullet)) return;
+        LockDown.Ballistic.Job.BulletSimulationSystem.Instance.Spawn(
+            muzzle.position, dir, bulletInfo, isPlayerShot: false);
 
-        bullet.Initialize(bullet.transform.position, dir, false);
         SpawnMuzzleFlash(dir);
     }
 

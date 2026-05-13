@@ -36,7 +36,6 @@ public partial class EnemyController : MonoBehaviour, IGetBulletDirection
 
     [Header("LayerMasks")]
     private LayerMask layerMask;
-    [SerializeField] private LayerMask bulletLayerMask;
     private IHealthStateProvider healthStateProvider;
 
     [Header("States")]
@@ -146,10 +145,8 @@ public partial class EnemyController : MonoBehaviour, IGetBulletDirection
         weapon.EnemeyWeaponInitialize(gameObject);
         // 레이케스트에서 제외할 부분들(적 본인몸에 씹히는 경우 제외하기 위헤서)
         layerMask = LayerMask.GetMask("Head", "Thorax", "Stomach", "Left_arm", "Right_arm", "Left_leg", "Right_leg", "Armor");
-        if (bulletLayerMask.value == 0)
-        {
-            bulletLayerMask = LayerMask.GetMask("Bullet");
-        }
+        // 적 탄도 감지는 BulletSimulationSystem.GetActivePlayerBulletsForDetection() 사용
+        // (PhysX OverlapSphere 더 이상 사용 안 함)
     }
     private void Initialize()
     {

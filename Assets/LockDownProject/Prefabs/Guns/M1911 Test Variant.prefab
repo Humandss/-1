@@ -215,8 +215,7 @@ MonoBehaviour:
   muzzle: {fileID: 1522576034102251883}
   muzzleFlash: {fileID: 7608776599943433130, guid: f745588a537627842ac099fb6065a4c6,
     type: 3}
-  projectile: {fileID: 6091451633445714463, guid: 53ff4befe82a90f44b897345588c0d11,
-    type: 3}
+  bulletInfo: {fileID: 11400000, guid: 96069db8ee716dc4abe7a3d44b5b83db, type: 2}
 --- !u!4 &7395312672238046393 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1734822566465805218, guid: 8e489e7f96cc8a844a939320b2d379d1,

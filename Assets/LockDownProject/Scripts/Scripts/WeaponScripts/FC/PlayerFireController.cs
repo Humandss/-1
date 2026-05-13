@@ -7,9 +7,9 @@ public class PlayerFireController : FireController
         if (!ValidateRefs()) return;
 
         Vector3 dir = muzzle.forward.normalized;
-        if (!TrySpawnBullet(dir, out var bullet)) return;
+        LockDown.Ballistic.Job.BulletSimulationSystem.Instance.Spawn(
+            muzzle.position, dir, bulletInfo, isPlayerShot: true);
 
-        bullet.Initialize(bullet.transform.position, dir, true);
         SpawnMuzzleFlash(dir);
     }
 }

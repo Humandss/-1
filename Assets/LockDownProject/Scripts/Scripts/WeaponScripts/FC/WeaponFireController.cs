@@ -29,9 +29,9 @@ public class WeaponFireController : FireController
             }
         }
 
-        if (!TrySpawnBullet(dir, out var bullet)) return;
+        LockDown.Ballistic.Job.BulletSimulationSystem.Instance.Spawn(
+            muzzle.position, dir, bulletInfo, isPlayerShot);
 
-        bullet.Initialize(bullet.transform.position, dir, isPlayerShot);
         SpawnMuzzleFlash(dir);
     }
 

@@ -8,11 +8,11 @@ public class PoolManager : MonoBehaviour
     [Header("Refs")]
     private bool isExpandable = true;
    
-    // �����պ� Ǯ ť
+    // �����պ� Ǯ ť
     private readonly Dictionary<GameObject, Queue<GameObject>> prefabToPool
         = new Dictionary<GameObject, Queue<GameObject>>();
 
-    // �ν��Ͻ� �� � ������ Ǯ����
+    // �ν��Ͻ� �� � ������ Ǯ����
     private readonly Dictionary<GameObject, GameObject> instanceToPrefab
         = new Dictionary<GameObject, GameObject>();
 
@@ -78,14 +78,37 @@ public class PoolManager : MonoBehaviour
         return obj;
     }
 
+    /// <summary>
+    /// 프리팹에 대해 count개의 인스턴스를 미리 만들어 풀에 적재한다.
+    /// 게임 시작 직후 발사 폭주 시 런타임 Instantiate 비용을 제거하는 워밍업 용도.
+    /// 같은 prefab으로 여러 번 호출하면 누적된다.
+    /// </summary>
+    public void Prewarm(GameObject prefab, int count)
+    {
+        if (prefab == null || count <= 0) return;
+
+        if (!prefabToPool.TryGetValue(prefab, out var queue))
+        {
+            queue = new Queue<GameObject>();
+            prefabToPool.Add(prefab, queue);
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            GameObject obj = CreateInstance(prefab);
+            obj.SetActive(false);
+            queue.Enqueue(obj);
+        }
+    }
+
     public void Return(GameObject instance)
     {
         if (instance == null) return;
 
         if (!instanceToPrefab.TryGetValue(instance, out var prefab))
         {
-            // Ǯ���� ������ �� �ƴϸ� �׳� Destroy
-            Debug.LogWarning("[PoolManager.Return]: unknown instance, Destroy ó��");
+            // Ǯ���� ������ �� �ƴϸ� �׳� Destroy
+            Debug.LogWarning("[PoolManager.Return]: unknown instance, Destroy ó��");
             Destroy(instance);
             return;
         }
