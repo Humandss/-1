@@ -41,6 +41,8 @@ namespace LockDown.Ballistic.Job
 
             registeredSos.Clear();
             indexBySo.Clear();
+            // job이 SO(매니지드 GC Heap)이 직접 참조하지 못하기 때문에
+            // 해당 총알을 인덱스화 시켜 정보를 저장함
             foreach (var so in allBulletInfos)
             {
                 if (so == null || indexBySo.ContainsKey(so)) continue;

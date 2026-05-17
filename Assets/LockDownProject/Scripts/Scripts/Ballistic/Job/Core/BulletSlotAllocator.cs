@@ -45,12 +45,12 @@ namespace LockDown.Ballistic.Job
             return true;
         }
 
+
         public void Release(int slotIndex)
         {
             if (slotIndex < 0 || slotIndex >= Capacity) return;
-            var s = states[slotIndex];
-            if (s.isAlive == 0) return;  // 이미 풀려있음 (이중 해제 방지)
 
+            var s = states[slotIndex];
             s.isAlive = 0;
             states[slotIndex] = s;
             freeIndices.Add(slotIndex);

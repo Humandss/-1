@@ -61,8 +61,9 @@ namespace LockDown.Ballistic.Job
             }
 
             states[ev.slotIndex] = s;
-            if (s.isAlive == 0)
-                allocator.Release(ev.slotIndex);
+            // 슬롯 해제는 BulletSimulationSystem.FixedUpdate의 cleanup loop가 일괄 처리.
+            // 여기서 Release를 부르면 cleanup loop와 중복 호출되어 freeIndices에 같은 인덱스가
+            // 두 번 들어가는 버그가 생김.
         }
 
         // ---------- Default 레이어 (벽/지형) ----------
