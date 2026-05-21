@@ -50,6 +50,21 @@ namespace LockDown.Ballistic.Job
         [SerializeField, Range(0f, 200f), Tooltip("리스너 기준 이 거리 이상이면 VFX 스폰 생략. 0이면 비활성")]
         private float maxVfxVisibleDistance = 60f;
 
+        [Header("Effects (Body/Head Blood VFX)")]
+        [SerializeField, Tooltip("인체 히트 시 무작위로 스폰할 피 프리팹 (KriptoFX Blood1~Blood15 등)")]
+        private List<GameObject> bodyImpactBloodPrefabs = new List<GameObject>();
+        [SerializeField, Tooltip("헤드샷 전용 피 프리팹 (비어있으면 bodyImpactBloodPrefabs 사용)")]
+        private List<GameObject> headImpactBloodPrefabs = new List<GameObject>();
+        [SerializeField, Range(0, 64), Tooltip("프리팹 각각을 게임 시작 시 미리 풀에 적재할 개수")]
+        private int prewarmBloodPerPrefab = 8;
+        [SerializeField, Range(0, 64), Tooltip("한 프레임 최대 피 VFX 스폰 수")]
+        private int maxBloodPerFrame = 12;
+
+        [SerializeField, Tooltip("바닥/벽에 부착되는 피 데칼 (KriptoFX AttachedBlood). BleedingBloodTrail이 참조")]
+        private GameObject attachedBloodPrefab;
+        [SerializeField, Range(0, 128), Tooltip("AttachedBlood 미리 풀에 적재할 개수")]
+        private int prewarmAttachedBlood = 32;
+
         [Header("Sounds (전역 클립 + 볼륨)")]
         [SerializeField] private List<AudioClip> ricochetClips = new List<AudioClip>();
         [SerializeField] private List<AudioClip> defaultImpactClips = new List<AudioClip>();
@@ -132,8 +147,12 @@ namespace LockDown.Ballistic.Job
             // 정적 효과/사운드 슬롯 주입 (도메인 리로드 시 매번 채워야 함)
             BulletEffectsRegistry.MetalImpactVfx = metalImpactVfx;
             BulletEffectsRegistry.HitSmoke = hitSmoke;
+            BulletEffectsRegistry.BodyImpactBloodPrefabs = bodyImpactBloodPrefabs;
+            BulletEffectsRegistry.HeadImpactBloodPrefabs = headImpactBloodPrefabs;
+            BulletEffectsRegistry.AttachedBloodPrefab = attachedBloodPrefab;
             EffectsBudget.MaxMetalImpactPerFrame = maxMetalImpactPerFrame;
             EffectsBudget.MaxSmokePerFrame = maxSmokePerFrame;
+            EffectsBudget.MaxBloodPerFrame = maxBloodPerFrame;
             EffectsBudget.MaxVisibleDistance = maxVfxVisibleDistance;
             SoundUtility.RicochetClips = ricochetClips;
             SoundUtility.DefaultImpactClips = defaultImpactClips;
@@ -164,6 +183,18 @@ namespace LockDown.Ballistic.Job
             {
                 if (metalImpactVfx != null) PoolManager.Instance.Prewarm(metalImpactVfx, prewarmMetalImpactVfx);
                 if (hitSmoke != null) PoolManager.Instance.Prewarm(hitSmoke, prewarmHitSmoke);
+
+                // 피 프리팹 각각 prewarm
+                if (bodyImpactBloodPrefabs != null)
+                    foreach (var p in bodyImpactBloodPrefabs)
+                        if (p != null) PoolManager.Instance.Prewarm(p, prewarmBloodPerPrefab);
+                if (headImpactBloodPrefabs != null)
+                    foreach (var p in headImpactBloodPrefabs)
+                        if (p != null) PoolManager.Instance.Prewarm(p, prewarmBloodPerPrefab);
+
+                // 바닥 피 데칼 prewarm
+                if (attachedBloodPrefab != null)
+                    PoolManager.Instance.Prewarm(attachedBloodPrefab, prewarmAttachedBlood);
             }
             else
             {

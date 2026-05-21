@@ -209,20 +209,38 @@ namespace LockDown.Ballistic.Job
 
             PlayBodyImpactSound(col, ev.hitPoint);
 
-            // 인체 관통 후 잔여 속도/관통력
+            // 인체 관통 여부 먼저 판정 (피 방향/위치를 결정하기 위해)
+            bool penetrates = false;
             if (healthMan != null)
             {
                 float newPen = math.max(0f, healthMan.GetPenetrationAfterPenBody());
                 float newSpeed = math.max(0f, healthMan.GetSpeedAfterPenBody());
                 s.pen = newPen;
                 s.speed = newSpeed;
-                if (s.pen <= 0f || s.speed <= 0f) { s.isAlive = 0; return; }
+                penetrates = !(s.pen <= 0f || s.speed <= 0f);
+            }
+
+            // 피 VFX 스폰:
+            //   - 관통 O: 사출구(반대편)에서 총알 진행 방향(s.dir)으로 분출
+            //   - 관통 X: 진입점에서 총알 반대 방향(-s.dir)으로 분출 (사수 쪽으로 튐)
+            if (penetrates)
+            {
+                Vector3 exitPos = ComputeBodyExitPoint(col, ev.hitPoint, (Vector3)s.dir);
+                SpawnBloodVfx(col, exitPos, (Vector3)s.dir);
+            }
+            else
+            {
+                SpawnBloodVfx(col, ev.hitPoint, (Vector3)(-s.dir));
+            }
+
+            // 상태 갱신
+            if (penetrates)
+            {
                 s.pos = ev.hitPoint + s.dir * ExitOffset;
                 s.velocity = s.dir * s.speed;
             }
             else
             {
-                // HealthManager 없으면 그냥 소멸
                 s.isAlive = 0;
                 return;
             }
@@ -274,11 +292,14 @@ namespace LockDown.Ballistic.Job
             else if (name == "Head") SoundUtility.PlayHeadImpact(pos);
         }
 
+        /// <summary>
+        /// Default/Armor 레이어 히트 시 임팩트 VFX (Spark1 등) 스폰.
+        /// 인체(Body) 히트는 SpawnBloodVfx가 따로 처리하므로 여기서 호출하지 않음.
+        /// 재질 무관하게 활성화 (벽/콘크리트/금속 등 모두 동일 VFX). 만약 재질별로
+        /// 다른 VFX를 원하면 BulletEffectsRegistry에 추가 슬롯 두고 분기.
+        /// </summary>
         private static void SpawnImpactVfx(MaterialManager matMan, Vector3 pos, Vector3 normal)
         {
-            if (matMan == null) return;
-            string mat = matMan.GetMaterialName();
-            if (mat != "Metal" && mat != "Steel_Plate") return;
             var prefab = BulletEffectsRegistry.MetalImpactVfx;
             if (prefab == null) return;
             if (PoolManager.Instance == null) return;
@@ -295,6 +316,57 @@ namespace LockDown.Ballistic.Job
             if (!EffectsBudget.TryConsumeSmoke(pos)) return;
             var rot = Quaternion.LookRotation(normal);
             PoolManager.Instance.Spawn(prefab, pos + normal * ExitOffset, rot);
+        }
+
+        /// <summary>
+        /// 인체 히트 시 피 VFX 스폰.
+        ///   - col: 히트한 콜라이더 (head/thorax 등 부위 판정에 사용)
+        ///   - pos: 스폰 위치 (관통 시 사출구, 미관통 시 진입점)
+        ///   - sprayDirection: 피 분출 방향 (관통 시 총알 진행 방향, 미관통 시 그 반대)
+        ///
+        /// 머리(Head) 콜라이더는 HeadImpactBloodPrefabs 우선, 없으면 BodyImpactBloodPrefabs.
+        /// EffectsBudget으로 프레임당 최대 수 제한 + 거리 컬링.
+        /// </summary>
+        private static void SpawnBloodVfx(Collider col, Vector3 pos, Vector3 sprayDirection)
+        {
+            if (PoolManager.Instance == null) return;
+            if (!EffectsBudget.TryConsumeBlood(pos)) return;
+
+            // 부위 판정: 머리 콜라이더면 헤드샷 전용 피 우선
+            bool isHead = col != null && col.name == "head";
+            var list = (isHead && BulletEffectsRegistry.HeadImpactBloodPrefabs != null
+                                && BulletEffectsRegistry.HeadImpactBloodPrefabs.Count > 0)
+                ? BulletEffectsRegistry.HeadImpactBloodPrefabs
+                : BulletEffectsRegistry.BodyImpactBloodPrefabs;
+
+            if (list == null || list.Count == 0) return;
+
+            var prefab = list[UnityEngine.Random.Range(0, list.Count)];
+            if (prefab == null) return;
+
+            // sprayDirection 정규화 + Z-fighting 방지로 약간 외부에 스폰
+            Vector3 dir = sprayDirection.sqrMagnitude > 1e-6f
+                ? sprayDirection.normalized
+                : Vector3.forward;
+            var rot = Quaternion.LookRotation(dir);
+            PoolManager.Instance.Spawn(prefab, pos + dir * ExitOffset, rot);
+        }
+
+        /// <summary>
+        /// 인체 콜라이더의 사출구 추정. 진입점에서 총알 진행 방향으로 1m 더 들어간 뒤
+        /// 콜라이더에 역방향 raycast를 던져서 출구 표면을 찾는다.
+        /// 실패 시 진입점 + 0.3m (대략적 두께)로 폴백.
+        /// </summary>
+        private static Vector3 ComputeBodyExitPoint(Collider col, Vector3 entryPos, Vector3 dir)
+        {
+            const float probeDistance = 1.0f;
+            Vector3 probeStart = entryPos + dir * probeDistance;
+            if (col.Raycast(new Ray(probeStart, -dir), out RaycastHit exitHit, probeDistance))
+            {
+                return exitHit.point;
+            }
+            // 콜라이더가 작거나 raycast 실패 시 대략적 두께로 폴백
+            return entryPos + dir * 0.3f;
         }
     }
 }

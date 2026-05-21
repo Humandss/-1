@@ -11,11 +11,13 @@ namespace LockDown.Ballistic.Job
     {
         public static int MaxMetalImpactPerFrame = 16;
         public static int MaxSmokePerFrame = 24;
+        public static int MaxBloodPerFrame = 12;
         public static float MaxVisibleDistance = 60f;   // 0 이하면 거리 컬링 비활성
 
         private static int currentFrame = -1;
         private static int metalCount;
         private static int smokeCount;
+        private static int bloodCount;
 
         private static Transform cachedListener;
         private static int listenerFrame = -1;
@@ -38,6 +40,15 @@ namespace LockDown.Ballistic.Job
             return true;
         }
 
+        public static bool TryConsumeBlood(Vector3 pos)
+        {
+            TickFrame();
+            if (bloodCount >= MaxBloodPerFrame) return false;
+            if (!IsAudible(pos)) return false;
+            bloodCount++;
+            return true;
+        }
+
         private static void TickFrame()
         {
             int f = Time.frameCount;
@@ -45,6 +56,7 @@ namespace LockDown.Ballistic.Job
             currentFrame = f;
             metalCount = 0;
             smokeCount = 0;
+            bloodCount = 0;
         }
 
         private static bool IsAudible(Vector3 pos)
