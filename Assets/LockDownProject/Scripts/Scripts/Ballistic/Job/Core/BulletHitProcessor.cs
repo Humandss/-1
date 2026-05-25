@@ -222,11 +222,13 @@ namespace LockDown.Ballistic.Job
 
             // 피 VFX 스폰:
             //   - 관통 O: 사출구(반대편)에서 총알 진행 방향(s.dir)으로 분출
+            //              + 사출구 1m 이내 벽이 있으면 그 벽에 AttachedBlood 부착
             //   - 관통 X: 진입점에서 총알 반대 방향(-s.dir)으로 분출 (사수 쪽으로 튐)
             if (penetrates)
             {
                 Vector3 exitPos = ComputeBodyExitPoint(col, ev.hitPoint, (Vector3)s.dir);
                 SpawnBloodVfx(col, exitPos, (Vector3)s.dir);
+                TrySpawnExitBloodSplatterOnWall(exitPos, (Vector3)s.dir);
             }
             else
             {
@@ -367,6 +369,46 @@ namespace LockDown.Ballistic.Job
             }
             // 콜라이더가 작거나 raycast 실패 시 대략적 두께로 폴백
             return entryPos + dir * 0.3f;
+        }
+
+        /// <summary>
+        /// 인체 관통 후 사출구 뒤쪽 1m 이내에 벽이 있으면 AttachedBlood 부착.
+        /// "총알이 사람을 관통하고 뒷벽에 핏자국 남기는" 디테일.
+        /// 메인 스레드에서 호출되므로 Physics.Raycast 직접 사용 가능.
+        /// </summary>
+        private static void TrySpawnExitBloodSplatterOnWall(Vector3 exitPos, Vector3 dir)
+        {
+            const float maxWallDistance = 1.0f;
+            const float surfaceOffset = 0.005f;   // Z-fighting 방지
+
+            // 사출구에서 살짝 떨어진 지점에서 시작 (인체 콜라이더 다시 안 잡히게)
+            Vector3 rayStart = exitPos + dir * 0.05f;
+
+            // Default 레이어(벽/지형)만 대상. Body/Armor 등은 제외.
+            int wallMask = LayerMask.GetMask("Default");
+
+            if (!Physics.Raycast(rayStart, dir, out RaycastHit hit,
+                                 maxWallDistance, wallMask, QueryTriggerInteraction.Ignore))
+                return;
+
+            var prefab = BulletEffectsRegistry.AttachedBloodPrefab;
+            if (prefab == null) return;
+            if (PoolManager.Instance == null) return;
+            if (!EffectsBudget.TryConsumeBlood(hit.point)) return;
+
+            // 벽 표면 노멀 따라 회전 + Y축 무작위 (decal 다양성)
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, hit.normal);
+            rot *= Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
+
+            Vector3 spawnPos = hit.point + hit.normal * surfaceOffset;
+            var go = PoolManager.Instance.Spawn(prefab, spawnPos, rot);
+
+            // 사이즈 약간 변동 (시각 다양성)
+            if (go != null)
+            {
+                float scale = UnityEngine.Random.Range(0.8f, 1.3f);
+                go.transform.localScale = Vector3.one * scale;
+            }
         }
     }
 }
